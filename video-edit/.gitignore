@@ -1,0 +1,4 @@
+.tmp/
+out/
+project/node_modules/
+__pycache__/

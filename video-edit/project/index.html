@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Inter"; src: url("fonts/inter-cyrillic-300-normal.woff2") format("woff2"); font-weight: 300; font-display: block; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-cyrillic-400-normal.woff2") format("woff2"); font-weight: 400; font-display: block; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-cyrillic-500-normal.woff2") format("woff2"); font-weight: 500; font-display: block; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-cyrillic-600-normal.woff2") format("woff2"); font-weight: 600; font-display: block; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-cyrillic-700-normal.woff2") format("woff2"); font-weight: 700; font-display: block; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-latin-300-normal.woff2") format("woff2"); font-weight: 300; font-display: block; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2192, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: block; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2192, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: block; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2192, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: block; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2192, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Inter"; src: url("fonts/inter-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: block; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2192, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+      :root {
+        --panel: #fcfbf8;
+        --ink: #14161a;
+        --line: rgba(20, 22, 26, 0.1);
+        --accent: #c8623c;
+        --shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
+        --shadow-soft: 0 24px 70px rgba(60, 40, 20, 0.16);
+        --bg: #efebe4;
+        --r: 28px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #efebe4;
+        font-family: "Inter", -apple-system, system-ui, sans-serif;
+        color: #14161a;
+        -webkit-font-smoothing: antialiased;
+      }
+      #main-root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg); }
+
+      /* ── camera ─────────────────────────────────────────────
+         #cam is the full-frame speaker. Layouts are GSAP states on it
+         (scale / y / clip-path), set on the jump-cut frames so the layout
+         change hides the cut. #cam-frame is the shadow box behind the
+         windowed (stack) layout: 864×840 at (108,110). */
+      #cam-frame {
+        position: absolute; left: 108px; top: 110px; width: 864px; height: 840px;
+        border-radius: var(--r); background: #000; box-shadow: var(--shadow-soft);
+      }
+      #cam { position: absolute; inset: 0; transform-origin: 50% 0; }
+      #cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+      /* ── shared by scene sub-compositions ── */
+      .panel { background: var(--panel); border-radius: var(--r); box-shadow: var(--shadow); color: var(--ink); }
+      /* panel under the windowed speaker; bottom edge ~20% of frame height above the bottom */
+      .stack-panel {
+        position: absolute; left: 70px; top: 1000px; width: 940px; height: 540px;
+        padding: 56px; box-shadow: var(--shadow-soft);
+      }
+      .title { font-size: 60px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+      /* bottom chips sit ~20% of frame height above the bottom edge */
+      .bottom-zone {
+        position: absolute; left: 0; right: 0; bottom: 384px;
+        display: flex; flex-direction: column; align-items: center; gap: 20px;
+      }
+      .chip {
+        display: flex; align-items: center; gap: 18px;
+        padding: 24px 42px; border-radius: var(--r);
+        font-size: 46px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.15;
+      }
+      .chip .dot { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); flex: none; }
+      .chip-accent { background: var(--accent); color: #ffffff; font-weight: 600; box-shadow: var(--shadow); }
+    </style>
+  </head>
+  <body>
+    <div id="main-root" data-composition-id="main" data-start="0" data-duration="27.36" data-fps="25" data-width="1080" data-height="1920">
+      <div id="cam-frame"></div>
+      <div id="cam">
+        <video id="cam-video" data-clip="video" src="input-video.mp4" playsinline data-has-audio="true"
+               data-start="0.0" data-duration="27.36" data-track-index="0"></video>
+      </div>
+
+      <!-- track 1 · overlays on the full frame -->
+      <div id="scene-a" class="clip" data-clip="sceneA" data-composition-id="scene-a" data-composition-src="compositions/scene-a.html"
+           data-start="0.0" data-duration="3.24" data-track-index="1" data-width="1080" data-height="1920"></div>
+      <div id="scene-c" class="clip" data-clip="sceneC" data-composition-id="scene-c" data-composition-src="compositions/scene-c.html"
+           data-start="6.64" data-duration="5.4" data-track-index="1" data-width="1080" data-height="1920"></div>
+      <div id="scene-f" class="clip" data-clip="sceneF" data-composition-id="scene-f" data-composition-src="compositions/scene-f.html"
+           data-start="19.28" data-duration="3.08" data-track-index="1" data-width="1080" data-height="1920"></div>
+
+      <!-- track 2 · panels under the windowed speaker -->
+      <div id="scene-b" class="clip" data-clip="sceneB" data-composition-id="scene-b" data-composition-src="compositions/scene-b.html"
+           data-start="3.24" data-duration="3.4" data-track-index="2" data-width="1080" data-height="1920"></div>
+      <div id="scene-d" class="clip" data-clip="sceneD" data-composition-id="scene-d" data-composition-src="compositions/scene-d.html"
+           data-start="12.04" data-duration="4.12" data-track-index="2" data-width="1080" data-height="1920"></div>
+      <div id="scene-g" class="clip" data-clip="sceneG" data-composition-id="scene-g" data-composition-src="compositions/scene-g.html"
+           data-start="22.36" data-duration="5.0" data-track-index="2" data-width="1080" data-height="1920"></div>
+
+      <!-- track 3 · key phrase, full screen -->
+      <div id="scene-e" class="clip" data-clip="sceneE" data-composition-id="scene-e" data-composition-src="compositions/scene-e.html"
+           data-start="15.92" data-duration="3.36" data-track-index="3" data-width="1080" data-height="1920"></div>
+
+      <!-- track 4 · captions (spot only) -->
+      <div id="captions" class="clip" data-clip="captions" data-track-kind="captions" data-composition-id="captions" data-composition-src="compositions/captions.html"
+           data-start="26.4" data-duration="0.96" data-track-index="4" data-width="1080" data-height="1920"></div>
+    </div>
+
+    <script>
+      (function () {
+        /* CUES:BEGIN — generated by tools/gen_cues.py from cues.json, do not edit */
+        const CUE = {"zero": 0.0, "end": 27.36, "s2": 3.24, "s3": 6.64, "s4": 12.04, "s5": 16.16, "s6": 19.28, "s7": 22.36, "s7jump": 23.48, "c1Clients": 0.4, "c1Year": 2.2, "c2Results": 4.48, "c2Daily": 6.08, "c3Small": 7.68, "c3Budget": 8.64, "c3Comp": 10.08, "c3Big": 10.76, "c4Title": 13.24, "c4Reach": 13.76, "c4Clicks": 14.4, "c4Reports": 15.28, "c5Leads": 16.76, "c5People": 17.32, "c5Really": 17.96, "c5Service": 18.52, "c6Press": 19.44, "c6More": 20.0, "c6Answer": 20.64, "c6Four": 21.28, "c6Quest": 22.04, "c7Twenty": 22.88, "c7Cost": 24.24, "c7Best": 25.64, "c7Exactly": 26.52, "c7For": 26.8, "c7You": 27.04};
+        const CLIP = {"video": {"start": 0.0, "duration": 27.36}, "sceneA": {"start": 0.0, "duration": 3.24}, "sceneB": {"start": 3.24, "duration": 3.4}, "sceneC": {"start": 6.64, "duration": 5.4}, "sceneD": {"start": 12.04, "duration": 4.12}, "sceneE": {"start": 15.92, "duration": 3.36}, "sceneF": {"start": 19.28, "duration": 3.08}, "sceneG": {"start": 22.36, "duration": 5.0}, "captions": {"start": 26.4, "duration": 0.96}};
+        /* CUES:END */
+
+        // Camera layouts live on the root timeline (a sub-composition cannot animate host
+        // elements). Each is a hard cut on a jump-cut frame. STACK windows the speaker
+        // into 864×840 at (108,110); PUNCH is the same window, 1.075× tighter, for the
+        // jump cut inside S7.
+        const FULL = { scale: 1, y: 0, clipPath: "inset(0px 0px 0px 0px round 0px)" };
+        const STACK = { scale: 0.8, y: -210, clipPath: "inset(400px 0px 470px 0px round 35px)" };
+        const PUNCH = { scale: 0.86, y: -234, clipPath: "inset(400px 38px 543px 38px round 32.56px)" };
+        const tl = gsap.timeline({ paused: true });
+        const cam = (state, t) => {
+          tl.set("#cam", state, t);
+          tl.set("#cam-frame", { autoAlpha: state === FULL ? 0 : 1 }, t);
+        };
+        cam(FULL, 0);
+        cam(STACK, CUE.s2);
+        cam(FULL, CUE.s3);
+        cam(STACK, CUE.s4);
+        cam(FULL, CUE.s6);
+        cam(STACK, CUE.s7);
+        cam(PUNCH, CUE.s7jump);
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

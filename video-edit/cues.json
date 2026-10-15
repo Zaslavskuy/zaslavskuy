@@ -1,0 +1,59 @@
+{
+  "_doc": "Метки графики, привязанные к речи смонтированной дорожки. Типы: {word, n?, offset?} — n-е вхождение слова (без краевой пунктуации и регистра); {span, edge?} — начало/конец фразы из edl_spans.json; {piece, edge?} — стык куска реза (1-based); {at} — абсолютная секунда. clips: data-start/data-duration элемента с data-clip=<имя> = [from − pre, to + post]. После перерезки: python3 tools/gen_cues.py",
+  "cues": {
+    "zero":      { "at": 0 },
+    "end":       { "span": "S7", "edge": "out" },
+    "s2":        { "span": "S2" },
+    "s3":        { "span": "S3" },
+    "s4":        { "span": "S4" },
+    "s5":        { "span": "S5" },
+    "s6":        { "span": "S6" },
+    "s7":        { "span": "S7" },
+    "s7jump":    { "piece": 8 },
+
+    "c1Clients": { "word": "клиентов", "offset": -0.10 },
+    "c1Year":    { "word": "2016", "offset": -0.10 },
+
+    "c2Results": { "word": "результаты", "offset": -0.15 },
+    "c2Daily":   { "word": "ежедневно", "offset": -0.05 },
+
+    "c3Small":   { "word": "малого", "offset": -0.10 },
+    "c3Budget":  { "word": "небольшим", "offset": -0.05 },
+    "c3Comp":    { "word": "компаний", "offset": -0.10 },
+    "c3Big":     { "word": "крупными", "offset": -0.05 },
+
+    "c4Title":   { "word": "не", "offset": -0.05 },
+    "c4Reach":   { "word": "охваты", "offset": -0.08 },
+    "c4Clicks":  { "word": "клики", "offset": -0.08 },
+    "c4Reports": { "word": "красивые", "offset": -0.08 },
+
+    "c5Leads":   { "word": "заявки", "offset": -0.10 },
+    "c5People":  { "word": "людей", "offset": -0.10 },
+    "c5Really":  { "word": "реально", "offset": -0.10 },
+    "c5Service": { "word": "ваша", "offset": -0.08 },
+
+    "c6Press":   { "word": "жмите", "offset": -0.20 },
+    "c6More":    { "word": "подробнее", "offset": 0.00 },
+    "c6Answer":  { "word": "ответьте", "offset": -0.10 },
+    "c6Four":    { "word": "4", "offset": -0.05 },
+    "c6Quest":   { "word": "вопроса", "offset": 0.00 },
+
+    "c7Twenty":  { "word": "20", "offset": -0.10 },
+    "c7Cost":    { "word": "стоимость", "offset": -0.08 },
+    "c7Best":    { "word": "лучшее", "offset": -0.08 },
+    "c7Exactly": { "word": "именно", "offset": -0.06 },
+    "c7For":     { "word": "для", "n": 4, "offset": -0.04 },
+    "c7You":     { "word": "вас", "offset": -0.04 }
+  },
+  "clips": {
+    "video":    { "from": "zero", "to": "end" },
+    "sceneA":   { "from": "zero", "to": "s2" },
+    "sceneB":   { "from": "s2",   "to": "s3" },
+    "sceneC":   { "from": "s3",   "to": "s4" },
+    "sceneD":   { "from": "s4",   "to": "s5" },
+    "sceneE":   { "from": "s5",   "to": "s6", "pre": 0.24 },
+    "sceneF":   { "from": "s6",   "to": "s7" },
+    "sceneG":   { "from": "s7",   "to": "end" },
+    "captions": { "from": "c7Exactly", "pre": 0.10, "to": "end" }
+  }
+}

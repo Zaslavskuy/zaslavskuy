@@ -5,7 +5,9 @@ usage: python3 tools/plan_cut.py edl_spans.json OUT.json [--density максим
 For each span: tighten to speech (first speech - 20 ms, last speech + 30 ms),
 compress inner pauses, then snap to the frame grid. Starts snap down, ends snap
 up, so snapping can only add a few ms of air and never clips speech; pieces that
-touch after snapping are merged.
+touch after snapping are merged. A span may carry "hold_out" (seconds): its last
+piece then runs that much past the last speech, capped at the source's end, for
+a clean silent tail on the final frame.
 """
 import argparse
 import json
@@ -25,10 +27,11 @@ a = ap.parse_args()
 edl = load_json(a.edl)
 gain = a.gain if a.gain is not None else load_json(".tmp/env.json")["gain_db"]
 probe = json.loads(subprocess.run(
-    ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate",
+    ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate,nb_frames",
      "-of", "json", edl["source"]], capture_output=True, text=True, check=True).stdout)
 num, den = map(int, probe["streams"][0]["r_frame_rate"].split("/"))
 fps = num / den
+src_frames = int(probe["streams"][0]["nb_frames"])
 
 x, sr = read_wav(a.wav)
 speech, _ = speech_mask(envelope(x, sr, gain))
@@ -39,9 +42,13 @@ for sp in edl["spans"]:
     if b is None:
         raise SystemExit(f"{sp['id']}: no speech inside {sp['in']}-{sp['out']}")
     parts = compress(speech, b[0], b[1], a.density)
+    hold = sp.get("hold_out", 0.0)
+    if hold:  # appended after compression, or the tail itself gets squeezed as a pause
+        parts[-1] = (parts[-1][0], min(parts[-1][1] + hold, src_frames / fps))
+        b = (b[0], parts[-1][1])
     snapped = []
     for p0, p1 in parts:
-        f0, f1 = math.floor(p0 * fps), math.ceil(p1 * fps)
+        f0, f1 = math.floor(p0 * fps), min(math.ceil(p1 * fps), src_frames)
         if snapped and f0 <= snapped[-1][1]:
             snapped[-1][1] = max(snapped[-1][1], f1)
         else:

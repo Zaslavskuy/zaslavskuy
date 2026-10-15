@@ -1,4 +1,7 @@
 .tmp/
 out/
-project/node_modules/
 __pycache__/
+project/input-video.mp4
+project/.hyperframes/
+project/renders/
+project/node_modules/

@@ -6,7 +6,7 @@
 @font-face{font-family:Osw;src:url(assets/fonts/oswald-lat.woff2) format('woff2');font-weight:200 700}
 @font-face{font-family:Mont;src:url(assets/fonts/mont-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:100 900}
 @font-face{font-family:Mont;src:url(assets/fonts/mont-lat.woff2) format('woff2');font-weight:100 900}
-:root{--red:#e8232b;--green:#39ff5a}
+:root{--red:#FFB21E;--green:#39ff5a}
 html,body{margin:0;padding:0;background:transparent;overflow:hidden}
 #root{position:relative;width:720px;height:1280px;overflow:hidden}
 .scene{position:absolute;inset:0;overflow:hidden;display:none}
@@ -18,7 +18,7 @@ html,body{margin:0;padding:0;background:transparent;overflow:hidden}
 .w{display:inline-block;transform-origin:50% 60%;will-change:auto}
 .ls{font:600 32px/1.1 Mont;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 3px rgba(0,0,0,.5)}
 .lb,.lr{font:600 78px/0.98 Osw;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.45),0 0 3px rgba(0,0,0,.35)}
-.lr{color:var(--red);text-shadow:0 4px 18px rgba(0,0,0,.55),0 0 3px rgba(0,0,0,.4)}
+.lr{color:var(--red);text-shadow:0 0 2px rgba(0,0,0,.75),0 3px 6px rgba(0,0,0,.45),0 4px 22px rgba(0,0,0,.6)}
 .strike{position:absolute;left:-6px;right:-6px;top:52%;height:7px;background:var(--red);transform-origin:0 50%;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 /* ---------- dashboard ---------- */
 #dash{background:#101010}
@@ -31,6 +31,10 @@ html,body{margin:0;padding:0;background:transparent;overflow:hidden}
 .panel svg{position:absolute;left:24px;top:150px}
 .kpi{position:absolute;width:150px;height:62px;border-radius:8px}
 .kpi .sk{position:absolute}
+.kl{position:absolute;left:10px;top:9px;font:600 10px/1 Mont;color:#666;white-space:nowrap}
+.kv{position:absolute;left:10px;top:29px;font:700 19px/1 Mont;color:#333;white-space:nowrap;letter-spacing:-.2px}
+.pt{position:absolute;left:24px;top:18px;font:700 15px/1 Mont;color:#4a4a4a}
+.glow .kl{color:#444}.glow .kv{color:#111}
 .glow{background:#fff;box-shadow:0 0 18px 6px rgba(255,255,255,.85),0 0 60px 10px rgba(255,255,255,.35)}
 .vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,.08) 30%,rgba(0,0,0,.8) 100%)}
 /* ---------- diagram / browser bg ---------- */
@@ -51,13 +55,21 @@ svg .rst{fill:none;stroke:var(--red);stroke-width:5;stroke-linecap:round;stroke-
 .win .txt span{display:inline-block;font:700 30px/1 Mont;color:#fff;background:#b3b3b3;padding:10px 16px;border-radius:4px;letter-spacing:1px;white-space:pre}
 .win .skr{position:absolute;height:12px;border-radius:6px;background:#d6d6d6}
 .head{position:absolute;left:0;width:720px;text-align:center;font:600 104px/1 Osw;text-transform:uppercase;color:#fff;text-shadow:0 6px 24px rgba(0,0,0,.4);transform-origin:50% 100%}
-.head.red{color:var(--red)}
+.head.red{color:var(--red);text-shadow:0 0 2px rgba(0,0,0,.6),0 6px 24px rgba(0,0,0,.5)}
 /* avatar + card */
 #avatar{position:absolute;left:300px;top:760px;width:124px;height:124px;border-radius:50%;display:none;box-sizing:border-box;border:6px solid #3fbf4a;background:rgba(30,30,30,.35);backdrop-filter:blur(4px);overflow:hidden}
-#pcard{position:absolute;left:392px;top:150px;width:300px;height:150px;border-radius:20px;background:rgba(245,246,250,.94);box-shadow:0 18px 50px rgba(0,0,0,.35);display:none}
-#pcard img{position:absolute;left:18px;top:18px;width:68px;height:68px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #fff,0 0 0 5px #e1306c}
-#pcard .sk{position:absolute;height:12px;border-radius:6px;background:#cfd2da}
-#pcard .btn{position:absolute;left:18px;right:18px;bottom:16px;height:40px;border-radius:10px;background:#2f6bff;color:#fff;font:700 18px/40px Mont;text-align:center;overflow:hidden}
+#pcard{position:absolute;left:28px;top:64px;width:664px;height:306px;border-radius:30px;background:rgba(12,12,14,.52);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.35);display:none;color:#fff;font-family:Mont,'Noto Color Emoji';overflow:hidden}
+#pcard .un{position:absolute;left:28px;top:22px;font:700 25px/1 Mont;letter-spacing:.2px}
+#pcard .dots{position:absolute;right:26px;top:16px;font:700 26px/1 Mont;letter-spacing:2px}
+#pcard .av{position:absolute;left:24px;top:66px;width:112px;height:112px;border-radius:50%;padding:4px;background:conic-gradient(#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5,#feda75)}
+#pcard .av img{width:104px;height:104px;border-radius:50%;object-fit:cover;border:4px solid rgba(20,20,22,.9);box-sizing:border-box;transform:scale(1)}
+#pcard .nm{position:absolute;left:162px;top:72px;right:20px;font:700 18px/1.25 Mont,'Noto Color Emoji'}
+#pcard .st{position:absolute;left:162px;top:124px;display:flex;gap:30px}
+#pcard .st b{display:block;font:700 24px/1 Mont}#pcard .st span{display:block;font:500 14px/1.4 Mont;color:rgba(255,255,255,.85)}
+#pcard .bio{position:absolute;left:28px;top:192px;right:20px;font:500 15px/1.35 Mont,'Noto Color Emoji';color:rgba(255,255,255,.92)}
+#pcard .bio a{color:#9db8ff;text-decoration:none;font-weight:600}
+#pcard .btn{position:absolute;left:24px;width:300px;bottom:18px;height:42px;border-radius:12px;background:#0095f6;color:#fff;font:700 17px/42px Mont;text-align:center;overflow:hidden}
+#pcard .btn2{position:absolute;right:24px;width:300px;bottom:18px;height:42px;border-radius:12px;background:rgba(255,255,255,.18);color:#fff;font:700 17px/42px Mont;text-align:center}
 #pcard .rip{position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.55);left:50%;top:50%}
 #cursor{position:absolute;width:34px;height:34px;display:none}
 </style></head>
@@ -67,8 +79,12 @@ svg .rst{fill:none;stroke:var(--red);stroke-width:5;stroke-linecap:round;stroke-
   <div id="brow" class="scene darkbg"><div class="stage"><div class="tilt" id="btilt"></div></div></div>
   <div id="subs"></div>
   <div id="avatar"><svg viewBox="0 0 100 100" width="112" height="112"><circle cx="50" cy="38" r="17" fill="#fff"/><path d="M18 92 C20 66 34 60 50 60 C66 60 80 66 82 92Z" fill="#fff"/></svg></div>
-  <div id="pcard"><img src="assets/avatar.jpg"><div class="sk" style="left:104px;top:28px;width:150px"></div><div class="sk" style="left:104px;top:52px;width:100px;background:#e0e2e8"></div>
-    <div class="btn"><span id="btxt">Оставить заявку</span><div class="rip" id="rip"></div></div></div>
+  <div id="pcard"><div class="un">zaslavskuy</div><div class="dots">•••</div>
+    <div class="av"><img src="assets/ig_avatar.jpg"></div>
+    <div class="nm">Vadym ⚡ Веб-разработка &amp; Маркетинг 🇺🇦</div>
+    <div class="st"><div><b>93</b><span>публикации</span></div><div><b>1218</b><span>подписчики</span></div><div><b>597</b><span>подписки</span></div></div>
+    <div class="bio">🔥 Делаю сайты, которые приносят 💰<br><a>🔗 trafficpro.online</a></div>
+    <div class="btn"><span id="btxt">Оставить заявку</span><div class="rip" id="rip"></div></div><div class="btn2">Написать</div></div>
   <svg id="cursor" viewBox="0 0 24 24"><path d="M4 2 L4 20 L9 15.5 L12.5 22 L15.5 20.6 L12.2 14.3 L19 14.3 Z" fill="#fff" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/></svg>
 </div>
 <script>
@@ -146,14 +162,16 @@ function renderSubs(t){const y=SUB_Y(t)*1280;
 const DASH=[3.42,7.40];
 const dpan=[];
 function chartPath(seed,w,h,n=46,spikes=true){const r=rng(seed);let pts=[];for(let i=0;i<n;i++){let v=.18+r()*.22;if(spikes&&r()<.16)v+=.35+r()*.35;pts.push([i/(n-1)*w,h-v*h])}return'M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L')}
+const DATA=[['329 415,75 ₴','1 508'],['386 942,10 ₴','1 836'],['147 860,40 ₴','1 124']];
 (function buildDash(){const W=$('dworld');
  const layout=[[-580,-1150],[20,-1150],[-580,-770],[20,-770],[-580,-390],[20,-390],[-580,-10],[20,-10],[-580,370],[20,370]];
  layout.forEach(([x,y],i)=>{const p=el('div','panel',W,{left:x+'px',top:y+'px'});const r=rng(i*97+5);
-  el('div','sk',p,{left:'24px',top:'22px',width:(120+r()*80)+'px',background:'#8d8d8d'});
-  el('div','sk',p,{left:'24px',top:'40px',width:(200+r()*60)+'px',background:'#b0b0b0',height:'7px'});
-  const kpis=[];for(let k=0;k<3;k++){const kp=el('div','kpi',p,{left:(24+k*176)+'px',top:'64px'});
-   el('div','sk',kp,{left:'10px',top:'12px',width:(70+r()*40)+'px',height:'7px',background:'#a5a5a5'});
-   el('div','sk',kp,{left:'10px',top:'32px',width:(80+r()*50)+'px',height:'13px',background:'#7f7f7f'});kpis.push(kp)}
+  const pt=el('div','pt',p);pt.textContent=i%2?'Графики':'Продуктивность';
+  el('div','sk',p,{left:'24px',top:'42px',width:(200+r()*60)+'px',background:'#a8a8a8',height:'7px'});
+  const DS=DATA[i===2?0:i===7?1:(i%3===0?2:i%3===1?0:1)];
+  const kpis=[];for(let k=0;k<3;k++){const kp=el('div','kpi',p,{left:(24+k*176)+'px',top:'62px'});
+   const l=el('div','kl',kp);l.textContent=['Всего продаж','Чистый объём продаж','Заказы'][k];
+   const v=el('div','kv',kp);v.textContent=[DS[0],DS[0],DS[1]][k];kpis.push(kp)}
   const svg=svgEl('svg',{width:512,height:160},p);
   for(let g=0;g<4;g++)svgEl('line',{x1:0,x2:512,y1:20+g*40,y2:20+g*40,stroke:'#b8b8b8','stroke-width':1},svg);
   const d=chartPath(i*13+3,512,150);
@@ -185,7 +203,7 @@ function renderDash(t){const S=$('dash');const on=t>=DASH[0]&&t<DASH[1];S.style.
   d.green.setAttribute('stroke-dashoffset',d.len*(1-eOut(draw)));d.green.style.opacity=draw>0?1:0;
   // depth blur for panels away from focus
   const pc=panelCenter(i),dist=Math.hypot(pc[0]-fx,pc[1]-fy);d.p.style.filter=dist>560?`blur(${Math.min(3,(dist-560)/120)}px)`:'none';
-  d.kpis.forEach((k,j)=>{let g=0;if(i===2&&j===1)g=t>=3.84;if(i===7&&j===0)g=t>=6.54;if(i===7&&j===2)g=t>=6.82;
+  d.kpis.forEach((k,j)=>{let g=0;if(i===2&&j===1)g=t>=3.84;if(i===7&&j===0)g=t>=6.54;if(i===7&&j===1)g=t>=6.82;
    if(g){const q=pop(t,i===2?3.84:(j===0?6.54:6.82),.18,.8);k.classList.add('glow');k.style.transform=`scale(${q.s*1.08})`;}else{k.classList.remove('glow');k.style.transform='none'}})});
 }
 
@@ -198,7 +216,7 @@ const D={};
  const lines=svgNS(720,1280,'0 0 720 1280');W.appendChild(lines);
  const mk=(d,id)=>{const m=svgEl('mask',{id,maskUnits:'userSpaceOnUse',x:0,y:0,width:720,height:1280},lines);
   const mp=svgEl('path',{d,fill:'none',stroke:'#fff','stroke-width':16,'stroke-linecap':'round'},m);
-  svgEl('path',{d,fill:'none',stroke:'#e8232b','stroke-width':6,'stroke-dasharray':'16 13','stroke-linecap':'round',mask:`url(#${id})`},lines);
+  svgEl('path',{d,fill:'none',stroke:'#FFB21E','stroke-width':6,'stroke-dasharray':'16 13','stroke-linecap':'round',mask:`url(#${id})`},lines);
   const L=1000;mp.setAttribute('stroke-dasharray',L);mp.setAttribute('stroke-dashoffset',L);return{mp,L}};
  D.p1=mk('M235 820 Q360 870 485 820','m1');           // marketing -> product
  D.p3=mk('M570 680 Q560 520 450 470','m3');           // product -> traffic
@@ -250,12 +268,12 @@ const B={};
  const sv=svgEl('svg',{width:720,height:1280,viewBox:'0 0 720 1280',style:'position:absolute;left:0;top:0;overflow:visible'});T.appendChild(sv);
  const rib=(d,id)=>{const m=svgEl('mask',{id,maskUnits:'userSpaceOnUse',x:0,y:0,width:720,height:1280},sv);
   const mp=svgEl('path',{d,fill:'none',stroke:'#fff','stroke-width':18,'stroke-linecap':'round'},m);
-  svgEl('path',{d,fill:'none',stroke:'#e8232b','stroke-width':7,'stroke-dasharray':'30 12','stroke-linecap':'round',mask:`url(#${id})`},sv);
+  svgEl('path',{d,fill:'none',stroke:'#FFB21E','stroke-width':7,'stroke-dasharray':'30 12','stroke-linecap':'round',mask:`url(#${id})`},sv);
   mp.setAttribute('stroke-dasharray',900);mp.setAttribute('stroke-dashoffset',900);return mp};
  B.r1=rib('M520 330 C 520 400, 470 380, 470 440 S 420 480, 420 520','bm1');
  B.r2=rib('M200 330 C 200 400, 250 380, 250 440 S 300 480, 300 520','bm2');
  const ic=(x,y,inner)=>{const d=el('div','icon',T,{left:(x-75)+'px',top:(y-75)+'px',width:'150px',height:'150px'});d.innerHTML=`<svg viewBox="0 0 100 100" width="150" height="150" style="overflow:visible">${inner}</svg>`;return d};
- B.ig=ic(520,250,`<rect x="10" y="10" width="80" height="80" rx="24" class="rst" stroke-width="8"/><circle cx="50" cy="50" r="18" class="rst" stroke-width="8"/><circle cx="71" cy="29" r="5" fill="#e8232b"/>`);
+ B.ig=ic(520,250,`<rect x="10" y="10" width="80" height="80" rx="24" class="rst" stroke-width="8"/><circle cx="50" cy="50" r="18" class="rst" stroke-width="8"/><circle cx="71" cy="29" r="5" fill="#FFB21E"/>`);
  B.gg=ic(200,250,`<path class="rst" stroke-width="11" stroke-linecap="butt" d="M80 30 A36 36 0 1 0 86 54 L52 54"/>`);
 })();
 function typed(str,t,a,b){const n=Math.round(clamp((t-a)/(b-a))*str.length);return str.slice(0,n)}
@@ -285,15 +303,14 @@ function renderAvatar(t){const a=$('avatar');const on=t>=33.58&&t<34.68;a.style.
  a.style.borderColor=`rgb(${mix(63,140,p)},${mix(191,140,p)},${mix(74,140,p)})`}
 
 // ================= PROFILE CARD + CURSOR (36.06–end) =================
-function renderCard(t){const c=$('pcard'),cu=$('cursor');const on=t>=36.06;c.style.display=on?'block':'none';cu.style.display=on&&t<38.4?'block':'none';if(!on)return;
- const p=lin(t,36.06,36.45);c.style.transform=`translateX(${(1-eBack(p))*360}px)`;
- // cursor path
- const cp=kf(t,[[36.20,[640,520]],[36.58,[560,272]],[38.4,[560,272]]]);
+function renderCard(t){const c=$('pcard'),cu=$('cursor');const T0=35.36;const on=t>=T0;c.style.display=on?'block':'none';cu.style.display=on&&t>=36.0&&t<38.4?'block':'none';if(!on)return;
+ const p=lin(t,T0,T0+.4);c.style.opacity=eOut(p);c.style.transform=`translateY(${(1-eBack(p))*-70}px) scale(${.92+.08*eOut(p)})`;
+ const cp=kf(t,[[36.00,[520,560]],[36.55,[200,342]],[38.4,[200,342]]]);
  cu.style.left=cp[0]+'px';cu.style.top=cp[1]+'px';
  const press=t>=36.62&&t<36.76;cu.style.transform=press?'scale(.85)':'none';
- $('pcard').querySelector('.btn').style.transform=press?'scale(.94)':'none';
- const rp=lin(t,36.64,37.1);const r=$('rip');r.style.opacity=t>=36.64?(1-rp)*.9:0;r.style.transform=`translate(-50%,-50%) scale(${1+rp*16})`;
- const done=t>=36.80;$('btxt').textContent=done?'✓ Заявка отправлена':'Оставить заявку';c.querySelector('.btn').style.background=done?'#22b455':'#2f6bff';
+ const btn=c.querySelector('.btn');btn.style.transform=press?'scale(.95)':'none';
+ const rp=lin(t,36.64,37.1);const r=$('rip');r.style.opacity=t>=36.64?(1-rp)*.9:0;r.style.transform=`translate(-50%,-50%) scale(${1+rp*18})`;
+ const done=t>=36.80;$('btxt').textContent=done?'✓ Заявка отправлена':'Оставить заявку';btn.style.background=done?'#22b455':'#0095f6';
 }
 
 window.renderAt=function(t){renderSubs(t);renderDash(t);renderDiag(t);renderBrow(t);renderAvatar(t);renderCard(t)};

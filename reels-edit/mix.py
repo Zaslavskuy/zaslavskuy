@@ -59,7 +59,7 @@ CUES = [
     (33.62, 'kit/pop.ogg', -11, 'onset', 'avatar'),
     (33.84, 'glitch/kenney-interface-glitch-002.ogg', -15, 'onset', 'не онлайн'),
     (34.68, 'whoosh/fs393811.ogg', -17, 'peak', 'punch-in'),
-    (36.10, 'transition/fs-850347-swipe-various.ogg', -11, 'peak', 'profile card slides in'),
+    (35.40, 'transition/fs-850347-swipe-various.ogg', -11, 'peak', 'profile card slides in'),
     (36.64, 'click/fs788933.ogg', -8, 'onset', 'cursor click'),
     (36.80, 'ding/kenney-interface-confirmation-001.ogg', -13, 'onset', 'request sent'),
 ]

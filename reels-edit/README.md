@@ -1,6 +1,8 @@
 # Монтаж Reels по референсу
 
-Финальное видео: `output/reels_final.mp4` (1080×1920, 25 fps, 39.3 с, −14 LUFS / −2 dBTP).
+Финальные видео (1080×1920, 25 fps, −14 LUFS / −2 dBTP):
+- `output/reels_final.mp4` — русская версия (39.3 с)
+- `output/reels_final_EN.mp4` — английская версия (38.0 с): субтитры и вся инфографика на английском, суммы в долларах, без карточки Instagram в финале
 
 ## Что повторено из референса
 - Кинетические субтитры: мелкое слово (Montserrat) + крупное ключевое (Oswald, капс), янтарный акцент (#FFB21E), перечёркивание «РЕЗУЛЬТАТОВ».
@@ -16,4 +18,6 @@ python3 composite.py source.mp4 <ovlDir> video_noaudio.mp4
 python3 mix.py source.mp4 <sfxDir> music.mp3 mix.wav
 bash mux.sh video_noaudio.mp4 mix.wav output/reels_final.mp4
 ```
+Английская версия — те же команды с `LANG_CUT=en` перед `node`/`mix.py` и аргументом `en` у `composite.py`.
+В `scene.html` (`?lang=en`) — свои субтитры `CARDS_EN`, тексты `TXT` и тайм-ремап анимаций `TMAP` под английскую речь.
 Тайминги субтитров — массив `CARDS` в `scene.html`; камера — `CAM` в `composite.py`; звуки — `CUES` в `mix.py`.

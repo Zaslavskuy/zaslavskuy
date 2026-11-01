@@ -1,0 +1,251 @@
+{
+ "music_offset_s": 52.49,
+ "cut_to_beat_error_ms": {
+  "3.4": 209,
+  "6.24": 146,
+  "9.9": 72,
+  "14.04": 5,
+  "14.56": 37,
+  "18.9": 11
+ },
+ "cues": [
+  {
+   "t": 3.0,
+   "file": "transition/fs-702773-swipe-wav.ogg",
+   "gain_db": -9,
+   "align": "peak",
+   "desc": "strike-through RESULTS"
+  },
+  {
+   "t": 3.46,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "iris -> dashboard"
+  },
+  {
+   "t": 3.8,
+   "file": "kit/pop.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "glow card"
+  },
+  {
+   "t": 4.3,
+   "file": "transition/fs-786514-swoosh-v2.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "camera move"
+  },
+  {
+   "t": 4.5,
+   "file": "typing/fs-511418-data-reveal-sound.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "green chart draws"
+  },
+  {
+   "t": 4.86,
+   "file": "pop/fs-824189-pop-in-sfx.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "panel lights up"
+  },
+  {
+   "t": 5.62,
+   "file": "whoosh/fs-683101-quick-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "camera pan"
+  },
+  {
+   "t": 5.72,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "kpi glow 1"
+  },
+  {
+   "t": 5.92,
+   "file": "pop/kenney-interface-drop-002.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "kpi glow 2"
+  },
+  {
+   "t": 6.26,
+   "file": "whoosh/fs-264777-swoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur back to face"
+  },
+  {
+   "t": 8.52,
+   "file": "kit/impact.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "EVERYTHING (accent)"
+  },
+  {
+   "t": 9.95,
+   "file": "whoosh/fs-169867-swoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "cut to diagram"
+  },
+  {
+   "t": 9.98,
+   "file": "pop/fs-447910-plop.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "envelope"
+  },
+  {
+   "t": 10.46,
+   "file": "kit/click.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "label MARKETING"
+  },
+  {
+   "t": 11.31,
+   "file": "transition/fs-683096-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "camera move"
+  },
+  {
+   "t": 11.64,
+   "file": "pop/kenney-interface-pluck-001.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "cart"
+  },
+  {
+   "t": 12.67,
+   "file": "transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "camera move"
+  },
+  {
+   "t": 13.1,
+   "file": "pop/fs527522.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "magnet"
+  },
+  {
+   "t": 14.06,
+   "file": "whoosh/fs830856.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 14.66,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "iris -> browser"
+  },
+  {
+   "t": 14.8,
+   "file": "typing/fs-447909-keyboard-typing.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "typing CREATE A WEBSITE"
+  },
+  {
+   "t": 15.46,
+   "file": "typing/fs-323432-typing.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "typing TO WHICH WE CAN"
+  },
+  {
+   "t": 16.12,
+   "file": "impact/fs-177242-cinematic-impact.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "EFFECTIVELY"
+  },
+  {
+   "t": 16.52,
+   "file": "pop/kenney-interface-maximize-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "DRIVE TRAFFIC"
+  },
+  {
+   "t": 17.26,
+   "file": "pop/kenney-interface-maximize-002.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "VIA ADS"
+  },
+  {
+   "t": 17.48,
+   "file": "pop/fs-824189-pop-in-sfx.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "Instagram icon"
+  },
+  {
+   "t": 18.22,
+   "file": "pop/fs202230.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "Google icon"
+  },
+  {
+   "t": 18.92,
+   "file": "whoosh/fs810485.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 24.02,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 28.26,
+   "file": "impact/kenney-impact-impactsoft-heavy-000.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "IN A TOOL (accent)"
+  },
+  {
+   "t": 30.78,
+   "file": "ding/fs-571513-soft-notifications-bell-ding-d.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "LEADS"
+  },
+  {
+   "t": 32.12,
+   "file": "kit/pop.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "avatar"
+  },
+  {
+   "t": 32.24,
+   "file": "glitch/kenney-interface-glitch-002.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "not online"
+  },
+  {
+   "t": 33.1,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  }
+ ]
+}

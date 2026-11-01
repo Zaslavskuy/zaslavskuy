@@ -10,7 +10,7 @@ const fs = require('fs');
   fs.mkdirSync(outDir, { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 720, height: 1280 }, deviceScaleFactor: 1.5 });
-  await page.goto('file://' + path.resolve(__dirname, 'scene.html'));
+  await page.goto('file://' + path.resolve(__dirname, 'scene.html') + (process.env.LANG_CUT ? '?lang=' + process.env.LANG_CUT : ''));
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(300);
   const shoot = async (t, file) => {

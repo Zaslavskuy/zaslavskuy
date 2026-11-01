@@ -1,5 +1,5 @@
 """Composite: source video -> camera moves (push-ins / punch-ins / zoom-blur whips) -> overlay frames.
-usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4>
+usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en]
 """
 import sys, os, subprocess
 import numpy as np, cv2
@@ -22,6 +22,17 @@ CAM = [
     (34.68, 36.06, 1.20, 1.24, D), (36.06, 99.0, 1.00, 1.06, D),
 ]
 WHIPS = [7.40, 15.36, 20.28]   # zoom-blur back onto the face after a b-roll
+if len(sys.argv) > 4 and sys.argv[4] == 'en':      # English cut: same shots, different speech timing
+    CAM = [
+        (0.00, 1.34, 1.16, 1.20, A), (1.34, 3.64, 1.00, 1.06, A),
+        (6.24, 8.24, 1.00, 1.05, B), (8.24, 10.04, 1.18, 1.22, B),
+        (14.04, 14.7, 1.00, 1.03, D),
+        (18.90, 21.28, 1.14, 1.18, D), (21.28, 24.00, 1.00, 1.04, D),
+        (24.00, 26.30, 1.22, 1.27, D), (26.30, 30.32, 1.00, 1.06, D),
+        (30.32, 32.12, 1.15, 1.19, D), (32.12, 33.10, 1.00, 1.03, D),
+        (33.10, 35.06, 1.20, 1.24, D), (35.06, 99.0, 1.00, 1.06, D),
+    ]
+    WHIPS = [6.24, 14.04, 18.90]
 WHIP_LEN = 0.26
 
 

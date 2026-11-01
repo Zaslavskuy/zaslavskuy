@@ -1,0 +1,273 @@
+{
+ "music_offset_s": 18.44,
+ "cut_to_beat_error_ms": {
+  "3.42": 13,
+  "7.4": 4,
+  "11.4": 26,
+  "15.36": 15,
+  "15.9": 67,
+  "20.28": 11,
+  "36.06": 20
+ },
+ "cues": [
+  {
+   "t": 2.98,
+   "file": "transition/fs-702773-swipe-wav.ogg",
+   "gain_db": -9,
+   "align": "peak",
+   "desc": "strike-through РЕЗУЛЬТАТОВ"
+  },
+  {
+   "t": 3.5,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "iris -> dashboard"
+  },
+  {
+   "t": 3.84,
+   "file": "kit/pop.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "glow card"
+  },
+  {
+   "t": 4.44,
+   "file": "transition/fs-786514-swoosh-v2.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "camera move"
+  },
+  {
+   "t": 4.62,
+   "file": "typing/fs-511418-data-reveal-sound.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "green chart draws"
+  },
+  {
+   "t": 5.86,
+   "file": "pop/fs-824189-pop-in-sfx.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "panel lights up"
+  },
+  {
+   "t": 6.45,
+   "file": "whoosh/fs-683101-quick-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "camera pan"
+  },
+  {
+   "t": 6.54,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "kpi glow 1"
+  },
+  {
+   "t": 6.82,
+   "file": "pop/kenney-interface-drop-002.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "kpi glow 2"
+  },
+  {
+   "t": 7.42,
+   "file": "whoosh/fs-264777-swoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur back to face"
+  },
+  {
+   "t": 9.86,
+   "file": "kit/impact.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "ВСЁ (red)"
+  },
+  {
+   "t": 11.45,
+   "file": "whoosh/fs-169867-swoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "cut to diagram"
+  },
+  {
+   "t": 11.48,
+   "file": "pop/fs-447910-plop.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "envelope"
+  },
+  {
+   "t": 12.08,
+   "file": "kit/click.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "label МАРКЕТИНГ"
+  },
+  {
+   "t": 12.95,
+   "file": "transition/fs-683096-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "camera move"
+  },
+  {
+   "t": 13.28,
+   "file": "pop/kenney-interface-pluck-001.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "cart"
+  },
+  {
+   "t": 14.2,
+   "file": "transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "camera move"
+  },
+  {
+   "t": 14.56,
+   "file": "pop/fs527522.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "magnet"
+  },
+  {
+   "t": 15.38,
+   "file": "whoosh/fs830856.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 16.0,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "iris -> browser"
+  },
+  {
+   "t": 16.16,
+   "file": "typing/fs-447909-keyboard-typing.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "typing СОЗДАТЬ САЙТ"
+  },
+  {
+   "t": 17.02,
+   "file": "typing/fs-323432-typing.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "typing НА КОТОРЫЙ МОЖНО"
+  },
+  {
+   "t": 17.56,
+   "file": "impact/fs-177242-cinematic-impact.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "ЭФФЕКТИВНО"
+  },
+  {
+   "t": 18.36,
+   "file": "pop/kenney-interface-maximize-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "ВЕСТИ ЛЮДЕЙ"
+  },
+  {
+   "t": 18.8,
+   "file": "pop/kenney-interface-maximize-002.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "ПО РЕКЛАМЕ"
+  },
+  {
+   "t": 19.36,
+   "file": "pop/fs-824189-pop-in-sfx.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "Instagram icon"
+  },
+  {
+   "t": 20.02,
+   "file": "pop/fs202230.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "Google icon"
+  },
+  {
+   "t": 20.3,
+   "file": "whoosh/fs810485.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 24.96,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 28.8,
+   "file": "impact/kenney-impact-impactsoft-heavy-000.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "В ИНСТРУМЕНТ (red)"
+  },
+  {
+   "t": 32.12,
+   "file": "ding/fs-571513-soft-notifications-bell-ding-d.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "ЗАЯВКИ"
+  },
+  {
+   "t": 33.62,
+   "file": "kit/pop.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "avatar"
+  },
+  {
+   "t": 33.84,
+   "file": "glitch/kenney-interface-glitch-002.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "не онлайн"
+  },
+  {
+   "t": 34.68,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 36.1,
+   "file": "transition/fs-850347-swipe-various.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "profile card slides in"
+  },
+  {
+   "t": 36.64,
+   "file": "click/fs788933.ogg",
+   "gain_db": -8,
+   "align": "onset",
+   "desc": "cursor click"
+  },
+  {
+   "t": 36.8,
+   "file": "ding/kenney-interface-confirmation-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "request sent"
+  }
+ ]
+}

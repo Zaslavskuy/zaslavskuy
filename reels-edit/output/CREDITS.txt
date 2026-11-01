@@ -1,0 +1,37 @@
+Sound effects (all CC0 1.0, from the bundled library of Barty-Bart/motion-graphics, skills/sound-effects/sfx):
+- click/fs788933.ogg
+- ding/fs-571513-soft-notifications-bell-ding-d.ogg
+- ding/kenney-interface-confirmation-001.ogg
+- glitch/kenney-interface-glitch-002.ogg
+- impact/fs-177242-cinematic-impact.ogg
+- impact/kenney-impact-impactsoft-heavy-000.ogg
+- kit/click.ogg
+- kit/impact.ogg
+- kit/pop.ogg
+- kit/whoosh.ogg
+- pop/fs-447910-plop.ogg
+- pop/fs-824189-pop-in-sfx.ogg
+- pop/fs202230.ogg
+- pop/fs527522.ogg
+- pop/kenney-interface-drop-001.ogg
+- pop/kenney-interface-drop-002.ogg
+- pop/kenney-interface-maximize-001.ogg
+- pop/kenney-interface-maximize-002.ogg
+- pop/kenney-interface-pluck-001.ogg
+- transition/fs-683096-woosh.ogg
+- transition/fs-702773-swipe-wav.ogg
+- transition/fs-786514-swoosh-v2.ogg
+- transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg
+- transition/fs-850347-swipe-various.ogg
+- typing/fs-323432-typing.ogg
+- typing/fs-447909-keyboard-typing.ogg
+- typing/fs-511418-data-reveal-sound.ogg
+- whoosh/fs-169867-swoosh.ogg
+- whoosh/fs-264777-swoosh.ogg
+- whoosh/fs-683101-quick-woosh.ogg
+- whoosh/fs393811.ogg
+- whoosh/fs810485.ogg
+- whoosh/fs830856.ogg
+
+Music: "Hazy After Hours" by Alejandro Magaña (A. M.), Mixkit #132, https://mixkit.co/free-stock-music/ — Mixkit Stock Music Free License (https://mixkit.co/license/#musicFree). Not stored in this repo.
+Fonts: Oswald, Montserrat — SIL Open Font License (Google Fonts).

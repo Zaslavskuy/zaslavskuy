@@ -1,5 +1,5 @@
 """Composite: source video -> camera moves (push-ins / punch-ins / zoom-blur whips) -> overlay frames.
-usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3]
+usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk]
 """
 import sys, os, subprocess
 import numpy as np, cv2
@@ -73,6 +73,16 @@ if len(sys.argv) > 4 and sys.argv[4] == 'p3':      # "ads that don't bring clien
         (33.12, 35.10, 1.00, 1.04, D), (40.60, 43.34, 1.14, 1.18, D), (43.34, 99.0, 1.00, 1.05, D),
     ]
     WHIPS = [14.10, 20.20, 31.20, 40.60]
+if len(sys.argv) > 4 and sys.argv[4] == 'p3uk':    # "ads that don't bring clients" reel, Ukrainian cut
+    A, B, C, D = (0.45, 0.33), (0.50, 0.30), (0.50, 0.30), (0.47, 0.28)
+    CAM = [
+        (0.00, 2.06, 1.06, 1.10, A), (2.06, 3.16, 1.22, 1.26, A),
+        (3.16, 4.26, 1.00, 1.03, B), (4.26, 5.26, 1.12, 1.15, B), (5.26, 7.40, 1.00, 1.04, B),
+        (13.80, 15.60, 1.14, 1.18, B), (19.52, 21.22, 1.00, 1.04, B), (21.22, 23.20, 1.10, 1.13, B),
+        (31.40, 33.56, 1.12, 1.16, B),
+        (33.56, 35.50, 1.00, 1.04, D), (41.40, 44.30, 1.14, 1.18, D), (44.30, 99.0, 1.00, 1.05, D),
+    ]
+    WHIPS = [13.80, 19.52, 31.40, 41.40]
 WHIP_LEN = 0.26
 
 

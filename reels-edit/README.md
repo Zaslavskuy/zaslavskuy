@@ -1,7 +1,8 @@
 # Монтаж Reels по референсу
 
 Финальные видео (1080×1920, 25 fps, −14 LUFS / −2 dBTP):
-- `output/reels_final.mp4` — русская версия (39.3 с)
+- `output/reels_final_RU_v3.mp4` — **актуальная русская версия** (39.3 с): свои цифры, переработанная инфографика (карточка выручки + клиенты, цепочка «маркетинг/продукт/трафик → результат», сборка сайта в телефоне + трафик из Instagram/Google Ads, ночные заявки), в финале — форма заявки с нажатием
+- `output/reels_final.mp4` — предыдущая русская версия (по шаблону, с карточкой Instagram)
 - `output/reels_final_EN.mp4` — английская версия (38.0 с): субтитры и вся инфографика на английском, суммы в долларах, без карточки Instagram в финале
 
 ## Что повторено из референса
@@ -19,5 +20,6 @@ python3 mix.py source.mp4 <sfxDir> music.mp3 mix.wav
 bash mux.sh video_noaudio.mp4 mix.wav output/reels_final.mp4
 ```
 Английская версия — те же команды с `LANG_CUT=en` перед `node`/`mix.py` и аргументом `en` у `composite.py`.
+Русская версия рендерится сценами V3 (`renderRes3`, `renderChain3`, `renderSite3`, `renderNotif3`, `renderForm3`); английская — сценами по шаблону.
 В `scene.html` (`?lang=en`) — свои субтитры `CARDS_EN`, тексты `TXT` и тайм-ремап анимаций `TMAP` под английскую речь.
 Тайминги субтитров — массив `CARDS` в `scene.html`; камера — `CAM` в `composite.py`; звуки — `CUES` в `mix.py`.

@@ -1,0 +1,323 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Niches reel overlay</title>
+<style>
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:200 700}
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-lat.woff2) format('woff2');font-weight:200 700}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:100 900}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-lat.woff2) format('woff2');font-weight:100 900}
+:root{--acc:#FFB21E;--green:#2ecc71}
+html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+#root{position:relative;width:720px;height:1280px;overflow:hidden}
+.scene{position:absolute;inset:0;overflow:hidden;display:none}
+.abs{position:absolute}
+.ov{position:absolute;left:0;top:0;width:720px;height:1280px;display:none}
+/* subtitles */
+#subs{position:absolute;inset:0;pointer-events:none}
+.card{position:absolute;left:0;width:720px;display:none;flex-direction:column;align-items:center;transform:translateY(-50%)}
+.line{display:flex;gap:.22em;justify-content:center;white-space:nowrap;position:relative}
+.w{display:inline-block;transform-origin:50% 60%}
+.ls{font:600 32px/1.1 Mont;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 3px rgba(0,0,0,.5)}
+.lb,.lr{font:600 78px/0.98 Osw;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.45),0 0 3px rgba(0,0,0,.35)}
+.lr{color:var(--acc);text-shadow:0 0 2px rgba(0,0,0,.75),0 3px 6px rgba(0,0,0,.45),0 4px 22px rgba(0,0,0,.6)}
+/* look */
+.v3bg{background:radial-gradient(140% 38% at 50% 0%,rgba(255,178,30,.13) 0%,rgba(255,178,30,.05) 55%,rgba(255,178,30,0) 100%),radial-gradient(circle,#2c2d33 1.6px,transparent 2px) 0 0/30px 30px,#0f1013}
+.glass{background:rgba(28,29,34,.94);border:1px solid rgba(255,255,255,.08);border-radius:26px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.frost{background:rgba(18,18,22,.64);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+svg .wst{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round}
+/* browser window */
+.win{position:absolute;width:560px;border-radius:16px;overflow:hidden;background:#141519;box-shadow:0 30px 70px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07);transform-origin:50% 50%}
+.win .bar{height:32px;display:flex;align-items:center;gap:7px;padding-left:14px;background:#1d1e23}
+.win .dot{width:10px;height:10px;border-radius:50%}
+.win .url{margin-left:14px;width:250px;height:18px;border-radius:9px;background:#2a2b31;position:relative}
+.win .url:before{content:'';position:absolute;left:9px;top:5px;width:7px;height:8px;border-radius:2px;background:#6b6c74}
+.win img{display:block;width:560px;height:421px;object-fit:cover}
+.tag{position:absolute;padding:0 18px;height:46px;border-radius:23px;font:700 18px/46px Mont;color:#fff;white-space:nowrap;background:rgba(20,20,24,.9);border:1px solid rgba(255,178,30,.5);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.tag b{color:var(--acc);margin-right:8px}
+.pill{position:absolute;width:300px;height:58px;border-radius:29px;font:700 18px/58px Mont;color:#fff;white-space:nowrap;padding-left:62px;box-sizing:border-box}
+.pill .ck{position:absolute;left:12px;top:11px;width:36px;height:36px;border-radius:50%;box-sizing:border-box;border:2px solid #4a4b52;color:#111;font:800 20px/32px Mont;text-align:center}
+.inp{position:absolute;height:50px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.inp span{position:absolute;left:16px;top:15px;font:600 19px/1 Mont;color:#fff;white-space:pre}
+.lbl{position:absolute;font:600 14px/1 Mont;color:#9a9ba3}
+</style></head>
+<body><div id="root"><div id="subs"></div></div>
+<script>
+// ================= helpers =================
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const lin=(t,a,b)=>clamp((t-a)/(b-a));
+const eOut=p=>1-Math.pow(1-p,3);
+const eInOut=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eBack=p=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
+const mix=(a,b,p)=>a+(b-a)*p;
+const $=id=>document.getElementById(id);
+function el(tag,cls,parent,style){const e=document.createElement(tag);if(cls)e.className=cls;if(style)Object.assign(e.style,style);if(parent)parent.appendChild(e);return e}
+function svgEl(tag,attrs,parent){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function kf(t,keys,ease=eInOut){if(t<=keys[0][0])return keys[0][1];for(let i=1;i<keys.length;i++){if(t<=keys[i][0]){const[a,va]=keys[i-1],[b,vb]=keys[i];const p=ease((t-a)/(b-a));return Array.isArray(va)?va.map((v,j)=>mix(v,vb[j],p)):mix(va,vb,p)}}return keys[keys.length-1][1]}
+function pop(t,at,dur=.16,from=.6){const p=lin(t,at,at+dur);return{o:t<at?0:clamp(p*2.2),s:from+(1-from)*eBack(p),b:(1-p)*5}}
+function applyPop(e,t,at,extra='',dur,from){const q=pop(t,at,dur,from);e.style.opacity=q.o;e.style.transform=`${extra} scale(${q.s})`;e.style.filter=q.b>.05?`blur(${q.b}px)`:'none'}
+const typed=(str,t,a,b)=>str.slice(0,Math.round(clamp((t-a)/(b-a))*str.length));
+const fmtInt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const ACC='#FFB21E';
+const UK=new URLSearchParams(location.search).get('lang')==='uk';
+const L=UK?{
+ tags:['Оренда яхт · Дубай','Клінінгова компанія','Архітектурне бюро','Агенція байєрів · Італія'],
+ toast:['Нова заявка з сайту','щойно'], pills:['Адаптив під смартфони','SEO-оптимізація','Продумана структура','Зручні форми заявок'],
+ query:'оренда яхт дубай', ours:'NACRE — оренда яхт у Дубаї', tree:['Головна','Послуги','Кейси','Відгуки','Контакти'],
+ formTitle:'Залишити заявку', name:'Ім\'я', phone:'Телефон', send:'Надіслати', sent:'✓ Заявку надіслано', person:'Олександр',
+ adsTitle:'🚀 Готовий до запуску реклами', adsWait:'Налаштування…', adsOk:'✓ Готово', camp:'Рекламна кампанія', paused:'● На паузі', active:'● Активна · Google + Instagram', leads:'Нові заявки',
+ ctaTitle:'Заявка на розробку сайту', ctaBtn:'Залишити заявку',
+}:{
+ tags:['Аренда яхт · Дубай','Клининговая компания','Архитектурное бюро','Байерское агентство · Италия'],
+ toast:['Новая заявка с сайта','только что'], pills:['Адаптив под смартфоны','SEO-оптимизация','Продуманная структура','Удобные формы заявок'],
+ query:'аренда яхт дубай', ours:'NACRE — аренда яхт в Дубае', tree:['Главная','Услуги','Кейсы','Отзывы','Контакты'],
+ formTitle:'Оставить заявку', name:'Имя', phone:'Телефон', send:'Отправить', sent:'✓ Заявка отправлена', person:'Александр',
+ adsTitle:'🚀 Готов к запуску рекламы', adsWait:'Настройка…', adsOk:'✓ Готово', camp:'Рекламная кампания', paused:'● На паузе', active:'● Активна · Google + Instagram', leads:'Новые заявки',
+ ctaTitle:'Заявка на разработку сайта', ctaBtn:'Оставить заявку',
+};
+// UK cut: remap its timeline onto the RU animation timeline, per scene
+function remap(t,pts){if(t<=pts[0][0])return pts[0][1]+(t-pts[0][0]);for(let i=1;i<pts.length;i++){if(t<=pts[i][0]){const[a,ra]=pts[i-1],[b,rb]=pts[i];return ra+(t-a)/(b-a)*(rb-ra)}}const Z=pts[pts.length-1];return Z[1]+(t-Z[0])}
+const TM=UK?{
+ show:[[4.00,4.00],[13.64,13.42],[14.56,14.64]],
+ feat:[[17.10,17.00],[17.24,17.06],[18.02,17.90],[18.68,18.58],[19.06,18.94],[20.02,19.88],[20.64,20.54],[21.40,21.22],[21.88,21.72],[22.26,22.14],[22.84,22.74]],
+ ads:[[24.26,24.08],[25.14,24.94],[25.58,25.34],[27.34,27.12],[27.94,27.52],[28.38,28.00],[29.66,29.10],[30.60,30.00],[30.98,30.40]],
+ cta:[[33.08,32.38],[33.70,33.02],[34.20,33.56],[34.36,33.72],[38.30,37.66]],
+}:null;
+const root=$('root');
+function mkScene(id,cls){const s=el('div','scene '+(cls||''));s.id=id;root.insertBefore(s,$('subs'));return s}
+function mkOv(id){const s=el('div','ov');s.id=id;root.insertBefore(s,$('subs'));return s}
+const ICON={
+ g:`<path fill="none" stroke="${ACC}" stroke-width="12" d="M80 30 A36 36 0 1 0 86 54 L52 54"/>`,
+ ig:`<rect x="12" y="12" width="76" height="76" rx="22" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="50" cy="50" r="17" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="70" cy="30" r="5" fill="${ACC}"/>`,
+ mail:'<path fill="none" stroke="#111" stroke-width="8" stroke-linejoin="round" d="M14 26 H86 V74 H14 Z M14 26 L50 54 L86 26"/>',
+};
+const svgIcon=(name,size)=>`<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;display:block">${ICON[name]}</svg>`;
+// image swap that resolves once the new frame is decoded
+const pending=[];
+function setImg(img,src){if(img.dataset.src===src)return;img.dataset.src=src;img.src=src;pending.push(img.decode().catch(()=>{}))}
+
+// ================= P3: "ads that don't bring clients" reel =================
+const RED='#ff4d4d';
+const T=UK?{
+ warn:'⚠ Де губляться заявки',
+ prob:[['Креативи','не чіпляють увагу'],['Пропозиція','не виділяє серед конкурентів'],['Налаштування реклами','бюджет іде не тій аудиторії'],['Посадкова сторінка','люди йдуть без заявки']],
+ cab:'Рекламний кабінет · 30 днів', spent:'Витрачено', leads:'Заявки', cpl:'Ціна заявки', exp:'витрати', lds:'заявки', will:'Бажання займатися рекламою',
+ resHead:'Результати <span style="color:#FFB21E">наших клієнтів</span>',
+ niches:[['Нерухомість','Дубай'],['Оптовий продаж одягу','Італія'],['Сфера послуг',''],['Сіра ніша','']], nda:'ніша під NDA', b2c:'B2C-послуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">зв\'язка</span>', nodes:['Пропозиція','Креативи','Сайт','Instagram','Заявка'],
+ cta:'Заявка на просування', name:'Ім\'я', phone:'Телефон', btn:'Залишити заявку', sent:'✓ Заявку надіслано', person:'Олександр',
+}:{
+ warn:'⚠ Где теряются заявки',
+ prob:[['Креативы','не цепляют внимание'],['Предложение','не выделяет среди конкурентов'],['Настройки рекламы','бюджет уходит не той аудитории'],['Посадочная страница','люди уходят без заявки']],
+ cab:'Рекламный кабинет · 30 дней', spent:'Потрачено', leads:'Заявки', cpl:'Цена заявки', exp:'расходы', lds:'заявки', will:'Желание заниматься рекламой',
+ resHead:'Результаты <span style="color:#FFB21E">наших клиентов</span>',
+ niches:[['Недвижимость','Дубай'],['Оптовая продажа одежды','Италия'],['Сфера услуг',''],['Серая ниша','']], nda:'ниша под NDA', b2c:'B2C-услуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">связка</span>', nodes:['Предложение','Креативы','Сайт','Instagram','Заявка'],
+ cta:'Заявка на продвижение', name:'Имя', phone:'Телефон', btn:'Оставить заявку', sent:'✓ Заявка отправлена', person:'Александр',
+};
+const TM3=UK?{
+ prob:[[7.30,7.30],[7.42,7.62],[8.62,8.98],[9.32,9.64],[10.58,10.88],[11.68,12.06],[13.80,14.10]],
+ budget:[[15.50,15.70],[16.48,16.56],[16.92,17.06],[18.54,18.52],[19.30,19.30],[19.52,20.20]],
+ res:[[23.10,22.20],[24.04,23.30],[25.68,25.10],[27.64,27.30],[29.32,29.00],[30.34,30.02],[30.72,30.32],[31.40,31.20]],
+ chain:[[35.40,35.00],[36.16,35.52],[36.92,36.58],[37.94,37.34],[38.62,38.04],[39.18,38.54],[40.04,39.34],[40.92,40.20],[41.40,40.60]],
+ cta:[[44.30,43.34],[44.96,44.04],[45.12,44.20],[48.60,47.68]],
+}:null;
+const IC={
+ img:`<rect x="12" y="20" width="76" height="60" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><circle cx="34" cy="40" r="7" fill="${ACC}"/><path d="M16 74 L40 52 L56 66 L68 56 L86 74" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ tag:`<path d="M14 50 L50 14 H86 V50 L50 86 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><circle cx="68" cy="32" r="7" fill="${ACC}"/>`,
+ sliders:`<path d="M14 28 H86 M14 50 H86 M14 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="66" cy="28" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="30" cy="50" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="74" cy="72" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/>`,
+ page:`<rect x="30" y="12" width="56" height="72" rx="8" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M42 32 H74 M42 46 H66" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/><path d="M8 80 L28 60 M28 60 L14 60 M28 60 L28 74" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ home:`<path d="M14 48 L50 18 L86 48 M24 42 V84 H76 V42" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><rect x="42" y="58" width="16" height="26" fill="${ACC}"/>`,
+ hanger:`<path d="M50 30 Q50 18 60 20 Q68 24 60 32 L50 40 L12 70 Q8 76 16 76 H84 Q92 76 88 70 L50 40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`,
+ tools:`<path d="M30 70 L62 38 M58 22 A16 16 0 0 0 78 42 L66 38 L62 34 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><path d="M22 78 L30 70" stroke="${ACC}" stroke-width="12" stroke-linecap="round"/>`,
+ mask:`<path d="M10 36 Q50 22 90 36 Q90 66 66 70 Q56 72 50 60 Q44 72 34 70 Q10 66 10 36 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><ellipse cx="32" cy="46" rx="8" ry="5" fill="${ACC}"/><ellipse cx="68" cy="46" rx="8" ry="5" fill="${ACC}"/>`,
+ browser:`<rect x="10" y="18" width="80" height="64" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M10 36 H90" stroke="${ACC}" stroke-width="7"/><circle cx="22" cy="27" r="3.5" fill="${ACC}"/><circle cx="33" cy="27" r="3.5" fill="${ACC}"/>`,
+ ig:ICON.ig, check:`<path d="M22 52 L42 72 L80 30" fill="none" stroke="#111" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`,
+};
+const ic=(n,s)=>`<svg viewBox="0 0 100 100" width="${s}" height="${s}" style="overflow:visible;display:block">${IC[n]}</svg>`;
+function slideScene(S,t,a){const sp=eOut(lin(t,a,a+.34));S.style.transform=sp<1?`translateY(${(1-sp)*100}%)`:'none';S.style.borderRadius=sp<1?'36px 36px 0 0':'0'}
+function expandScene(S,t,a){const p=eOut(lin(t,a,a+.34));S.style.clipPath=p<1?`inset(${(1-p)*40}% ${(1-p)*26}% ${(1-p)*40}% ${(1-p)*26}% round ${10+30*(1-p)}px)`:'none'}
+
+// ---------- SUBTITLES (with optional strike-through) ----------
+const SUB_Y=t=>t<6.80?0.62:t<12.70?0.47:t<31.92?0.87:t<35.10?0.66:t<42.56?0.87:0.545;
+const CARDS=[
+ [0.00,0.90,[['s',[['что',0.00],['общего',0.18],['у',0.72]]]]],
+ [0.90,2.06,[['b',[['недвижимости',0.90]]],['s',[['в',1.42],['дубае,',1.62]]]]],
+ [2.06,3.68,[['s',[['оптовой',2.06]]],['b',[['одежды',2.66]]],['s',[['в',3.08],['италии',3.18]]]]],
+ [3.68,6.60,[['s',[['и',3.68],['одной',3.94],['очень',4.80]]],['r',[['интересной',5.30]]],['s',[['ниши?',6.10]]]]],
+ [6.60,8.26,[['s',[['на',6.60],['первый',6.96],['взгляд,',7.16]]],['b',[['ничего',7.54]]]]],
+ [8.26,9.48,[['b',[['разная',8.26]]],['s',[['аудитория,',8.90]]]]],
+ [9.48,10.48,[['b',[['разные',9.48]]],['s',[['задачи,',9.84]]]]],
+ [10.48,12.70,[['s',[['и',10.48],['реклама',10.86],['здесь',11.22],['тоже',11.44],['должна',11.78],['быть',12.04]]],['r',[['разной',12.28]]]]],
+ [12.70,14.08,[['b',[['недвижимость',12.80]]],['s',[['в',13.50],['дубае',13.66]]]]],
+ [14.08,16.08,[['s',[['здесь',14.08],['важны',14.46]]],['b',[['качественные',14.86]]],['s',[['обращения',15.48]]]]],
+ [16.08,17.56,[['s',[['а',16.08],['не',16.32],['просто',16.38],['красивые',16.60]]],['b',[['цифры',17.12]]]]],
+ [17.56,19.22,[['b',[['оптовая',17.62],['одежда',18.24]]],['s',[['в',18.68],['италии',18.78]]]]],
+ [19.22,21.22,[['s',[['наша',19.22],['задача',19.66],['находить',20.10]]],['r',[['закупщиков',20.50]]]]],
+ [21.22,22.56,[['s',[['а',21.22],['не',21.40],['случайных',21.46]]],['b',[['покупателей',21.94]]]]],
+ [22.56,23.68,[['b',[['сфера',22.62],['услуг',23.14]]]]],
+ [23.68,25.38,[['s',[['здесь',23.68],['нужно',24.14],['быстро',24.34]]],['b',[['превращать',24.74]]]]],
+ [25.38,26.44,[['b',[['интерес',25.38]]],['s',[['в',25.64]]],['r',[['заявку',25.98]]]]],
+ [26.44,27.84,[['s',[['а',26.48],['вот',26.90],['эту',27.06]]],['b',[['нишу,',27.24]]]]],
+ [27.84,30.12,[['s',[['пожалуй,',27.84],['оставим',29.00]]],['r',[['без',29.48],['названия',29.56]]]]],
+ [30.12,31.92,[['s',[['но',30.12]]],['b',[['результаты',30.56]]],['s',[['вы',31.12],['видите',31.18]]]]],
+ [31.92,33.50,[['s',[['именно',31.64],['поэтому',32.22],['мы',32.54],['не',32.90]]],['b',[['запускаем',33.00]]]]],
+ [33.50,35.24,[['s',[['всем',33.50],['рекламу',33.70],['по',34.26],['одному',34.38]]],['b',[['шаблону',34.68]]],'strike',34.98]],
+ [35.24,36.78,[['s',[['мы',35.24],['разбираемся',35.66],['в',36.08]]],['b',[['бизнесе',36.24]]]]],
+ [36.78,37.94,[['s',[['готовим',36.78]]],['b',[['предложения',37.24]]]]],
+ [37.94,38.64,[['b',[['креативы',37.94]]]]],
+ [38.64,39.82,[['s',[['продумываем',38.64]]],['b',[['сайт',39.30]]]]],
+ [39.82,40.30,[['b',[['instagram',39.82]]]]],
+ [40.30,42.34,[['s',[['и',40.30],['весь',40.52],['путь',40.80],['клиента',41.22]]],['r',[['до',41.64],['заявки',41.76]]]]],
+ [42.34,43.84,[['b',[['хотите',42.34]]],['s',[['не',42.90],['просто',43.00],['рекламу,',43.20]]]]],
+ [43.84,45.46,[['s',[['а',43.84],['понятную',44.02]]],['b',[['систему',44.58]]],['s',[['привлечения',44.98]]]]],
+ [45.46,46.00,[['b',[['клиентов?',45.46]]]]],
+ [46.00,47.26,[['b',[['оставляйте',46.00]]],['s',[['заявку',46.74]]]]],
+ [47.26,48.48,[['s',[['обсудим,',47.26],['что',47.86]]],['b',[['подойдёт',48.02]]]]],
+ [48.48,50.10,[['s',[['именно',48.48]]],['b',[['вашему',48.70],['бизнесу',49.24]]]]],
+];
+const cardEls=[];
+(function(){const R=$('subs');
+ for(const c of CARDS){const ce=el('div','card',R);const words=[];let strike=null;
+  for(const L of c[2]){if(typeof L!=='object')continue;const le=el('div','line l'+L[0],ce);
+   for(const [txt,at] of L[1]){const w=el('span','w',le);w.textContent=L[0]==='s'?txt.toLowerCase():txt.toUpperCase();words.push([w,at])}
+   if(c[2].includes('strike')&&L[0]==='b')strike=el('div','abs',le,{left:'-6px',right:'-6px',top:'50%',height:'7px',background:ACC,transformOrigin:'0 50%',borderRadius:'2px',boxShadow:'0 2px 8px rgba(0,0,0,.4)'})}
+  const si=c[2].indexOf('strike');cardEls.push({c,ce,words,strike,sAt:si>=0?c[2][si+1]:0})}})();
+function renderSubs(t){const y=SUB_Y(t)*1280;
+ for(const k of cardEls){const on=t>=k.c[0]&&t<k.c[1];k.ce.style.display=on?'flex':'none';if(!on)continue;k.ce.style.top=y+'px';
+  for(const [w,at] of k.words)applyPop(w,t,at,'',.15,.55);
+  if(k.strike){const p=eOut(lin(t,k.sAt,k.sAt+.2));k.strike.style.transform=`scaleX(${p})`;k.strike.style.opacity=p>0?1:0}}}
+
+// ---------- 1. HOOK: light chips in the sky (0.9–6.8) ----------
+const HK={};
+(function(){const S=mkOv('hook');HK.S=S;
+ const chip=(y,html)=>{const c=el('div','abs',S,{left:'50%',top:y+'px',height:'66px',padding:'0 26px 0 14px',borderRadius:'33px',display:'flex',alignItems:'center',gap:'12px',whiteSpace:'nowrap',
+  background:'rgba(255,255,255,.16)',border:'1px solid rgba(255,255,255,.35)',backdropFilter:'blur(10px)',color:'#fff',font:'700 22px/1 Mont',textShadow:'0 1px 6px rgba(0,0,0,.25)',boxShadow:'0 10px 30px rgba(0,0,0,.12)'});c.innerHTML=html;return c};
+ const ico=n=>`<div style="width:42px;height:42px;border-radius:50%;background:rgba(15,16,19,.55);display:flex;align-items:center;justify-content:center">${ic(n,26)}</div>`;
+ HK.c1=chip(96,ico('home')+'Недвижимость · Дубай');
+ HK.c2=chip(180,ico('hanger')+'Оптовая одежда · Италия');
+ HK.c3=chip(264,ico('mask')+'<span id="hk3">??? ниша</span>');
+ HK.q=el('div','abs',S,{left:'578px',top:'150px',font:'600 120px/1 Osw',color:ACC,textShadow:'0 6px 30px rgba(0,0,0,.25)'});HK.q.textContent='?';
+})();
+function renderHook(t){const on=t>=0.85&&t<6.85;HK.S.style.display=on?'block':'none';if(!on)return;
+ const out=eInOut(lin(t,6.45,6.80));
+ [[HK.c1,0.90],[HK.c2,2.06],[HK.c3,3.94]].forEach(([c,at],i)=>{applyPop(c,t,at,'translateX(-50%)',.26,.6);c.style.opacity=(t<at?0:Math.min(1,parseFloat(c.style.opacity)))*(1-out);
+  c.style.transform+=` translateY(${Math.sin((t+i)*1.6)*3-out*30}px)`});
+ const g=t>=3.94&&t<6.4?Math.sin(t*47):0;$('hk3').style.filter=`blur(${2.2+Math.abs(g)*1.5}px)`;$('hk3').style.textShadow=g?`${g*3}px 0 rgba(255,0,80,.7),${-g*3}px 0 rgba(0,200,255,.7)`:'none';
+ applyPop(HK.q,t,6.10,'rotate(10deg)',.25,.3);HK.q.style.opacity=Math.min(parseFloat(HK.q.style.opacity)||0,1)*(1-out)*.9;
+}
+
+// ---------- 2. FOUR CASES (12.70–31.92) ----------
+const CS={st:[]};
+const CS_N=[
+ {t0:12.70,t1:17.56,icon:'home',title:'Недвижимость · Дубай',kp:[1632,32.51,575],kpAt:13.66},
+ {t0:17.56,t1:22.56,icon:'hanger',title:'Оптовая одежда · Италия',kp:[3228,7.20,961],kpAt:18.78},
+ {t0:22.56,t1:26.44,icon:'tools',title:'Сфера услуг · клининг',kp:[1813,5.10,824],kpAt:23.14},
+ {t0:26.44,t1:31.92,icon:'mask',title:'Без названия',kp:[2357,4.83,1617],kpAt:30.56,grey:true},
+];
+const money=v=>'$'+v.toFixed(2).replace('.',',');
+function phone(par,x,y,w,h,src){const p=el('div','abs',par,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:'30px',border:'6px solid #26272c',boxSizing:'border-box',overflow:'hidden',background:'#000',boxShadow:'0 26px 60px rgba(0,0,0,.6)',transformOrigin:'50% 50%'});
+ if(src){const im=el('img','',p,{width:'100%',height:'100%',objectFit:'cover',objectPosition:'50% 0%',display:'block'});im.src=src}return p}
+function pillEl(par,x,y,w,html,col){const p=el('div','abs',par,{left:x+'px',top:y+'px',width:w+'px',height:'58px',borderRadius:'29px',boxSizing:'border-box',background:`rgba(${col},.14)`,border:`1.5px solid rgba(${col},.6)`,color:`rgb(${col})`,font:'800 19px/55px Mont',textAlign:'center',whiteSpace:'nowrap'});p.innerHTML=html;return p}
+(function(){const S=mkScene('cases','v3bg');CS.S=S;
+ CS.head=el('div','abs',S,{left:'50%',top:'86px',height:'62px',padding:'0 24px 0 10px',borderRadius:'31px',display:'flex',alignItems:'center',gap:'12px',whiteSpace:'nowrap',background:'rgba(28,29,34,.96)',border:'1px solid rgba(255,178,30,.45)',font:'800 23px/1 Mont',color:'#fff',transform:'translateX(-50%)'});
+ CS.dots=[];for(let i=0;i<4;i++)CS.dots.push(el('div','abs',S,{left:(282+i*42)+'px',top:'166px',width:'34px',height:'6px',borderRadius:'3px',background:'#33343b'}));
+ CS_N.forEach((n,i)=>{const st=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});const o={st,n,el:{}};CS.st.push(o);
+  // KPI tiles
+  o.kp=[['Заявки',v=>fmtInt(v)],['Цена заявки',money],['ROAS',v=>fmtInt(v)+'%']].map(([lb,f],j)=>{const k=el('div','glass abs',st,{left:(40+j*220)+'px',top:'752px',width:'200px',height:'116px',borderRadius:'22px'});
+   k.innerHTML=`<div style="position:absolute;left:20px;top:18px;font:600 15px/1 Mont;color:#8e8f97">${lb}</div><div class="v" style="position:absolute;left:18px;top:50px;font:800 36px/1 Mont;color:${j===2?'#3ddc84':'#fff'}"></div>`;
+   return{k,v:k.querySelector('.v'),f}});
+  if(i===0){o.ph=[phone(st,48,222,250,480,'assets/p4/dxb_meta1.jpg')];
+   o.leads=[0,1,2].map(j=>{const c=el('div','glass abs',st,{left:'326px',top:(230+j*108)+'px',width:'354px',height:'94px',borderRadius:'20px'});
+    c.innerHTML=`<div style="position:absolute;left:16px;top:22px;width:50px;height:50px;border-radius:50%;background:rgba(46,204,113,.16);border:2px solid #2ecc71;color:#3ddc84;font:800 24px/46px Mont;text-align:center;box-sizing:border-box">✓</div>
+     <div style="position:absolute;left:80px;top:24px;font:800 17px/1 Mont;color:#fff">Квалифицированное</div><div style="position:absolute;left:80px;top:50px;font:500 15px/1 Mont;color:#9a9ba3">обращение · бюджет, сроки</div>`;return c});
+   o.van=el('div','glass abs',st,{left:'326px',top:'574px',width:'354px',height:'92px',borderRadius:'20px'});
+   o.van.innerHTML=`<div style="position:absolute;left:20px;top:18px;font:600 14px/1 Mont;color:#8e8f97">просто красивые цифры</div><div style="position:absolute;left:20px;top:44px;font:800 22px/1 Mont;color:#c9cad2">👁 1,2M &nbsp; ❤ 8 400</div>
+    <div class="sk" style="position:absolute;left:12px;right:12px;top:48px;height:6px;border-radius:3px;background:#ff4d4d;transform-origin:0 50%"></div>`;o.vs=o.van.querySelector('.sk')}
+  if(i===1||i===2){const src=i===1?['it_google','it_meta3','it_meta4']:['srv_1','srv_2','srv_3'];
+   o.ph=src.map((s,j)=>phone(st,[60,250,440][j],j===1?206:232,220,430,`assets/p4/${s}.jpg`));st.appendChild(o.ph[1])}
+  if(i===1){o.c1=pillEl(st,40,676,310,'✓ Оптовые закупщики','46,204,113');o.c2=pillEl(st,370,676,310,'✕ Случайные покупатели','255,77,77');
+   o.c2s=el('div','abs',o.c2,{left:'24px',right:'24px',top:'27px',height:'4px',background:'#ff4d4d',transformOrigin:'0 50%'})}
+  if(i===2){o.tag=el('div','abs',st,{left:'50px',top:'198px',height:'44px',padding:'0 18px',borderRadius:'22px',background:ACC,color:'#111',font:'800 18px/44px Mont',zIndex:5});o.tag.textContent='🧽 Клининг';
+   o.f1=pillEl(st,60,676,200,'Интерес','255,178,30');o.f2=pillEl(st,460,676,200,'✓ Заявка','46,204,113');
+   o.arr=el('div','abs',st,{left:'270px',top:'676px',width:'180px',height:'58px'});o.arr.innerHTML=`<svg width="180" height="58" viewBox="0 0 180 58"><path d="M8 29 H160 M146 16 L164 29 L146 42" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="position:absolute;left:66px;top:-24px;font:30px/1 sans-serif">⚡</div>`}
+  if(i===3){o.ph=[0,1,2].map(j=>{const p=phone(st,[60,250,440][j],j===1?206:232,220,430,null);
+    p.style.background=`linear-gradient(${150+j*40}deg,#2a1f12,#121216 55%,#1d1a2a)`;
+    p.innerHTML=`<div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 12px,transparent 12px 24px)"></div>
+     <div style="position:absolute;left:22px;right:22px;top:70px;height:150px;border-radius:14px;background:linear-gradient(135deg,rgba(255,178,30,.5),rgba(120,60,200,.4));filter:blur(14px)"></div>
+     <div style="position:absolute;left:24px;top:250px;width:140px;height:14px;border-radius:7px;background:#3a3b42;filter:blur(3px)"></div><div style="position:absolute;left:24px;top:276px;width:100px;height:14px;border-radius:7px;background:#3a3b42;filter:blur(3px)"></div>
+     <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font:34px/1 sans-serif">🔒</div><div style="position:absolute;left:0;right:0;top:366px;text-align:center;font:800 15px/1 Mont;letter-spacing:3px;color:${ACC}">CLASSIFIED</div>`;return p});
+   st.appendChild(o.ph[1]);
+   o.stamp=el('div','abs',st,{left:'190px',top:'380px',padding:'10px 22px',border:'5px solid #ff4d4d',borderRadius:'12px',color:'#ff4d4d',font:'600 46px/1 Osw',letterSpacing:'3px',textTransform:'uppercase',background:'rgba(15,16,19,.6)',zIndex:6});o.stamp.textContent='без названия';
+   o.shh=el('div','abs',st,{left:'560px',top:'190px',font:'74px/1 sans-serif',zIndex:6});o.shh.textContent='🤫';
+   o.vig=el('div','abs',st,{left:0,top:0,width:'720px',height:'1280px',background:'radial-gradient(ellipse 60% 45% at 50% 45%,rgba(0,0,0,0) 0%,rgba(0,0,0,.65) 100%)',pointerEvents:'none'});st.insertBefore(o.vig,st.firstChild)}
+ });
+})();
+function renderCases(t){const S=CS.S;const on=t>=12.70&&t<31.92;S.style.display=on?'block':'none';if(!on)return;expandScene(S,t,12.70);
+ const ci=CS_N.findIndex(n=>t>=n.t0&&t<n.t1),n=CS_N[ci];
+ CS.head.innerHTML=`<div style="width:44px;height:44px;border-radius:50%;background:#17181c;display:flex;align-items:center;justify-content:center">${ic(n.icon,28)}</div>`+
+  (n.grey?`<span style="position:relative">Серая ниша<span style="position:absolute;left:-4px;right:-4px;top:-4px;bottom:-4px;background:#050506;border-radius:4px;transform-origin:0 50%;transform:scaleX(${eOut(lin(t,29.48,29.80))})"></span></span>`:n.title)+
+  `<span style="color:${ACC};font-weight:700;margin-left:8px">0${ci+1}/04</span>`;
+ applyPop(CS.head,t,ci===0?12.85:n.t0,'translateX(-50%)',.24,.7);
+ if(n.grey){const g=t<29.4?Math.sin(t*53):0;CS.head.style.textShadow=g?`${g*3}px 0 rgba(255,0,80,.7),${-g*3}px 0 rgba(0,200,255,.7)`:'none'}else CS.head.style.textShadow='none';
+ CS.dots.forEach((d,i)=>{d.style.background=i<=ci?ACC:'#33343b'});
+ CS.st.forEach((o,i)=>{const {n}=o;const vis=t>=n.t0&&t<n.t1+.001;o.st.style.display=vis?'block':'none';if(!vis)return;
+  const a=lin(t,n.t0+(i===0?.10:0),n.t0+(i===0?.10:0)+.38),b=lin(t,n.t1-.24,n.t1);const x=(1-eOut(a))*300-eInOut(b)*300;
+  o.st.style.transform=`translateX(${x}px)`;o.st.style.opacity=clamp(a*2.5)*(1-b);o.st.style.filter=(1-a)+b>.02?`blur(${((1-a)+b)*6}px)`:'none';
+  // KPI count-up
+  const q=eOut(lin(t,n.kpAt,n.kpAt+.9));o.kp.forEach(({k,v,f},j)=>{applyPop(k,t,n.kpAt-.1+j*.08,'',.22,.7);
+   v.textContent=t<n.kpAt?'':(j===1?f(n.kp[1]*(3-2*q)):f(n.kp[j]*q))});
+  if(i===0){applyPop(o.ph[0],t,12.95,'rotate(-4deg)',.3,.7);
+   o.leads.forEach((c,j)=>{const at=14.86+j*.18,p=lin(t,at,at+.32);c.style.opacity=t<at?0:clamp(p*2);c.style.transform=`translateX(${(1-eBack(p))*260}px)`});
+   applyPop(o.van,t,16.32,'',.22,.6);o.vs.style.transform=`scaleX(${eOut(lin(t,16.70,16.95))})`;if(t>16.95)o.van.style.opacity=1-.45*lin(t,16.95,17.2)}
+  if(i===1||i===2){const base=i===1?17.66:22.66;o.ph.forEach((p,j)=>applyPop(p,t,base+[.15,0,.3][j],`rotate(${[-9,0,9][j]}deg)`,.32,.6))}
+  if(i===1){applyPop(o.c1,t,20.10,'',.22,.6);applyPop(o.c2,t,21.46,'',.22,.6);o.c2s.style.transform=`scaleX(${eOut(lin(t,21.94,22.14))})`;if(t>22.0)o.c2.style.opacity=1-.4*lin(t,22.0,22.2)}
+  if(i===2){applyPop(o.tag,t,22.95,'',.22,.5);applyPop(o.f1,t,24.34,'',.2,.6);
+   const ap=eInOut(lin(t,24.74,25.20));o.arr.style.clipPath=`inset(0 ${(1-ap)*100}% 0 0)`;o.arr.style.opacity=t>=24.74?1:0;applyPop(o.f2,t,25.98,'',.22,.4)}
+  if(i===3){o.ph.forEach((p,j)=>{applyPop(p,t,26.60+[.15,0,.3][j],`rotate(${[-9,0,9][j]}deg)`,.32,.6);const g=Math.sin(t*37+j*2);if(t<29.4&&g>.92)p.style.transform+=` translateX(${g*6}px)`});
+   applyPop(o.shh,t,27.84,'rotate(-10deg)',.25,.3);applyPop(o.stamp,t,29.56,'rotate(-10deg)',.22,1.8);o.vig.style.opacity=.8}
+ });
+}
+
+// ---------- 3. SYSTEM STACK (35.10–42.56) ----------
+const SY={pl:[]};
+const SY_D=[['tools','Анализ бизнеса',35.66],['tag','Предложение',37.24],['img','Креативы',37.94],['browser','Сайт',39.30],['ig','Instagram',39.82]];
+(function(){const S=mkScene('sys','v3bg');SY.S=S;
+ SY.head=el('div','abs',S,{left:'40px',top:'150px',width:'640px',textAlign:'center',font:'600 60px/1 Osw',color:'#fff',textTransform:'uppercase'});SY.head.innerHTML=`Система <span style="color:${ACC}">привлечения</span>`;
+ SY_D.forEach(([icn,txt],i)=>{const y=780-i*104;const p=el('div','glass abs',S,{left:'150px',top:y+'px',width:'500px',height:'88px',borderRadius:'22px'});
+  p.innerHTML=`<div style="position:absolute;left:14px;top:14px;width:60px;height:60px;border-radius:16px;background:#17181c;display:flex;align-items:center;justify-content:center">${ic(icn,36)}</div>
+   <div style="position:absolute;left:90px;top:0;font:800 23px/88px Mont;color:#fff">${txt}</div><div style="position:absolute;right:22px;top:0;font:700 18px/88px Mont;color:#5a5b63">0${i+1}</div>`;SY.pl.push({p,y})});
+ SY.rail=el('div','abs',S,{left:'98px',top:'364px',width:'6px',height:'0px',borderRadius:'3px',background:ACC,boxShadow:`0 0 16px ${ACC}`});
+ SY.dot=el('div','abs',S,{left:'88px',width:'26px',height:'26px',borderRadius:'50%',background:'#fff',boxShadow:`0 0 0 6px rgba(255,178,30,.45),0 0 30px ${ACC}`});
+ SY.goal=el('div','abs',S,{left:'150px',top:'900px',width:'500px',height:'84px',borderRadius:'42px',background:ACC,color:'#111',font:'800 26px/84px Mont',textAlign:'center',boxShadow:'0 12px 50px rgba(255,178,30,.45)'});SY.goal.textContent='✓ Заявка';
+})();
+function renderSys(t){const S=SY.S;const on=t>=35.10&&t<42.56;S.style.display=on?'block':'none';if(!on)return;slideScene(S,t,35.10);
+ applyPop(SY.head,t,35.30,'',.24,.6);
+ SY_D.forEach((d,i)=>{const {p}=SY.pl[i];const at=d[2],q=lin(t,at,at+.36);p.style.opacity=t<at?0:clamp(q*2.5);p.style.transform=`translateY(${(1-eBack(q))*-140}px)`});
+ const tr=eInOut(lin(t,40.52,41.70));const y0=364,y1=930;SY.rail.style.height=(tr*(y1-y0))+'px';
+ const dy=mix(y0,y1,tr);SY.dot.style.display=t>=40.52&&t<41.76?'block':'none';SY.dot.style.top=(dy-13)+'px';
+ SY.pl.forEach(({p,y})=>{const lit=t>=40.52&&dy>=y+30;p.style.borderColor=lit?'rgba(255,178,30,.7)':'rgba(255,255,255,.08)';p.style.boxShadow=lit?'0 0 30px rgba(255,178,30,.25),0 24px 60px rgba(0,0,0,.5)':'0 24px 60px rgba(0,0,0,.5)'});
+ applyPop(SY.goal,t,41.70,'',.26,.4);
+}
+
+// ---------- 4. CTA FORM (46.00–end) ----------
+const CT={};
+(function(){const S=mkOv('cta');CT.S=S;
+ const c=el('div','frost abs',S,{left:'60px',top:'56px',width:'600px',height:'312px',borderRadius:'30px',transformOrigin:'50% 0'});CT.c=c;
+ c.innerHTML=`<div style="position:absolute;left:30px;top:26px;font:800 26px/1 Mont;color:#fff">Заявка на продвижение</div>
+  <div class="lbl" style="left:30px;top:74px">Имя</div><div class="inp" style="left:30px;top:94px;width:540px"><span id="ctn"></span></div>
+  <div class="lbl" style="left:30px;top:156px">Телефон</div><div class="inp" style="left:30px;top:176px;width:540px"><span id="ctp"></span></div>
+  <div id="ctb" style="position:absolute;left:30px;top:242px;width:540px;height:52px;border-radius:16px;background:${ACC};color:#111;font:800 20px/52px Mont;text-align:center;overflow:hidden"><span id="ctt">Оставить заявку</span><div id="ctr" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
+ CT.tap=el('div','abs',S,{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.38)',border:'3px solid rgba(255,255,255,.9)',boxSizing:'border-box',boxShadow:'0 6px 20px rgba(0,0,0,.35)'});
+})();
+function renderCTA(t){const on=t>=46.00;CT.S.style.display=on?'block':'none';if(!on)return;
+ const p=lin(t,46.00,46.38);CT.c.style.opacity=eOut(p);CT.c.style.transform=`translateY(${(1-eBack(p))*-70}px) scale(${.94+.06*eOut(p)})`;
+ $('ctn').textContent=typed('Александр',t,46.18,46.42);$('ctp').textContent=typed('+380 •• ••• •• ••',t,46.42,46.64);
+ const tp=kf(t,[[46.36,[540,560]],[46.66,[360,324]],[52,[360,324]]]);const press=t>=46.72&&t<46.84;
+ CT.tap.style.opacity=t<46.36?0:lin(t,46.36,46.46)*(1-lin(t,47.2,47.45));CT.tap.style.transform=`translate(${tp[0]-28}px,${tp[1]-28}px) scale(${press?.78:1})`;
+ $('ctb').style.transform=press?'scale(.96)':'none';const rp=lin(t,46.74,47.2);$('ctr').style.opacity=t>=46.74?(1-rp)*.9:0;$('ctr').style.transform=`translate(-50%,-50%) scale(${1+rp*30})`;
+ const done=t>=46.90;$('ctt').textContent=done?'✓ Заявка отправлена':'Оставить заявку';$('ctb').style.background=done?'#22b455':ACC;$('ctb').style.color=done?'#fff':'#111';
+}
+
+window.renderAt=function(t){pending.length=0;document.querySelectorAll('img').forEach(im=>pending.push(im.decode().catch(()=>{})));renderSubs(t);renderHook(t);renderCases(t);renderSys(t);renderCTA(t);return Promise.all(pending)};
+window.renderAt(0);
+</script></body></html>

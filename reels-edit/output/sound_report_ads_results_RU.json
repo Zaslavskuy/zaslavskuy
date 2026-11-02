@@ -1,0 +1,337 @@
+{
+ "music_offset_s": 28.46,
+ "cut_to_beat_error_ms": {
+  "7.3": 1,
+  "14.1": 141,
+  "15.7": 28,
+  "20.2": 9,
+  "22.2": 17,
+  "31.2": 78,
+  "35.0": 0,
+  "40.6": 74
+ },
+ "cues": [
+  {
+   "t": 2.48,
+   "file": "kit/impact.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "ХРЕНОВО (accent) + punch-in"
+  },
+  {
+   "t": 4.28,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 6.84,
+   "file": "impact/kenney-impact-impactsoft-heavy-000.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "НЕ РАБОТАЕТ (accent)"
+  },
+  {
+   "t": 7.36,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "card expands -> problems"
+  },
+  {
+   "t": 7.62,
+   "file": "glitch/kenney-interface-glitch-002.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "warning chip"
+  },
+  {
+   "t": 9.0,
+   "file": "transition/fs-786514-swoosh-v2.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "card: creatives"
+  },
+  {
+   "t": 9.3,
+   "file": "tick/fs528561.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "x mark 1"
+  },
+  {
+   "t": 9.66,
+   "file": "transition/fs-683096-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "card: offer"
+  },
+  {
+   "t": 9.96,
+   "file": "tick/fs384187.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "x mark 2"
+  },
+  {
+   "t": 10.9,
+   "file": "transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+   "gain_db": -12,
+   "align": "peak",
+   "desc": "card: settings"
+  },
+  {
+   "t": 11.2,
+   "file": "tick/fs721514.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "x mark 3"
+  },
+  {
+   "t": 12.08,
+   "file": "transition/fs-850347-swipe-various.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "card: landing page"
+  },
+  {
+   "t": 12.38,
+   "file": "tick/fs528561.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "x mark 4"
+  },
+  {
+   "t": 14.12,
+   "file": "whoosh/fs830856.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 15.76,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "card expands -> ad cabinet"
+  },
+  {
+   "t": 15.8,
+   "file": "typing/fs-511418-data-reveal-sound.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "spend counter"
+  },
+  {
+   "t": 16.56,
+   "file": "glitch/kenney-interface-glitch-002.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "$1 200 per lead"
+  },
+  {
+   "t": 17.06,
+   "file": "transition/fs-786514-swoosh-v2.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "motivation card in"
+  },
+  {
+   "t": 17.4,
+   "file": "riser/fs-174363-rewind.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "battery drains"
+  },
+  {
+   "t": 18.52,
+   "file": "impact/kenney-impact-impactsoft-heavy-001.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "ПРОПАДАЕТ (accent) + shake"
+  },
+  {
+   "t": 20.22,
+   "file": "whoosh/fs810485.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 22.26,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "slide-up -> results"
+  },
+  {
+   "t": 23.3,
+   "file": "pop/fs-447910-plop.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "Dubai real estate card"
+  },
+  {
+   "t": 23.45,
+   "file": "typing/fs-511418-data-reveal-sound.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "counters 1"
+  },
+  {
+   "t": 25.1,
+   "file": "pop/kenney-interface-pluck-001.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "Italy wholesale card"
+  },
+  {
+   "t": 25.25,
+   "file": "typing/fs-511418-data-reveal-sound.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "counters 2"
+  },
+  {
+   "t": 27.3,
+   "file": "pop/fs527522.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "services card"
+  },
+  {
+   "t": 27.45,
+   "file": "typing/fs-511418-data-reveal-sound.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "counters 3"
+  },
+  {
+   "t": 29.0,
+   "file": "transition/fs-856168-cyberpunk-glitch-hologram-tran.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "grey niche: spotlight + glitch"
+  },
+  {
+   "t": 30.1,
+   "file": "pop/fs-258269-mouth-pop.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "🤫"
+  },
+  {
+   "t": 30.32,
+   "file": "impact/fs-222517-dramatic-hit.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "СЕКРЕТНО stamp"
+  },
+  {
+   "t": 31.22,
+   "file": "whoosh/fs830856.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 33.14,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "cut"
+  },
+  {
+   "t": 35.06,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "card expands -> chain"
+  },
+  {
+   "t": 35.52,
+   "file": "impact/kenney-impact-impactsoft-heavy-000.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "ВСЮ СВЯЗКУ"
+  },
+  {
+   "t": 36.58,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "node: offer"
+  },
+  {
+   "t": 37.34,
+   "file": "pop/kenney-interface-drop-002.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "node: creatives"
+  },
+  {
+   "t": 38.04,
+   "file": "pop/kenney-interface-drop-003.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "node: website"
+  },
+  {
+   "t": 38.54,
+   "file": "pop/kenney-interface-pluck-002.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "node: instagram"
+  },
+  {
+   "t": 39.34,
+   "file": "riser/fs-685256-riser-sound-effect-short-wav.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "client travels the path"
+  },
+  {
+   "t": 40.22,
+   "file": "ding/kenney-interface-confirmation-001.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "ЗАЯВКА ✓"
+  },
+  {
+   "t": 40.62,
+   "file": "whoosh/fs810485.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 43.38,
+   "file": "transition/fs-850347-swipe-various.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "request form slides in"
+  },
+  {
+   "t": 43.5,
+   "file": "typing/fs-323432-typing.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "typing"
+  },
+  {
+   "t": 44.04,
+   "file": "click/fs788933.ogg",
+   "gain_db": -8,
+   "align": "onset",
+   "desc": "tap Оставить заявку"
+  },
+  {
+   "t": 44.2,
+   "file": "ding/kenney-interface-confirmation-002.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "request sent"
+  }
+ ]
+}

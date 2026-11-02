@@ -415,7 +415,7 @@ if os.environ.get('LANG_CUT') in ('p4', 'p4uk'):   # four-niches reel
         _f = lambda t: float(np.interp(t, [a for a, b in _A], [b for a, b in _A]))
         CUES = [(round(_f(c[0]), 2),) + tuple(c[1:]) for c in CUES]
         CUTS = [6.68, 12.70, 17.24, 22.76, 26.70, 32.04, 34.70, 42.40]
-if os.environ.get('LANG_CUT') == 'p5':   # affordable-sites reel
+if os.environ.get('LANG_CUT') in ('p5', 'p5uk'):   # affordable-sites reel
     CUES = [
         (2.00, 'ui-blip/kenney-ui-rollover1.ogg', -16, 'onset', 'glass tag in'),
         (2.46, 'pop/kenney-interface-drop-001.ogg', -15, 'onset', 'money bag 1'),
@@ -466,6 +466,16 @@ if os.environ.get('LANG_CUT') == 'p5':   # affordable-sites reel
         (40.10, 'ding/kenney-interface-confirmation-001.ogg', -13, 'onset', 'request sent'),
     ]
     CUTS = [4.40, 10.40, 17.40, 19.10, 22.90, 26.60, 27.90, 33.00, 39.26]
+    if os.environ.get('LANG_CUT') == 'p5uk':   # same cues, moved onto the Ukrainian speech timing
+        _A = [(0, 0), (2.00, 2.20), (2.46, 2.68), (2.84, 3.22), (4.22, 4.48), (4.40, 4.66), (4.62, 4.84), (6.30, 6.40), (7.90, 7.90),
+              (9.40, 9.30), (9.92, 9.80), (10.40, 10.28), (12.08, 11.86), (14.12, 13.80), (16.30, 16.06), (16.46, 16.30), (17.40, 17.20),
+              (19.10, 19.02), (20.82, 20.78), (21.34, 21.36), (22.04, 22.14), (22.70, 22.84), (23.22, 23.52), (23.84, 24.02), (24.48, 24.60),
+              (24.92, 25.06), (25.50, 25.64), (25.92, 26.16), (26.60, 26.84), (27.90, 28.20), (28.22, 28.64), (28.64, 29.04), (30.46, 31.08),
+              (31.74, 32.44), (32.40, 33.16), (33.00, 33.50), (34.30, 35.00), (34.50, 35.26), (34.82, 35.56), (37.04, 37.68),
+              (39.26, 40.10), (39.92, 40.70), (43.44, 44.42)]
+        _f = lambda t: float(np.interp(t, [a for a, b in _A], [b for a, b in _A]))
+        CUES = [(round(_f(c[0]), 2),) + tuple(c[1:]) for c in CUES]
+        CUTS = [4.66, 10.28, 17.20, 19.02, 22.84, 26.84, 28.20, 33.50, 40.10]
 sfx_bus = np.zeros((N, 2), np.float32)
 report = []
 for c in CUES:

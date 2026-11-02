@@ -1,0 +1,408 @@
+{
+ "music_offset_s": 53.02,
+ "cut_to_beat_error_ms": {
+  "9.9": 29,
+  "13.9": 93,
+  "22.1": 166,
+  "23.9": 8,
+  "27.4": 9,
+  "31.37": 32,
+  "39.3": 21,
+  "47.2": 21,
+  "54.14": 0
+ },
+ "cues": [
+  {
+   "t": 0.12,
+   "file": "ui-blip/kenney-ui-rollover1.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "sky card: cabinet"
+  },
+  {
+   "t": 0.47,
+   "file": "ui-blip/kenney-ui-rollover2.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "sky card: site"
+  },
+  {
+   "t": 2.16,
+   "file": "click/fs788933.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "tap + add object"
+  },
+  {
+   "t": 2.66,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "object appears"
+  },
+  {
+   "t": 3.16,
+   "file": "click/kenney-interface-select-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "added to base ✓"
+  },
+  {
+   "t": 4.1,
+   "file": "whoosh/fs-683101-quick-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "object flies to the site"
+  },
+  {
+   "t": 4.4,
+   "file": "ding/kenney-interface-glass-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "NEW on site"
+  },
+  {
+   "t": 6.0,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 7.95,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -16,
+   "align": "peak",
+   "desc": "cut"
+  },
+  {
+   "t": 9.96,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "card expands -> system"
+  },
+  {
+   "t": 10.1,
+   "file": "pop/fs-447910-plop.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "site card"
+  },
+  {
+   "t": 10.7,
+   "file": "transition/fs-702773-swipe-wav.ogg",
+   "gain_db": -12,
+   "align": "peak",
+   "desc": "САЙТЫ struck out"
+  },
+  {
+   "t": 11.3,
+   "file": "impact/kenney-impact-impactsoft-heavy-000.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "system core"
+  },
+  {
+   "t": 11.7,
+   "file": "ui-blip/kenney-ui-rollover1.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "module 1"
+  },
+  {
+   "t": 11.86,
+   "file": "ui-blip/kenney-ui-rollover2.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "module 3"
+  },
+  {
+   "t": 12.02,
+   "file": "ui-blip/kenney-ui-rollover3.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "module 5"
+  },
+  {
+   "t": 12.9,
+   "file": "pop/kenney-interface-pluck-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "whole team"
+  },
+  {
+   "t": 13.9,
+   "file": "transition/fs-786514-swoosh-v2.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "hub -> realtor cabinet"
+  },
+  {
+   "t": 16.06,
+   "file": "typing/fs-323432-typing.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "typing object"
+  },
+  {
+   "t": 17.02,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "photos"
+  },
+  {
+   "t": 17.26,
+   "file": "pop/kenney-interface-drop-003.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "photos"
+  },
+  {
+   "t": 17.78,
+   "file": "ui-blip/kenney-ui-rollover4.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "characteristics"
+  },
+  {
+   "t": 19.54,
+   "file": "riser/fs-685256-riser-sound-effect-short-wav.ogg",
+   "gain_db": -17,
+   "align": "onset",
+   "desc": "auto-publish progress"
+  },
+  {
+   "t": 20.4,
+   "file": "ding/kenney-interface-confirmation-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "published ✓"
+  },
+  {
+   "t": 20.62,
+   "file": "transition/fs-850347-swipe-various.ogg",
+   "gain_db": -12,
+   "align": "peak",
+   "desc": "catalog slides up"
+  },
+  {
+   "t": 21.1,
+   "file": "pop/fs-824189-pop-in-sfx.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "NEW in catalog"
+  },
+  {
+   "t": 22.12,
+   "file": "whoosh/fs830856.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 23.96,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "slide-up -> manager panel"
+  },
+  {
+   "t": 24.66,
+   "file": "pop/kenney-interface-pluck-002.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "assignee 1"
+  },
+  {
+   "t": 24.8,
+   "file": "pop/kenney-interface-pluck-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "assignee 2"
+  },
+  {
+   "t": 24.94,
+   "file": "pop/kenney-interface-pluck-002.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "assignee 3"
+  },
+  {
+   "t": 25.66,
+   "file": "transition/fs-683096-woosh.ogg",
+   "gain_db": -12,
+   "align": "peak",
+   "desc": "tab: showings"
+  },
+  {
+   "t": 26.1,
+   "file": "ui-blip/kenney-ui-rollover1.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "showings fill calendar"
+  },
+  {
+   "t": 26.42,
+   "file": "ui-blip/kenney-ui-rollover3.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "showings"
+  },
+  {
+   "t": 27.44,
+   "file": "transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "tab: deals"
+  },
+  {
+   "t": 28.9,
+   "file": "whoosh/fs-683101-quick-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "cards -> negotiations"
+  },
+  {
+   "t": 29.7,
+   "file": "whoosh/fs-683101-quick-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "card -> deal"
+  },
+  {
+   "t": 29.96,
+   "file": "ding/kenney-interface-confirmation-002.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "deal closed"
+  },
+  {
+   "t": 31.39,
+   "file": "whoosh/fs830856.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 32.32,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "phone"
+  },
+  {
+   "t": 32.92,
+   "file": "pop/kenney-interface-drop-002.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "tablet"
+  },
+  {
+   "t": 33.76,
+   "file": "pop/kenney-interface-drop-003.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "laptop"
+  },
+  {
+   "t": 34.1,
+   "file": "ui-blip/kenney-digital-twotone1.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "sync"
+  },
+  {
+   "t": 34.48,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 38.74,
+   "file": "impact/kenney-impact-impactsoft-heavy-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "АЛЬТЕРНАТИВЫ (accent)"
+  },
+  {
+   "t": 39.36,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "card expands -> outcome"
+  },
+  {
+   "t": 40.28,
+   "file": "transition/fs-786514-swoosh-v2.ogg",
+   "gain_db": -12,
+   "align": "peak",
+   "desc": "card: clients"
+  },
+  {
+   "t": 43.1,
+   "file": "transition/fs-683096-woosh.ogg",
+   "gain_db": -12,
+   "align": "peak",
+   "desc": "card: realtors"
+  },
+  {
+   "t": 45.1,
+   "file": "transition/fs-850347-swipe-various.ogg",
+   "gain_db": -12,
+   "align": "peak",
+   "desc": "card: manager"
+  },
+  {
+   "t": 46.4,
+   "file": "impact/kenney-impact-impactsoft-heavy-000.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "one system"
+  },
+  {
+   "t": 47.22,
+   "file": "whoosh/fs810485.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 49.48,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 54.18,
+   "file": "transition/fs-850347-swipe-various.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "request form slides in"
+  },
+  {
+   "t": 54.3,
+   "file": "typing/fs-323432-typing.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "typing"
+  },
+  {
+   "t": 54.84,
+   "file": "click/fs788933.ogg",
+   "gain_db": -8,
+   "align": "onset",
+   "desc": "tap Оставить заявку"
+  },
+  {
+   "t": 55.0,
+   "file": "ding/kenney-interface-confirmation-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "request sent"
+  }
+ ]
+}

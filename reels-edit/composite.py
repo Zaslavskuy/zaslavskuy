@@ -1,5 +1,5 @@
 """Composite: source video -> camera moves (push-ins / punch-ins / zoom-blur whips) -> overlay frames.
-usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk|p4|p4uk|p5|p5uk]
+usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk|p4|p4uk|p5|p5uk|p6]
 """
 import sys, os, subprocess
 import numpy as np, cv2
@@ -121,6 +121,16 @@ if len(sys.argv) > 4 and sys.argv[4] == 'p5uk':    # affordable-sites reel, Ukra
         (37.68, 40.10, 1.00, 1.04, D), (40.10, 99.0, 1.06, 1.10, D),
     ]
     WHIPS = [17.20, 26.84, 33.50]
+if len(sys.argv) > 4 and sys.argv[4] == 'p6':      # real-estate agency system reel
+    A, B, C, D = (0.50, 0.40), (0.50, 0.33), (0.50, 0.40), (0.49, 0.36)
+    CAM = [
+        (0.00, 5.98, 1.00, 1.05, A), (5.98, 7.93, 1.12, 1.16, A),
+        (7.93, 9.95, 1.00, 1.04, B),
+        (22.10, 24.00, 1.12, 1.16, B),
+        (31.37, 34.48, 1.00, 1.04, C), (34.48, 39.40, 1.12, 1.16, C),
+        (47.20, 49.48, 1.00, 1.03, D), (49.48, 52.84, 1.14, 1.18, D), (52.84, 54.14, 1.00, 1.03, D), (54.14, 99.0, 1.00, 1.05, D),
+    ]
+    WHIPS = [22.10, 31.37, 47.20]
 WHIP_LEN = 0.26
 
 
@@ -155,7 +165,7 @@ def whip(img, t):
 
 
 reader = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', SRC, '-vf',
-                           f'scale={W}:{H}:flags=lanczos,eq=contrast=1.04:saturation=1.08',
+                           f'fps={FPS},scale={W}:{H}:flags=lanczos,eq=contrast=1.04:saturation=1.08',
                            '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
 writer = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}',
                            '-r', str(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '16',

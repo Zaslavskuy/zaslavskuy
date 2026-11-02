@@ -1,0 +1,415 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Agency system reel overlay</title>
+<style>
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:200 700}
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-lat.woff2) format('woff2');font-weight:200 700}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:100 900}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-lat.woff2) format('woff2');font-weight:100 900}
+:root{--acc:#FFB21E;--green:#2ecc71}
+html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+#root{position:relative;width:720px;height:1280px;overflow:hidden}
+.scene{position:absolute;inset:0;overflow:hidden;display:none}
+.abs{position:absolute}
+.ov{position:absolute;left:0;top:0;width:720px;height:1280px;display:none}
+/* subtitles */
+#subs{position:absolute;inset:0;pointer-events:none}
+.card{position:absolute;left:0;width:720px;display:none;flex-direction:column;align-items:center;transform:translateY(-50%)}
+.line{display:flex;gap:.22em;justify-content:center;white-space:nowrap;position:relative}
+.w{display:inline-block;transform-origin:50% 60%}
+.ls{font:600 32px/1.1 Mont;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 3px rgba(0,0,0,.5)}
+.lb,.lr{font:600 78px/0.98 Osw;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.45),0 0 3px rgba(0,0,0,.35)}
+.lr{color:var(--acc);text-shadow:0 0 2px rgba(0,0,0,.75),0 3px 6px rgba(0,0,0,.45),0 4px 22px rgba(0,0,0,.6)}
+/* look */
+.v3bg{background:radial-gradient(140% 38% at 50% 0%,rgba(255,178,30,.13) 0%,rgba(255,178,30,.05) 55%,rgba(255,178,30,0) 100%),radial-gradient(circle,#2c2d33 1.6px,transparent 2px) 0 0/30px 30px,#0f1013}
+.glass{background:rgba(28,29,34,.94);border:1px solid rgba(255,255,255,.08);border-radius:26px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.frost{background:rgba(18,18,22,.64);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+svg .wst{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round}
+/* browser window */
+.win{position:absolute;width:560px;border-radius:16px;overflow:hidden;background:#141519;box-shadow:0 30px 70px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07);transform-origin:50% 50%}
+.win .bar{height:32px;display:flex;align-items:center;gap:7px;padding-left:14px;background:#1d1e23}
+.win .dot{width:10px;height:10px;border-radius:50%}
+.win .url{margin-left:14px;width:250px;height:18px;border-radius:9px;background:#2a2b31;position:relative}
+.win .url:before{content:'';position:absolute;left:9px;top:5px;width:7px;height:8px;border-radius:2px;background:#6b6c74}
+.win img{display:block;width:560px;height:421px;object-fit:cover}
+.tag{position:absolute;padding:0 18px;height:46px;border-radius:23px;font:700 18px/46px Mont;color:#fff;white-space:nowrap;background:rgba(20,20,24,.9);border:1px solid rgba(255,178,30,.5);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.tag b{color:var(--acc);margin-right:8px}
+.pill{position:absolute;width:300px;height:58px;border-radius:29px;font:700 18px/58px Mont;color:#fff;white-space:nowrap;padding-left:62px;box-sizing:border-box}
+.pill .ck{position:absolute;left:12px;top:11px;width:36px;height:36px;border-radius:50%;box-sizing:border-box;border:2px solid #4a4b52;color:#111;font:800 20px/32px Mont;text-align:center}
+.inp{position:absolute;height:50px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.inp span{position:absolute;left:16px;top:15px;font:600 19px/1 Mont;color:#fff;white-space:pre}
+.lbl{position:absolute;font:600 14px/1 Mont;color:#9a9ba3}
+</style></head>
+<body><div id="root"><div id="subs"></div></div>
+<script>
+// ================= helpers =================
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const lin=(t,a,b)=>clamp((t-a)/(b-a));
+const eOut=p=>1-Math.pow(1-p,3);
+const eInOut=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eBack=p=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
+const mix=(a,b,p)=>a+(b-a)*p;
+const $=id=>document.getElementById(id);
+function el(tag,cls,parent,style){const e=document.createElement(tag);if(cls)e.className=cls;if(style)Object.assign(e.style,style);if(parent)parent.appendChild(e);return e}
+function svgEl(tag,attrs,parent){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function kf(t,keys,ease=eInOut){if(t<=keys[0][0])return keys[0][1];for(let i=1;i<keys.length;i++){if(t<=keys[i][0]){const[a,va]=keys[i-1],[b,vb]=keys[i];const p=ease((t-a)/(b-a));return Array.isArray(va)?va.map((v,j)=>mix(v,vb[j],p)):mix(va,vb,p)}}return keys[keys.length-1][1]}
+function pop(t,at,dur=.16,from=.6){const p=lin(t,at,at+dur);return{o:t<at?0:clamp(p*2.2),s:from+(1-from)*eBack(p),b:(1-p)*5}}
+function applyPop(e,t,at,extra='',dur,from){const q=pop(t,at,dur,from);e.style.opacity=q.o;e.style.transform=`${extra} scale(${q.s})`;e.style.filter=q.b>.05?`blur(${q.b}px)`:'none'}
+const typed=(str,t,a,b)=>str.slice(0,Math.round(clamp((t-a)/(b-a))*str.length));
+const fmtInt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const ACC='#FFB21E';
+const UK=new URLSearchParams(location.search).get('lang')==='uk';
+const L=UK?{
+ tags:['Оренда яхт · Дубай','Клінінгова компанія','Архітектурне бюро','Агенція байєрів · Італія'],
+ toast:['Нова заявка з сайту','щойно'], pills:['Адаптив під смартфони','SEO-оптимізація','Продумана структура','Зручні форми заявок'],
+ query:'оренда яхт дубай', ours:'NACRE — оренда яхт у Дубаї', tree:['Головна','Послуги','Кейси','Відгуки','Контакти'],
+ formTitle:'Залишити заявку', name:'Ім\'я', phone:'Телефон', send:'Надіслати', sent:'✓ Заявку надіслано', person:'Олександр',
+ adsTitle:'🚀 Готовий до запуску реклами', adsWait:'Налаштування…', adsOk:'✓ Готово', camp:'Рекламна кампанія', paused:'● На паузі', active:'● Активна · Google + Instagram', leads:'Нові заявки',
+ ctaTitle:'Заявка на розробку сайту', ctaBtn:'Залишити заявку',
+}:{
+ tags:['Аренда яхт · Дубай','Клининговая компания','Архитектурное бюро','Байерское агентство · Италия'],
+ toast:['Новая заявка с сайта','только что'], pills:['Адаптив под смартфоны','SEO-оптимизация','Продуманная структура','Удобные формы заявок'],
+ query:'аренда яхт дубай', ours:'NACRE — аренда яхт в Дубае', tree:['Главная','Услуги','Кейсы','Отзывы','Контакты'],
+ formTitle:'Оставить заявку', name:'Имя', phone:'Телефон', send:'Отправить', sent:'✓ Заявка отправлена', person:'Александр',
+ adsTitle:'🚀 Готов к запуску рекламы', adsWait:'Настройка…', adsOk:'✓ Готово', camp:'Рекламная кампания', paused:'● На паузе', active:'● Активна · Google + Instagram', leads:'Новые заявки',
+ ctaTitle:'Заявка на разработку сайта', ctaBtn:'Оставить заявку',
+};
+// UK cut: remap its timeline onto the RU animation timeline, per scene
+function remap(t,pts){if(t<=pts[0][0])return pts[0][1]+(t-pts[0][0]);for(let i=1;i<pts.length;i++){if(t<=pts[i][0]){const[a,ra]=pts[i-1],[b,rb]=pts[i];return ra+(t-a)/(b-a)*(rb-ra)}}const Z=pts[pts.length-1];return Z[1]+(t-Z[0])}
+const TM=UK?{
+ show:[[4.00,4.00],[13.64,13.42],[14.56,14.64]],
+ feat:[[17.10,17.00],[17.24,17.06],[18.02,17.90],[18.68,18.58],[19.06,18.94],[20.02,19.88],[20.64,20.54],[21.40,21.22],[21.88,21.72],[22.26,22.14],[22.84,22.74]],
+ ads:[[24.26,24.08],[25.14,24.94],[25.58,25.34],[27.34,27.12],[27.94,27.52],[28.38,28.00],[29.66,29.10],[30.60,30.00],[30.98,30.40]],
+ cta:[[33.08,32.38],[33.70,33.02],[34.20,33.56],[34.36,33.72],[38.30,37.66]],
+}:null;
+const root=$('root');
+function mkScene(id,cls){const s=el('div','scene '+(cls||''));s.id=id;root.insertBefore(s,$('subs'));return s}
+function mkOv(id){const s=el('div','ov');s.id=id;root.insertBefore(s,$('subs'));return s}
+const ICON={
+ g:`<path fill="none" stroke="${ACC}" stroke-width="12" d="M80 30 A36 36 0 1 0 86 54 L52 54"/>`,
+ ig:`<rect x="12" y="12" width="76" height="76" rx="22" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="50" cy="50" r="17" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="70" cy="30" r="5" fill="${ACC}"/>`,
+ mail:'<path fill="none" stroke="#111" stroke-width="8" stroke-linejoin="round" d="M14 26 H86 V74 H14 Z M14 26 L50 54 L86 26"/>',
+};
+const svgIcon=(name,size)=>`<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;display:block">${ICON[name]}</svg>`;
+// image swap that resolves once the new frame is decoded
+const pending=[];
+function setImg(img,src){if(img.dataset.src===src)return;img.dataset.src=src;img.src=src;pending.push(img.decode().catch(()=>{}))}
+
+// ================= P3: "ads that don't bring clients" reel =================
+const RED='#ff4d4d';
+const T=UK?{
+ warn:'⚠ Де губляться заявки',
+ prob:[['Креативи','не чіпляють увагу'],['Пропозиція','не виділяє серед конкурентів'],['Налаштування реклами','бюджет іде не тій аудиторії'],['Посадкова сторінка','люди йдуть без заявки']],
+ cab:'Рекламний кабінет · 30 днів', spent:'Витрачено', leads:'Заявки', cpl:'Ціна заявки', exp:'витрати', lds:'заявки', will:'Бажання займатися рекламою',
+ resHead:'Результати <span style="color:#FFB21E">наших клієнтів</span>',
+ niches:[['Нерухомість','Дубай'],['Оптовий продаж одягу','Італія'],['Сфера послуг',''],['Сіра ніша','']], nda:'ніша під NDA', b2c:'B2C-послуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">зв\'язка</span>', nodes:['Пропозиція','Креативи','Сайт','Instagram','Заявка'],
+ cta:'Заявка на просування', name:'Ім\'я', phone:'Телефон', btn:'Залишити заявку', sent:'✓ Заявку надіслано', person:'Олександр',
+}:{
+ warn:'⚠ Где теряются заявки',
+ prob:[['Креативы','не цепляют внимание'],['Предложение','не выделяет среди конкурентов'],['Настройки рекламы','бюджет уходит не той аудитории'],['Посадочная страница','люди уходят без заявки']],
+ cab:'Рекламный кабинет · 30 дней', spent:'Потрачено', leads:'Заявки', cpl:'Цена заявки', exp:'расходы', lds:'заявки', will:'Желание заниматься рекламой',
+ resHead:'Результаты <span style="color:#FFB21E">наших клиентов</span>',
+ niches:[['Недвижимость','Дубай'],['Оптовая продажа одежды','Италия'],['Сфера услуг',''],['Серая ниша','']], nda:'ниша под NDA', b2c:'B2C-услуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">связка</span>', nodes:['Предложение','Креативы','Сайт','Instagram','Заявка'],
+ cta:'Заявка на продвижение', name:'Имя', phone:'Телефон', btn:'Оставить заявку', sent:'✓ Заявка отправлена', person:'Александр',
+};
+const TM3=UK?{
+ prob:[[7.30,7.30],[7.42,7.62],[8.62,8.98],[9.32,9.64],[10.58,10.88],[11.68,12.06],[13.80,14.10]],
+ budget:[[15.50,15.70],[16.48,16.56],[16.92,17.06],[18.54,18.52],[19.30,19.30],[19.52,20.20]],
+ res:[[23.10,22.20],[24.04,23.30],[25.68,25.10],[27.64,27.30],[29.32,29.00],[30.34,30.02],[30.72,30.32],[31.40,31.20]],
+ chain:[[35.40,35.00],[36.16,35.52],[36.92,36.58],[37.94,37.34],[38.62,38.04],[39.18,38.54],[40.04,39.34],[40.92,40.20],[41.40,40.60]],
+ cta:[[44.30,43.34],[44.96,44.04],[45.12,44.20],[48.60,47.68]],
+}:null;
+const IC={
+ img:`<rect x="12" y="20" width="76" height="60" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><circle cx="34" cy="40" r="7" fill="${ACC}"/><path d="M16 74 L40 52 L56 66 L68 56 L86 74" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ tag:`<path d="M14 50 L50 14 H86 V50 L50 86 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><circle cx="68" cy="32" r="7" fill="${ACC}"/>`,
+ sliders:`<path d="M14 28 H86 M14 50 H86 M14 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="66" cy="28" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="30" cy="50" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="74" cy="72" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/>`,
+ page:`<rect x="30" y="12" width="56" height="72" rx="8" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M42 32 H74 M42 46 H66" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/><path d="M8 80 L28 60 M28 60 L14 60 M28 60 L28 74" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ home:`<path d="M14 48 L50 18 L86 48 M24 42 V84 H76 V42" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><rect x="42" y="58" width="16" height="26" fill="${ACC}"/>`,
+ hanger:`<path d="M50 30 Q50 18 60 20 Q68 24 60 32 L50 40 L12 70 Q8 76 16 76 H84 Q92 76 88 70 L50 40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`,
+ tools:`<path d="M30 70 L62 38 M58 22 A16 16 0 0 0 78 42 L66 38 L62 34 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><path d="M22 78 L30 70" stroke="${ACC}" stroke-width="12" stroke-linecap="round"/>`,
+ mask:`<path d="M10 36 Q50 22 90 36 Q90 66 66 70 Q56 72 50 60 Q44 72 34 70 Q10 66 10 36 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><ellipse cx="32" cy="46" rx="8" ry="5" fill="${ACC}"/><ellipse cx="68" cy="46" rx="8" ry="5" fill="${ACC}"/>`,
+ browser:`<rect x="10" y="18" width="80" height="64" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M10 36 H90" stroke="${ACC}" stroke-width="7"/><circle cx="22" cy="27" r="3.5" fill="${ACC}"/><circle cx="33" cy="27" r="3.5" fill="${ACC}"/>`,
+ ig:ICON.ig, check:`<path d="M22 52 L42 72 L80 30" fill="none" stroke="#111" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`,
+};
+const ic=(n,s)=>`<svg viewBox="0 0 100 100" width="${s}" height="${s}" style="overflow:visible;display:block">${IC[n]}</svg>`;
+function slideScene(S,t,a){const sp=eOut(lin(t,a,a+.34));S.style.transform=sp<1?`translateY(${(1-sp)*100}%)`:'none';S.style.borderRadius=sp<1?'36px 36px 0 0':'0'}
+function expandScene(S,t,a){const p=eOut(lin(t,a,a+.34));S.style.clipPath=p<1?`inset(${(1-p)*40}% ${(1-p)*26}% ${(1-p)*40}% ${(1-p)*26}% round ${10+30*(1-p)}px)`:'none'}
+
+// ---------- extra icons ----------
+Object.assign(IC,{
+ users:`<circle cx="38" cy="34" r="13" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M14 82 A24 24 0 0 1 62 82" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="70" cy="40" r="9" fill="none" stroke="${ACC}" stroke-width="6"/><path d="M62 62 A18 18 0 0 1 88 78" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ user:`<circle cx="50" cy="34" r="16" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M20 86 A30 30 0 0 1 80 86" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/>`,
+ chart:`<path d="M14 84 H88" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><path d="M18 70 L40 48 L56 60 L84 24" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M68 24 H84 V40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`,
+ cal:`<rect x="12" y="20" width="76" height="66" rx="12" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M12 40 H88 M32 10 V28 M68 10 V28" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/>`,
+ list:`<path d="M34 28 H86 M34 50 H86 M34 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="16" cy="28" r="5" fill="${ACC}"/><circle cx="16" cy="50" r="5" fill="${ACC}"/><circle cx="16" cy="72" r="5" fill="${ACC}"/>`,
+ deal:`<path d="M10 50 L30 30 L50 40 L70 30 L90 50 L62 78 Q56 84 50 78 L10 50 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ grid:`<rect x="12" y="12" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="56" y="12" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="12" y="56" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="56" y="56" width="32" height="32" rx="6" fill="${ACC}"/>`,
+});
+const AVC=['#e67e22','#3498db','#9b59b6','#1abc9c','#e84393'];
+const avatar=(par,x,y,ini,i,sz=40)=>{const a=el('div','abs',par,{left:x+'px',top:y+'px',width:sz+'px',height:sz+'px',borderRadius:'50%',background:AVC[i%5],color:'#fff',font:`800 ${Math.round(sz*.42)}px/${sz}px Mont`,textAlign:'center',border:'2.5px solid #1c1d22',boxSizing:'border-box'});a.textContent=ini;return a};
+// stylised property photo
+const PH=[['#f3c98b','#c97b4a','#5a3b2e'],['#9ec9e8','#4a7fa8','#24384d'],['#e9d9c4','#b59a7a','#4a4036']];
+function photo(par,x,y,w,h,k){const p=el('div','abs',par,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:'12px',overflow:'hidden',background:`linear-gradient(180deg,${PH[k][0]},${PH[k][1]})`});
+ p.innerHTML=`<svg viewBox="0 0 100 70" preserveAspectRatio="none" width="100%" height="100%" style="position:absolute;left:0;top:0"><path d="M0 70 V40 H14 V22 H30 V34 H44 V12 H58 V30 H70 V20 H84 V38 H100 V70 Z" fill="${PH[k][2]}" opacity=".85"/>
+  <g fill="rgba(255,220,150,.75)"><rect x="17" y="27" width="3" height="3"/><rect x="23" y="27" width="3" height="3"/><rect x="47" y="17" width="3" height="3"/><rect x="52" y="22" width="3" height="3"/><rect x="47" y="27" width="3" height="3"/><rect x="73" y="25" width="3" height="3"/><rect x="78" y="31" width="3" height="3"/></g></svg>`;return p}
+function phaseVis(e,t,a,b,dist=260){const i=lin(t,a,a+.32),o=lin(t,b-.24,b);const on=t>=a&&t<b+.001;e.style.display=on?'block':'none';if(!on)return 0;
+ e.style.opacity=clamp(i*2.5)*(1-o);e.style.filter=(1-i)+o>0.02?`blur(${((1-i)+o)*6}px)`:'none';return (1-eOut(i))*dist-eInOut(o)*dist}
+
+// ---------- SUBTITLES (with optional strike-through) ----------
+const SUB_Y=t=>t<7.93?0.60:t<9.90?0.565:t<22.10?0.87:t<23.90?0.565:t<31.37?0.87:t<39.30?0.62:t<47.20?0.87:0.545;
+const CARDS=[
+ [0.00,1.18,[['b',[['представьте,',0.00]]],['s',[['в',0.58],['личном',0.90]]]]],
+ [1.18,2.14,[['b',[['кабинете',1.18]]],['s',[['риэлтор',1.66]]]]],
+ [2.14,3.58,[['s',[['добавляет',2.14]]],['b',[['квартиру',2.66]]],['s',[['в',3.08],['базу,',3.16]]]]],
+ [3.58,4.98,[['s',[['и',3.58],['она',3.92],['сразу',4.08]]],['r',[['появляется',4.38]]]]],
+ [4.98,5.98,[['s',[['на',4.98],['сайте',5.16]]],['b',[['агентства',5.42]]]]],
+ [5.98,7.70,[['s',[['но',5.98],['это',6.42],['только',6.74]]],['b',[['начало',7.06]]]]],
+ [7.70,9.64,[['s',[['мы',7.70],['разрабатываем',8.04],['для',8.56],['агентств',8.74]]],['b',[['недвижимости',9.14]]]]],
+ [9.64,10.92,[['s',[['не',9.64],['просто',10.04]]],['b',[['сайты',10.32]]],'strike',10.70]],
+ [10.92,12.58,[['s',[['а',10.92],['полноценные',11.20]]],['r',[['системы',11.92]]]]],
+ [12.58,13.90,[['s',[['для',12.58],['работы',12.68]]],['b',[['всей',12.90],['команды',13.20]]]]],
+ [13.90,15.76,[['s',[['у',13.90],['каждого',14.20],['риэлтора',14.60]]],['b',[['свой',14.96],['кабинет',15.16]]]]],
+ [15.76,17.02,[['s',[['он',15.76],['добавляет',16.06]]],['b',[['объект',16.50]]]]],
+ [17.02,18.58,[['b',[['фотографии',17.02]]],['s',[['характеристики',17.78]]]]],
+ [18.58,20.78,[['s',[['и',18.58],['информация',18.98]]],['r',[['автоматически',19.54]]],['s',[['публикуется',20.20]]]]],
+ [20.78,21.88,[['s',[['в',20.78],['каталоге',20.94],['на',21.32]]],['b',[['сайте',21.40]]]]],
+ [21.88,23.56,[['s',[['а',21.88]]],['b',[['руководитель',22.18]]],['s',[['или',22.78],['администратор',22.98]]]]],
+ [23.56,25.64,[['s',[['может',23.56],['назначать',24.16]]],['b',[['задачи',24.66]]],['s',[['сотрудникам',25.02]]]]],
+ [25.64,27.46,[['b',[['контролировать',25.64]]],['s',[['запланированные',26.26],['показы',26.88]]]]],
+ [27.46,28.84,[['s',[['и',27.46],['видеть,',27.66],['на',28.14],['каком',28.28]]],['b',[['этапе',28.50]]]]],
+ [28.84,30.04,[['b',[['переговоры',28.84]]],['s',[['или',29.46]]],['r',[['продажа',29.60]]]]],
+ [30.04,31.08,[['s',[['по',30.04],['каждому',30.18]]],['b',[['объекту',30.56]]]]],
+ [31.08,32.92,[['s',[['и',31.08],['всё',31.42],['это',31.64],['доступно',31.82],['с',32.22]]],['b',[['телефона',32.32]]]]],
+ [32.92,34.48,[['b',[['планшета',32.92]]],['s',[['или',33.46]]],['b',[['компьютера',33.76]]]]],
+ [34.48,36.02,[['s',[['даже',34.48],['на',34.92],['встрече',35.06],['с',35.32]]],['b',[['покупателем',35.38]]]]],
+ [36.02,37.46,[['s',[['риэлтор',36.02],['может',36.38],['открыть',36.60]]],['b',[['базу',37.02]]]]],
+ [37.46,39.38,[['s',[['и',37.36],['сразу',37.46],['показать',37.70],['подходящие',38.22]]],['r',[['альтернативы',38.74]]]]],
+ [39.38,40.72,[['s',[['в',39.38],['итоге',39.70],['у',39.94]]],['b',[['клиентов',40.28]]]]],
+ [40.72,42.76,[['s',[['удобный',40.72],['сайт',41.34],['с',41.60],['каталогом',41.68]]],['b',[['недвижимости',42.10]]]]],
+ [42.76,44.70,[['s',[['у',42.76],['риэлторов',43.10],['рабочий',43.50]]],['r',[['инструмент',44.10]]]]],
+ [44.70,46.30,[['s',[['а',44.70],['у',45.02],['руководителя',45.10]]],['b',[['контроль',45.62]]]]],
+ [46.30,47.36,[['s',[['над',46.30]]],['b',[['процессами',46.36]]]]],
+ [47.36,48.68,[['s',[['и',47.02]]],['r',[['главное',47.36]]],['s',[['мы',47.74],['разрабатываем',48.12]]]]],
+ [48.68,50.12,[['s',[['такую',48.68]]],['b',[['систему',48.88]]],['s',[['под',49.48],['задачи',49.68]]]]],
+ [50.12,51.46,[['s',[['именно',50.12],['вашего',50.36]]],['b',[['агентства',50.96]]]]],
+ [51.46,52.84,[['s',[['без',51.46],['ненужных',51.82]]],['b',[['функций',52.32]]]]],
+ [52.84,54.14,[['b',[['хотите',52.84]]],['s',[['узнать',53.40],['подробнее?',53.62]]]]],
+ [54.14,55.34,[['b',[['оставляйте',54.14]]],['s',[['заявку',54.82]]]]],
+ [55.34,56.64,[['s',[['обсудим',55.34],['ваши',55.86]]],['b',[['задачи',55.98]]]]],
+ [56.64,58.70,[['s',[['и',56.52],['покажем,',56.64],['как',57.22],['это',57.36]]],['b',[['работает',57.44]]]]],
+];
+const cardEls=[];
+(function(){const R=$('subs');
+ for(const c of CARDS){const ce=el('div','card',R);const words=[];let strike=null;
+  for(const L of c[2]){if(typeof L!=='object')continue;const le=el('div','line l'+L[0],ce);
+   for(const [txt,at] of L[1]){const w=el('span','w',le);w.textContent=L[0]==='s'?txt.toLowerCase():txt.toUpperCase();words.push([w,at])}
+   if(c[2].includes('strike')&&L[0]==='b')strike=el('div','abs',le,{left:'-6px',right:'-6px',top:'50%',height:'7px',background:ACC,transformOrigin:'0 50%',borderRadius:'2px',boxShadow:'0 2px 8px rgba(0,0,0,.4)'})}
+  const si=c[2].indexOf('strike');cardEls.push({c,ce,words,strike,sAt:si>=0?c[2][si+1]:0})}})();
+function renderSubs(t){const y=SUB_Y(t)*1280;
+ for(const k of cardEls){const on=t>=k.c[0]&&t<k.c[1];k.ce.style.display=on?'flex':'none';if(!on)continue;k.ce.style.top=y+'px';
+  for(const [w,at] of k.words)applyPop(w,t,at,'',.15,.55);
+  if(k.strike){const p=eOut(lin(t,k.sAt,k.sAt+.2));k.strike.style.transform=`scaleX(${p})`;k.strike.style.opacity=p>0?1:0}}}
+
+const skyGlass={background:'rgba(18,20,26,.46)',border:'1px solid rgba(255,255,255,.28)',backdropFilter:'blur(14px)',boxShadow:'0 14px 40px rgba(0,0,0,.18)'};
+
+// ---------- 1. HOOK in the sky: cabinet -> site (0–7.4) ----------
+const HK={};
+(function(){const S=mkOv('hook');HK.S=S;
+ const L=el('div','abs',S,Object.assign({left:'26px',top:'60px',width:'300px',height:'262px',borderRadius:'24px'},skyGlass));HK.L=L;
+ L.innerHTML=`<div style="position:absolute;left:16px;top:14px;display:flex;align-items:center;gap:8px;font:800 15px/1 Mont;color:#fff">${ic('user',20)}Кабинет риэлтора</div>`;
+ HK.add=el('div','abs',L,{left:'16px',top:'48px',width:'268px',height:'40px',borderRadius:'12px',background:ACC,color:'#111',font:'800 15px/40px Mont',textAlign:'center',overflow:'hidden'});HK.add.innerHTML='+ Добавить объект<div id="hkr" style="position:absolute;left:50%;top:50%;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.7)"></div>';
+ HK.obj=el('div','abs',L,{left:'16px',top:'102px',width:'268px',height:'92px',borderRadius:'14px',background:'rgba(255,255,255,.1)'});
+ photo(HK.obj,10,10,96,72,0);HK.obj.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:118px;top:16px;font:800 15px/1.2 Mont;color:#fff">2-комн. квартира</div><div style="position:absolute;left:118px;top:40px;font:600 13px/1 Mont;color:#d0d1d6">74 м² · 12 этаж</div>`);
+ HK.inbase=el('div','abs',L,{left:'16px',top:'206px',height:'36px',padding:'0 14px',borderRadius:'18px',background:'rgba(46,204,113,.22)',color:'#4ee08f',font:'800 14px/36px Mont'});HK.inbase.textContent='✓ Добавлено в базу';
+ const Rt=el('div','abs',S,Object.assign({left:'394px',top:'60px',width:'300px',height:'262px',borderRadius:'24px',overflow:'hidden'},skyGlass));HK.R=Rt;
+ Rt.innerHTML=`<div style="position:absolute;left:0;right:0;top:0;height:30px;background:rgba(255,255,255,.12)"></div>${['#ff5f57','#febc2e','#28c840'].map((c,i)=>`<div style="position:absolute;left:${12+i*15}px;top:10px;width:9px;height:9px;border-radius:50%;background:${c}"></div>`).join('')}
+  <div style="position:absolute;left:62px;top:8px;font:700 12px/14px Mont;color:#fff">Сайт агентства · Каталог</div>`;
+ HK.tiles=[];for(let i=0;i<4;i++){const x=14+(i%2)*140,y=42+Math.floor(i/2)*108;const tl=el('div','abs',Rt,{left:x+'px',top:y+'px',width:'132px',height:'100px',borderRadius:'12px',background:'rgba(255,255,255,.1)'});
+  if(i>0){photo(tl,6,6,120,56,i%3);tl.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:8px;top:70px;width:${70+i*8}px;height:8px;border-radius:4px;background:rgba(255,255,255,.55)"></div><div style="position:absolute;left:8px;top:84px;width:50px;height:6px;border-radius:3px;background:rgba(255,255,255,.3)"></div>`)}
+  HK.tiles.push(tl)}
+ HK.nw=el('div','abs',HK.tiles[0],{left:0,top:0,width:'132px',height:'100px'});photo(HK.nw,6,6,120,56,0);
+ HK.nw.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:8px;top:68px;font:800 12px/1 Mont;color:#fff">2-комн. · 74 м²</div><div style="position:absolute;right:8px;top:12px;height:20px;padding:0 8px;border-radius:10px;background:${ACC};color:#111;font:800 11px/20px Mont">NEW</div>`);
+ HK.arr=el('div','abs',S,{left:'326px',top:'166px',width:'68px',height:'40px'});HK.arr.innerHTML=`<svg width="68" height="40" viewBox="0 0 68 40"><path d="M6 20 H56 M44 8 L60 20 L44 32" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+ HK.fly=el('div','abs',S,{left:'0',top:'0',width:'60px',height:'44px',borderRadius:'10px',overflow:'hidden',boxShadow:'0 8px 20px rgba(0,0,0,.35)'});photo(HK.fly,0,0,60,44,0);
+})();
+function renderHook(t){const on=t>=0.05&&t<7.45;HK.S.style.display=on?'block':'none';if(!on)return;
+ const out=eInOut(lin(t,6.80,7.40));
+ applyPop(HK.L,t,0.10,'',.32,.7);applyPop(HK.R,t,0.45,'',.32,.7);
+ [HK.L,HK.R].forEach((c,i)=>{c.style.opacity=Math.min(1,parseFloat(c.style.opacity))*(1-out);c.style.transform+=` translateY(${Math.sin(t*1.5+i)*3-out*40}px)`});
+ const press=t>=2.14&&t<2.28;HK.add.style.transform=press?'scale(.95)':'none';const rp=lin(t,2.16,2.6);$('hkr').style.opacity=t>=2.16?(1-rp)*.9:0;$('hkr').style.transform=`translate(-50%,-50%) scale(${1+rp*22})`;
+ const oq=lin(t,2.66,2.98);HK.obj.style.opacity=t<2.66?0:clamp(oq*2);HK.obj.style.transform=`translateY(${(1-eBack(oq))*30}px)`;
+ applyPop(HK.inbase,t,3.16,'',.22,.5);
+ const aq=eOut(lin(t,3.92,4.20));HK.arr.style.clipPath=`inset(0 ${(1-aq)*100}% 0 0)`;HK.arr.style.opacity=(t>=3.92?1:0)*(1-out);
+ // thumbnail flies from cabinet to site
+ const fq=eInOut(lin(t,3.98,4.40));const fx=mix(42,408,fq),fy=mix(122-10+60,112,fq)-Math.sin(fq*Math.PI)*60;
+ HK.fly.style.display=t>=3.98&&t<4.42?'block':'none';HK.fly.style.transform=`translate(${fx}px,${fy}px) scale(${mix(1,1.4,fq)})`;
+ const nq=lin(t,4.38,4.64);HK.nw.style.opacity=t<4.38?0:clamp(nq*2);HK.nw.style.transform=`scale(${.7+.3*eBack(nq)})`;
+ const gl=eOut(lin(t,5.16,5.40))*(1-lin(t,6.2,6.6));HK.tiles[0].style.boxShadow=`0 0 0 ${3*gl}px ${ACC},0 0 ${30*gl}px rgba(255,178,30,.6)`;
+}
+
+// ---------- 2. SYSTEM + REALTOR CABINET (9.90–22.10) ----------
+const SY={mods:[],av:[]};
+(function(){const S=mkScene('sys','v3bg');SY.S=S;
+ // phase 1: site -> system hub
+ const H=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});SY.H=H;
+ SY.site=el('div','glass abs',H,{left:'235px',top:'440px',width:'250px',height:'190px',borderRadius:'22px'});
+ SY.site.innerHTML=`<div style="position:absolute;left:0;right:0;top:46px;display:flex;justify-content:center">${ic('browser',70)}</div><div style="position:absolute;left:0;right:0;top:136px;text-align:center;font:800 24px/1 Mont;color:#fff">Сайт</div>`;
+ SY.st=el('div','abs',SY.site,{left:'20px',right:'20px',top:'94px',height:'6px',borderRadius:'3px',background:'#ff4d4d',transformOrigin:'0 50%'});
+ const sv=svgEl('svg',{width:720,height:1280,style:'position:absolute;left:0;top:0;overflow:visible'});H.appendChild(sv);
+ SY.core=el('div','abs',H,{left:'250px',top:'440px',width:'220px',height:'220px',borderRadius:'50%',background:ACC,color:'#111',font:'800 25px/1.15 Mont',display:'flex',alignItems:'center',justifyContent:'center',textAlign:'center',boxShadow:'0 0 80px rgba(255,178,30,.45)'});SY.core.innerHTML='Система<br>агентства';
+ const M=[['browser','Сайт'],['grid','Каталог'],['user','Кабинеты'],['list','Задачи'],['cal','Показы'],['deal','Сделки']];
+ M.forEach(([icn,txt],i)=>{const a=-Math.PI/2+i*Math.PI/3,cx=360+Math.cos(a)*250,cy=550+Math.sin(a)*250;
+  const l=svgEl('line',{x1:360,y1:550,x2:cx,y2:cy,stroke:ACC,'stroke-width':3,'stroke-dasharray':'6 8',opacity:.7},sv);
+  const m=el('div','glass abs',H,{left:(cx-78)+'px',top:(cy-40)+'px',width:'156px',height:'80px',borderRadius:'20px',border:'1.5px solid rgba(255,178,30,.45)'});
+  m.innerHTML=`<div style="position:absolute;left:12px;top:16px;width:48px;height:48px;border-radius:14px;background:#17181c;display:flex;align-items:center;justify-content:center">${ic(icn,28)}</div><div style="position:absolute;left:70px;top:0;font:800 16px/80px Mont;color:#fff">${txt}</div>`;
+  SY.mods.push({m,l})});
+ SY.team=el('div','glass abs',H,{left:'130px',top:'880px',width:'460px',height:'84px',borderRadius:'42px'});
+ SY.team.innerHTML=`<div style="position:absolute;left:250px;top:0;font:800 19px/84px Mont;color:#fff">Вся команда</div>`;
+ ['А','О','М','И','Д'].forEach((c,i)=>SY.av.push(avatar(SY.team,22+i*42,16,c,i,52)));
+ // phase 2: realtor cabinet
+ const C=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});SY.C=C;
+ const cab=el('div','glass abs',C,{left:'40px',top:'110px',width:'640px',height:'600px',borderRadius:'28px'});SY.cab=cab;
+ avatar(cab,26,24,'А',0,56);cab.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:96px;top:26px;font:800 22px/1 Mont;color:#fff">Кабинет риэлтора</div><div style="position:absolute;left:96px;top:56px;font:500 15px/1 Mont;color:#8e8f97">Анна · свои объекты и клиенты</div>
+  <div style="position:absolute;right:24px;top:30px;height:36px;padding:0 14px;border-radius:18px;background:rgba(255,178,30,.14);color:${ACC};font:800 15px/36px Mont">+ Новый объект</div>`);
+ SY.f=el('div','abs',cab,{left:'24px',top:'104px',width:'592px',height:'470px',borderRadius:'20px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)'});
+ SY.f.innerHTML=`<div style="position:absolute;left:20px;top:18px;font:600 14px/1 Mont;color:#8e8f97">Объект</div><div class="inp" style="left:20px;top:38px;width:552px"><span id="sobj"></span></div>
+  <div style="position:absolute;left:20px;top:108px;font:600 14px/1 Mont;color:#8e8f97">Фотографии</div><div style="position:absolute;left:20px;top:250px;font:600 14px/1 Mont;color:#8e8f97">Характеристики</div>`;
+ SY.ph=[0,1,2].map(k=>photo(SY.f,20+k*186,130,176,104,k));
+ SY.ch=['74 м²','2 комнаты','12/24 этаж','Ремонт','Вид на море'].map((x,i)=>{const c=el('div','abs',SY.f,{left:[20,130,272,412,20][i]+'px',top:(i<4?272:322)+'px',height:'40px',padding:'0 16px',borderRadius:'20px',background:'rgba(255,178,30,.12)',border:'1px solid rgba(255,178,30,.45)',color:'#fff',font:'700 15px/40px Mont',whiteSpace:'nowrap'});c.textContent=x;return c});
+ SY.pub=el('div','abs',SY.f,{left:'20px',top:'386px',width:'552px',height:'64px',borderRadius:'16px',background:'#1d1e23',overflow:'hidden'});
+ SY.pub.innerHTML=`<div id="spb" style="position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,178,30,.25)"></div><div id="spt" style="position:absolute;left:20px;top:0;font:800 18px/64px Mont;color:#fff">⚡ Автопубликация на сайт</div><div id="spp" style="position:absolute;right:20px;top:0;font:800 18px/64px Mont;color:${ACC}"></div>`;
+ const cat=el('div','glass abs',C,{left:'40px',top:'736px',width:'640px',height:'300px',borderRadius:'26px',overflow:'hidden'});SY.cat=cat;
+ cat.innerHTML=`<div style="position:absolute;left:0;right:0;top:0;height:40px;background:#1d1e23"></div>${['#ff5f57','#febc2e','#28c840'].map((c,i)=>`<div style="position:absolute;left:${16+i*17}px;top:15px;width:10px;height:10px;border-radius:50%;background:${c}"></div>`).join('')}
+  <div style="position:absolute;left:76px;top:12px;font:700 15px/16px Mont;color:#c9cad2">Каталог на сайте агентства</div>`;
+ SY.ct=[];for(let i=0;i<3;i++){const x=20+i*204;const tl=el('div','abs',cat,{left:x+'px',top:'58px',width:'192px',height:'222px',borderRadius:'16px',background:'#1d1e23'});
+  photo(tl,8,8,176,120,(i+1)%3);tl.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:12px;top:142px;width:${120-i*14}px;height:10px;border-radius:5px;background:#4a4b53"></div><div style="position:absolute;left:12px;top:162px;width:80px;height:8px;border-radius:4px;background:#33343b"></div>`);SY.ct.push(tl)}
+ SY.nw=el('div','abs',cat,{left:'20px',top:'58px',width:'192px',height:'222px',borderRadius:'16px',background:'#26241d',border:`2px solid ${ACC}`,boxSizing:'border-box'});
+ photo(SY.nw,6,6,176,120,0);SY.nw.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:10px;top:140px;font:800 16px/1 Mont;color:#fff">2-комн. квартира</div><div style="position:absolute;left:10px;top:164px;font:600 13px/1 Mont;color:#9a9ba3">74 м² · 12/24 этаж</div><div style="position:absolute;right:10px;top:14px;height:24px;padding:0 10px;border-radius:12px;background:${ACC};color:#111;font:800 12px/24px Mont">NEW</div>`);
+})();
+function renderSys(t){const S=SY.S;const on=t>=9.90&&t<22.10;S.style.display=on?'block':'none';if(!on)return;expandScene(S,t,9.90);
+ const p2=eInOut(lin(t,13.70,14.10));SY.H.style.display=p2<1?'block':'none';SY.H.style.opacity=1-p2;SY.H.style.transform=`scale(${1+.15*p2})`;
+ SY.C.style.display=p2>0?'block':'none';SY.C.style.opacity=p2;SY.C.style.transform=`translateY(${(1-p2)*80}px)`;
+ // phase 1
+ const mg=eInOut(lin(t,11.20,11.70));applyPop(SY.site,t,10.10,'',.28,.6);SY.site.style.opacity=Math.min(parseFloat(SY.site.style.opacity),1-mg);if(mg>0)SY.site.style.transform=`scale(${1-.4*mg})`;
+ SY.st.style.transform=`scaleX(${eOut(lin(t,10.70,10.90))})`;
+ const cq=lin(t,11.30,11.65);SY.core.style.opacity=t<11.30?0:clamp(cq*2);SY.core.style.transform=`scale(${.5+.5*eBack(cq)})`;
+ SY.mods.forEach(({m,l},i)=>{const at=11.70+i*.08;applyPop(m,t,at,'',.24,.4);l.style.opacity=t>=at?.7:0});
+ applyPop(SY.team,t,12.90,'',.24,.6);SY.av.forEach((a,i)=>applyPop(a,t,13.00+i*.06,'',.2,.3));
+ // phase 2
+ applyPop(SY.cab,t,14.10,'',.28,.85);
+ $('sobj').textContent=typed('2-комн. квартира · 74 м²',t,16.06,16.60);
+ SY.ph.forEach((p,i)=>applyPop(p,t,17.02+i*.12,'',.22,.5));
+ SY.ch.forEach((c,i)=>applyPop(c,t,17.78+i*.09,'',.2,.5));
+ const pb=eInOut(lin(t,19.54,20.40));$('spb').style.width=(pb*100)+'%';$('spp').textContent=t>=19.54?(pb<1?Math.round(pb*100)+'%':'✓ Готово'):'';$('spp').style.color=pb>=1?'#3ddc84':ACC;
+ SY.pub.style.boxShadow=t>=18.98?`0 0 0 2px rgba(255,178,30,${.6*(1-pb)})`:'none';
+ const kq=lin(t,20.60,20.94);SY.cat.style.opacity=t<20.60?0:clamp(kq*2);SY.cat.style.transform=`translateY(${(1-eBack(kq))*200}px)`;
+ SY.ct.forEach((c,i)=>{const sh=eInOut(lin(t,20.94,21.30));c.style.transform=`translateX(${sh*204}px)`;c.style.opacity=i===2?1-sh:1});
+ const nq=lin(t,21.10,21.40);SY.nw.style.opacity=t<21.10?0:clamp(nq*2);SY.nw.style.transform=`translateY(${(1-eBack(nq))*-260}px) scale(${.8+.2*eOut(nq)})`;
+}
+
+// ---------- 3. MANAGER PANEL (23.90–31.37) ----------
+const MG={};
+(function(){const S=mkScene('mgr','v3bg');MG.S=S;
+ MG.hd=el('div','abs',S,{left:'40px',top:'106px',width:'640px',height:'64px'});
+ MG.hd.innerHTML=`<div style="position:absolute;left:0;top:0;width:64px;height:64px;border-radius:18px;background:#17181c;border:1px solid rgba(255,178,30,.4);display:flex;align-items:center;justify-content:center">${ic('chart',38)}</div><div style="position:absolute;left:82px;top:8px;font:800 26px/1 Mont;color:#fff">Панель руководителя</div><div style="position:absolute;left:82px;top:42px;font:500 15px/1 Mont;color:#8e8f97">команда · показы · сделки</div>`;
+ MG.tabs=['Задачи','Показы','Сделки'].map((x,i)=>{const b=el('div','abs',S,{left:(40+i*216)+'px',top:'196px',width:'200px',height:'52px',borderRadius:'26px',font:'800 18px/52px Mont',textAlign:'center'});b.textContent=x;return b});
+ // tasks
+ const T=el('div','glass abs',S,{left:'40px',top:'276px',width:'640px',height:'420px',borderRadius:'26px'});MG.T=T;MG.rows=[];
+ [['Показ · 2-комн., 74 м²','сегодня 15:00','М',2],['Звонок новому клиенту','до 13:00','О',1],['Фото нового объекта','завтра','А',0]].forEach(([tt,sub,ini,k],i)=>{
+  const r=el('div','abs',T,{left:'22px',top:(26+i*128)+'px',width:'596px',height:'110px',borderRadius:'20px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)'});
+  r.innerHTML=`<div style="position:absolute;left:20px;top:35px;width:40px;height:40px;border-radius:12px;background:#17181c;display:flex;align-items:center;justify-content:center">${ic('list',24)}</div><div style="position:absolute;left:78px;top:30px;font:800 19px/1 Mont;color:#fff">${tt}</div><div style="position:absolute;left:78px;top:60px;font:500 15px/1 Mont;color:#9a9ba3">${sub}</div><div class="as" style="position:absolute;right:76px;top:42px;font:700 13px/1 Mont;color:${ACC}">назначено →</div>`;
+  const a=avatar(r,526,29,ini,k,52);MG.rows.push({r,a,as:r.querySelector('.as')})});
+ // showings calendar
+ const W=el('div','glass abs',S,{left:'40px',top:'276px',width:'640px',height:'420px',borderRadius:'26px'});MG.W=W;MG.sh=[];
+ const days=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];days.forEach((d,i)=>W.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${24+i*86}px;top:24px;width:76px;text-align:center;font:700 15px/1 Mont;color:#8e8f97">${d}</div><div style="position:absolute;left:${24+i*86}px;top:52px;width:76px;height:280px;border-radius:14px;background:rgba(255,255,255,.035)"></div>`));
+ [[0,0,'10:00'],[0,2,'16:30'],[1,1,'12:00'],[2,0,'11:00'],[2,2,'18:00'],[3,1,'14:00'],[4,0,'10:30'],[4,1,'15:00'],[5,0,'12:00']].forEach(([d,s,tm],i)=>{
+  const b=el('div','abs',W,{left:(28+d*86)+'px',top:(62+s*88)+'px',width:'68px',height:'76px',borderRadius:'12px',background:'rgba(255,178,30,.16)',border:`1.5px solid ${ACC}`,boxSizing:'border-box'});
+  b.innerHTML=`<div style="position:absolute;left:0;right:0;top:12px;text-align:center;font:800 13px/1 Mont;color:#fff">${tm}</div>`;avatar(b,16,34,['А','О','М'][i%3],i%3,34);MG.sh.push(b)});
+ MG.shn=el('div','abs',W,{left:'24px',top:'350px',height:'48px',padding:'0 18px',borderRadius:'24px',background:'rgba(255,178,30,.14)',color:ACC,font:'800 18px/48px Mont'});
+ // deals kanban
+ const K=el('div','glass abs',S,{left:'40px',top:'276px',width:'640px',height:'560px',borderRadius:'26px'});MG.K=K;
+ ['Показ','Переговоры','Сделка'].forEach((c,i)=>K.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${20+i*204}px;top:20px;width:192px;height:520px;border-radius:18px;background:rgba(255,255,255,.035)"></div><div style="position:absolute;left:${20+i*204}px;top:36px;width:192px;text-align:center;font:800 16px/1 Mont;color:${i===2?'#3ddc84':'#c9cad2'}">${c}</div>`));
+ MG.cards=[['2-комн., 74 м²',0],['Студия, 38 м²',1],['3-комн., 96 м²',2],['Таунхаус',0]].map(([tt,k],i)=>{const c=el('div','abs',K,{left:'28px',top:(72+i*114)+'px',width:'176px',height:'100px',borderRadius:'14px',background:'#1d1e23',border:'1px solid rgba(255,255,255,.08)',boxSizing:'border-box'});
+  photo(c,8,8,52,40,k);c.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:68px;top:12px;font:800 13px/1.25 Mont;color:#fff;width:100px">${tt}</div><div style="position:absolute;left:8px;top:64px;width:160px;height:8px;border-radius:4px;background:#2c2d33"><div class="pg" style="height:8px;border-radius:4px;background:${ACC};width:0"></div></div>`);
+  return{c,pg:c.querySelector('.pg')}});
+})();
+function renderMgr(t){const S=MG.S;const on=t>=23.90&&t<31.37;S.style.display=on?'block':'none';if(!on)return;slideScene(S,t,23.90);
+ applyPop(MG.hd,t,24.00,'',.24,.8);
+ const act=t<25.64?0:t<27.40?1:2;MG.tabs.forEach((b,i)=>{applyPop(b,t,24.05+i*.06,'',.2,.7);const a=i===act;b.style.background=a?ACC:'rgba(28,29,34,.96)';b.style.color=a?'#111':'#c9cad2';b.style.border=a?'none':'1px solid rgba(255,255,255,.1)'});
+ let x=phaseVis(MG.T,t,23.95,25.64);MG.T.style.transform=`translateX(${x}px)`;
+ MG.rows.forEach(({r,a,as},i)=>{applyPop(r,t,24.16+i*.1,'',.22,.8);const at=24.66+i*.14;applyPop(a,t,at,'',.22,.3);as.style.opacity=t>=at?1:0});
+ x=phaseVis(MG.W,t,25.64,27.42);MG.W.style.transform=`translateX(${x}px)`;
+ MG.sh.forEach((b,i)=>applyPop(b,t,26.10+i*.08,'',.2,.4));MG.shn.textContent='Запланировано показов: '+Math.round(9*eOut(lin(t,26.26,26.95)));applyPop(MG.shn,t,26.20,'',.2,.6);
+ x=phaseVis(MG.K,t,27.42,31.40);MG.K.style.transform=`translateX(${x}px)`;
+ const mv=[[0,1,28.84],[1,1,28.98],[0,2,29.60]];// card idx, column, time
+ MG.cards.forEach(({c,pg},i)=>{applyPop(c,t,27.66+i*.08,'',.22,.7);let col=0,y=72+i*114;
+  mv.forEach(([ci,cc,at])=>{if(ci===i&&t>=at)col=cc});
+  if(i===0){const a=eInOut(lin(t,28.84,29.20)),b=eInOut(lin(t,29.60,29.96));c.style.left=(28+204*a+204*b)+'px';c.style.top=(72+0)+'px';c.style.borderColor=b>.5?'rgba(46,204,113,.7)':'rgba(255,255,255,.08)'}
+  if(i===1){const a=eInOut(lin(t,28.98,29.34));c.style.left=(28+204*a)+'px';c.style.top=mix(186,72+114*0,0)+'px';c.style.top=(186+(-0)*a)+'px'}
+  const done=i===0&&t>=29.96;pg.style.width=(eOut(lin(t,30.18+i*.08,30.60+i*.08))*[100,66,35,20][i])+'%';pg.style.background=done?'#2ecc71':ACC});
+}
+
+// ---------- 4. DEVICES in the sky (31.90–35.40) ----------
+const DV={};
+(function(){const S=mkOv('dev');DV.S=S;
+ const mini=w=>`<div style="position:absolute;left:8%;top:12%;width:40%;height:7%;border-radius:4px;background:${ACC}"></div>${[0,1,2].map(i=>`<div style="position:absolute;left:8%;top:${28+i*20}%;width:84%;height:13%;border-radius:5px;background:rgba(255,255,255,.22)"></div>`).join('')}`;
+ const dev=(x,y,w,h,r,bar)=>{const d=el('div','abs',S,Object.assign({left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:r+'px',overflow:'hidden'},skyGlass,{border:'3px solid rgba(255,255,255,.55)'}));d.innerHTML=mini(w);return d};
+ DV.p=dev(52,96,104,200,22);DV.t=dev(188,116,200,160,16);
+ DV.l=dev(420,104,250,160,12);DV.base=el('div','abs',S,{left:'396px',top:'262px',width:'298px',height:'14px',borderRadius:'0 0 10px 10px',background:'rgba(255,255,255,.55)'});
+ DV.sync=el('div','abs',S,{left:'296px',top:'300px',height:'42px',padding:'0 18px',borderRadius:'21px',color:'#fff',font:'800 16px/42px Mont',whiteSpace:'nowrap',background:'rgba(18,20,26,.5)',border:`1px solid ${ACC}`,backdropFilter:'blur(10px)'});DV.sync.innerHTML=`<span style="color:${ACC}">⟳</span> одна база везде`;
+})();
+function renderDev(t){const on=t>=31.90&&t<35.45;DV.S.style.display=on?'block':'none';if(!on)return;
+ const out=eInOut(lin(t,35.00,35.40));
+ applyPop(DV.p,t,32.32,'',.28,.5);applyPop(DV.t,t,32.92,'',.28,.5);applyPop(DV.l,t,33.76,'',.28,.5);applyPop(DV.base,t,33.80,'',.28,.5);applyPop(DV.sync,t,34.10,'',.24,.6);
+ [DV.p,DV.t,DV.l,DV.base,DV.sync].forEach((e,i)=>{e.style.opacity=Math.min(1,parseFloat(e.style.opacity)||0)*(1-out);e.style.transform+=` translateY(${Math.sin(t*1.6+i)*3-out*40}px)`});
+ const pulse=t>=34.10?.5+.5*Math.sin((t-34.1)*8):0;[DV.p,DV.t,DV.l].forEach(d=>d.style.boxShadow=`0 0 ${24*pulse}px rgba(255,178,30,${.6*pulse})`);
+}
+
+// ---------- 5. OUTCOME (39.30–47.20) ----------
+const OC={c:[]};
+(function(){const S=mkScene('out','v3bg');OC.S=S;
+ OC.head=el('div','abs',S,{left:'40px',top:'104px',width:'640px',textAlign:'center',font:'600 64px/1 Osw',color:'#fff',textTransform:'uppercase'});OC.head.innerHTML=`В <span style="color:${ACC}">итоге</span>`;
+ const D=[['users','Клиентам','Удобный сайт с каталогом',40.28,40.72],['user','Риэлторам','Рабочий инструмент',43.10,43.50],['chart','Руководителю','Контроль над процессами',45.10,45.62]];
+ D.forEach(([icn,who,what,a1,a2],i)=>{const c=el('div','glass abs',S,{left:'40px',top:(210+i*232)+'px',width:'640px',height:'210px',borderRadius:'26px'});
+  c.innerHTML=`<div style="position:absolute;left:24px;top:24px;width:76px;height:76px;border-radius:22px;background:#17181c;border:1px solid rgba(255,178,30,.4);display:flex;align-items:center;justify-content:center">${ic(icn,44)}</div>
+   <div style="position:absolute;left:120px;top:30px;font:700 16px/1 Mont;color:#8e8f97;letter-spacing:1px;text-transform:uppercase">${who}</div><div class="w" style="position:absolute;left:120px;top:56px;font:800 25px/1.1 Mont;color:#fff">${what}</div>`;
+  const vis=el('div','abs',c,{left:'24px',top:'120px',width:'592px',height:'70px'});
+  if(i===0)[0,1,2,0].forEach((k,j)=>photo(vis,j*150,0,138,70,k));
+  if(i===1)['Объекты','Клиенты','Показы','Задачи'].forEach((x,j)=>vis.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${j*150}px;top:10px;width:138px;height:50px;border-radius:14px;background:rgba(255,178,30,.12);border:1px solid rgba(255,178,30,.4);font:700 15px/50px Mont;color:#fff;text-align:center">${x}</div>`));
+  if(i===2){vis.innerHTML=`<svg width="592" height="70" viewBox="0 0 592 70"><path class="ln" d="M0 62 L80 54 L160 58 L240 40 L320 44 L400 26 L480 22 L592 6" fill="none" stroke="${ACC}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="700" stroke-dashoffset="700"/></svg>`;c.ln=vis.querySelector('.ln')}
+  OC.c.push({c,a1,a2,w:c.querySelector('.w'),vis,ln:c.ln})});
+ OC.one=el('div','abs',S,{left:'50%',top:'920px',height:'60px',padding:'0 30px',borderRadius:'30px',background:ACC,color:'#111',font:'800 22px/60px Mont',whiteSpace:'nowrap',boxShadow:'0 10px 50px rgba(255,178,30,.45)'});OC.one.textContent='Одна система для всего агентства';
+})();
+function renderOut(t){const S=OC.S;const on=t>=39.30&&t<47.20;S.style.display=on?'block':'none';if(!on)return;expandScene(S,t,39.30);
+ applyPop(OC.head,t,39.60,'',.24,.6);
+ OC.c.forEach(({c,a1,a2,w,vis,ln},i)=>{const q=lin(t,a1,a1+.36);c.style.opacity=t<a1?0:clamp(q*2);c.style.transform=`translateX(${(1-eBack(q))*(i%2?-420:420)}px)`;
+  w.style.opacity=t>=a2?1:0;w.style.transform=t>=a2?`translateY(${(1-eOut(lin(t,a2,a2+.25)))*14}px)`:'none';
+  vis.style.opacity=lin(t,a2+.1,a2+.4);if(ln)ln.setAttribute('stroke-dashoffset',700*(1-eInOut(lin(t,a2+.1,a2+.9))));
+  const gl=eOut(lin(t,46.36,46.70));c.style.borderColor=`rgba(255,178,30,${.55*gl})`});
+ applyPop(OC.one,t,46.40,'translateX(-50%)',.24,.5);
+}
+
+// ---------- 6. CTA FORM (54.14–end), top ----------
+const CT={};
+(function(){const S=mkOv('cta');CT.S=S;
+ const c=el('div','frost abs',S,{left:'60px',top:'56px',width:'600px',height:'312px',borderRadius:'30px',transformOrigin:'50% 0'});CT.c=c;
+ c.innerHTML=`<div style="position:absolute;left:30px;top:26px;font:800 26px/1 Mont;color:#fff">Система для вашего агентства</div>
+  <div class="lbl" style="left:30px;top:74px">Имя</div><div class="inp" style="left:30px;top:94px;width:540px"><span id="ctn"></span></div>
+  <div class="lbl" style="left:30px;top:156px">Телефон</div><div class="inp" style="left:30px;top:176px;width:540px"><span id="ctp"></span></div>
+  <div id="ctb" style="position:absolute;left:30px;top:242px;width:540px;height:52px;border-radius:16px;background:${ACC};color:#111;font:800 20px/52px Mont;text-align:center;overflow:hidden"><span id="ctt">Оставить заявку</span><div id="ctr" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
+ CT.tap=el('div','abs',S,{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.38)',border:'3px solid rgba(255,255,255,.9)',boxSizing:'border-box',boxShadow:'0 6px 20px rgba(0,0,0,.35)'});
+})();
+function renderCTA(t){const on=t>=54.14;CT.S.style.display=on?'block':'none';if(!on)return;
+ const p=lin(t,54.14,54.52);CT.c.style.opacity=eOut(p);CT.c.style.transform=`translateY(${(1-eBack(p))*-70}px) scale(${.94+.06*eOut(p)})`;
+ $('ctn').textContent=typed('Александр',t,54.30,54.56);$('ctp').textContent=typed('+380 •• ••• •• ••',t,54.56,54.78);
+ const tp=kf(t,[[54.50,[540,560]],[54.78,[360,324]],[60,[360,324]]]);const press=t>=54.82&&t<54.94;
+ CT.tap.style.opacity=t<54.50?0:lin(t,54.50,54.60)*(1-lin(t,55.3,55.55));CT.tap.style.transform=`translate(${tp[0]-28}px,${tp[1]-28}px) scale(${press?.78:1})`;
+ $('ctb').style.transform=press?'scale(.96)':'none';const rp=lin(t,54.84,55.3);$('ctr').style.opacity=t>=54.84?(1-rp)*.9:0;$('ctr').style.transform=`translate(-50%,-50%) scale(${1+rp*30})`;
+ const done=t>=55.00;$('ctt').textContent=done?'✓ Заявка отправлена':'Оставить заявку';$('ctb').style.background=done?'#22b455':ACC;$('ctb').style.color=done?'#fff':'#111';
+}
+
+window.renderAt=function(t){pending.length=0;renderSubs(t);renderHook(t);renderSys(t);renderMgr(t);renderDev(t);renderOut(t);renderCTA(t);return Promise.all(pending)};
+window.renderAt(0);
+</script></body></html>

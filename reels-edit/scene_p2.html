@@ -1,0 +1,284 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Portfolio reel overlay</title>
+<style>
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:200 700}
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-lat.woff2) format('woff2');font-weight:200 700}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:100 900}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-lat.woff2) format('woff2');font-weight:100 900}
+:root{--acc:#FFB21E;--green:#2ecc71}
+html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+#root{position:relative;width:720px;height:1280px;overflow:hidden}
+.scene{position:absolute;inset:0;overflow:hidden;display:none}
+.abs{position:absolute}
+.ov{position:absolute;left:0;top:0;width:720px;height:1280px;display:none}
+/* subtitles */
+#subs{position:absolute;inset:0;pointer-events:none}
+.card{position:absolute;left:0;width:720px;display:none;flex-direction:column;align-items:center;transform:translateY(-50%)}
+.line{display:flex;gap:.22em;justify-content:center;white-space:nowrap;position:relative}
+.w{display:inline-block;transform-origin:50% 60%}
+.ls{font:600 32px/1.1 Mont;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 3px rgba(0,0,0,.5)}
+.lb,.lr{font:600 78px/0.98 Osw;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.45),0 0 3px rgba(0,0,0,.35)}
+.lr{color:var(--acc);text-shadow:0 0 2px rgba(0,0,0,.75),0 3px 6px rgba(0,0,0,.45),0 4px 22px rgba(0,0,0,.6)}
+/* look */
+.v3bg{background:radial-gradient(140% 38% at 50% 0%,rgba(255,178,30,.13) 0%,rgba(255,178,30,.05) 55%,rgba(255,178,30,0) 100%),radial-gradient(circle,#2c2d33 1.6px,transparent 2px) 0 0/30px 30px,#0f1013}
+.glass{background:rgba(28,29,34,.94);border:1px solid rgba(255,255,255,.08);border-radius:26px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.frost{background:rgba(18,18,22,.64);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+svg .wst{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round}
+/* browser window */
+.win{position:absolute;width:560px;border-radius:16px;overflow:hidden;background:#141519;box-shadow:0 30px 70px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07);transform-origin:50% 50%}
+.win .bar{height:32px;display:flex;align-items:center;gap:7px;padding-left:14px;background:#1d1e23}
+.win .dot{width:10px;height:10px;border-radius:50%}
+.win .url{margin-left:14px;width:250px;height:18px;border-radius:9px;background:#2a2b31;position:relative}
+.win .url:before{content:'';position:absolute;left:9px;top:5px;width:7px;height:8px;border-radius:2px;background:#6b6c74}
+.win img{display:block;width:560px;height:421px;object-fit:cover}
+.tag{position:absolute;padding:0 18px;height:46px;border-radius:23px;font:700 18px/46px Mont;color:#fff;white-space:nowrap;background:rgba(20,20,24,.9);border:1px solid rgba(255,178,30,.5);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.tag b{color:var(--acc);margin-right:8px}
+.pill{position:absolute;width:300px;height:58px;border-radius:29px;font:700 18px/58px Mont;color:#fff;white-space:nowrap;padding-left:62px;box-sizing:border-box}
+.pill .ck{position:absolute;left:12px;top:11px;width:36px;height:36px;border-radius:50%;box-sizing:border-box;border:2px solid #4a4b52;color:#111;font:800 20px/32px Mont;text-align:center}
+.inp{position:absolute;height:50px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.inp span{position:absolute;left:16px;top:15px;font:600 19px/1 Mont;color:#fff;white-space:pre}
+.lbl{position:absolute;font:600 14px/1 Mont;color:#9a9ba3}
+</style></head>
+<body><div id="root"><div id="subs"></div></div>
+<script>
+// ================= helpers =================
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const lin=(t,a,b)=>clamp((t-a)/(b-a));
+const eOut=p=>1-Math.pow(1-p,3);
+const eInOut=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eBack=p=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
+const mix=(a,b,p)=>a+(b-a)*p;
+const $=id=>document.getElementById(id);
+function el(tag,cls,parent,style){const e=document.createElement(tag);if(cls)e.className=cls;if(style)Object.assign(e.style,style);if(parent)parent.appendChild(e);return e}
+function svgEl(tag,attrs,parent){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function kf(t,keys,ease=eInOut){if(t<=keys[0][0])return keys[0][1];for(let i=1;i<keys.length;i++){if(t<=keys[i][0]){const[a,va]=keys[i-1],[b,vb]=keys[i];const p=ease((t-a)/(b-a));return Array.isArray(va)?va.map((v,j)=>mix(v,vb[j],p)):mix(va,vb,p)}}return keys[keys.length-1][1]}
+function pop(t,at,dur=.16,from=.6){const p=lin(t,at,at+dur);return{o:t<at?0:clamp(p*2.2),s:from+(1-from)*eBack(p),b:(1-p)*5}}
+function applyPop(e,t,at,extra='',dur,from){const q=pop(t,at,dur,from);e.style.opacity=q.o;e.style.transform=`${extra} scale(${q.s})`;e.style.filter=q.b>.05?`blur(${q.b}px)`:'none'}
+const typed=(str,t,a,b)=>str.slice(0,Math.round(clamp((t-a)/(b-a))*str.length));
+const fmtInt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const ACC='#FFB21E';
+const root=$('root');
+function mkScene(id,cls){const s=el('div','scene '+(cls||''));s.id=id;root.insertBefore(s,$('subs'));return s}
+function mkOv(id){const s=el('div','ov');s.id=id;root.insertBefore(s,$('subs'));return s}
+const ICON={
+ g:`<path fill="none" stroke="${ACC}" stroke-width="12" d="M80 30 A36 36 0 1 0 86 54 L52 54"/>`,
+ ig:`<rect x="12" y="12" width="76" height="76" rx="22" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="50" cy="50" r="17" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="70" cy="30" r="5" fill="${ACC}"/>`,
+ mail:'<path fill="none" stroke="#111" stroke-width="8" stroke-linejoin="round" d="M14 26 H86 V74 H14 Z M14 26 L50 54 L86 26"/>',
+};
+const svgIcon=(name,size)=>`<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;display:block">${ICON[name]}</svg>`;
+// image swap that resolves once the new frame is decoded
+const pending=[];
+function setImg(img,src){if(img.dataset.src===src)return;img.dataset.src=src;img.src=src;pending.push(img.decode().catch(()=>{}))}
+
+// ================= SUBTITLES =================
+const SUB_Y=t=>t<4.00?0.625:t<14.64?0.865:t<17.00?0.665:t<22.74?0.865:t<30.60?0.665:0.545;
+const CARDS=[
+ [0.00,0.74,[['s',[['нужен',0.00]]],['b',[['современный',0.28]]]]],
+ [0.74,1.78,[['b',[['сайт',0.74]]],['s',[['для',1.00],['бизнеса?',1.12]]]]],
+ [1.78,2.76,[['b',[['посмотрите,',1.78]]],['s',[['что',2.52]]]]],
+ [2.76,4.06,[['s',[['мы',2.76],['создаём',3.00],['для',3.46],['наших',3.62]]],['b',[['клиентов',3.80]]]]],
+ [4.06,6.04,[['s',[['не',4.46],['просто',4.78],['красивый',5.04]]],['b',[['дизайн',5.58]]]]],
+ [6.04,7.36,[['s',[['а',6.04],['полноценный',6.26]]],['r',[['инструмент',7.00]]]]],
+ [7.36,8.94,[['s',[['для',7.36],['привлечения',7.82]]],['b',[['клиентов',8.26]]]]],
+ [8.94,10.36,[['s',[['это',8.94],['лишь',9.26],['несколько',9.46]]],['b',[['сайтов',9.80]]]]],
+ [10.36,12.14,[['s',[['которые',10.36],['мы',10.60],['разработали',10.78]]],['b',[['для',11.30],['клиентов',11.66]]]]],
+ [12.14,13.18,[['s',[['и',12.14],['которые',12.42]]],['b',[['приносят',12.72]]]]],
+ [13.18,14.42,[['r',[['результат',13.18]]],['s',[['ежедневно',13.42]]]]],
+ [14.42,15.62,[['s',[['на',14.42],['выходе',14.76],['вы',15.14]]],['b',[['получаете',15.22]]]]],
+ [15.62,17.00,[['s',[['полностью',15.62]]],['r',[['готовый',16.06],['сайт',16.66]]]]],
+ [17.00,18.58,[['b',[['адаптированный',17.06]]],['s',[['под',17.78],['смартфоны',17.90]]]]],
+ [18.58,19.88,[['b',[['seo',18.74]]],['s',[['оптимизированный',18.94]]]]],
+ [19.88,21.06,[['s',[['с',19.88],['продуманной',20.14]]],['b',[['структурой',20.54]]]]],
+ [21.06,22.74,[['s',[['и',21.06],['удобными',21.22],['формами',21.72]]],['b',[['заявок',22.14]]]]],
+ [22.74,24.08,[['b',[['сайт',22.74]]],['s',[['уже',23.26],['готовый',23.56]]]]],
+ [24.08,24.94,[['s',[['к',24.08],['запуску',24.10]]],['b',[['рекламы',24.50]]]]],
+ [24.94,25.34,[['s',[['в',24.88]]],['b',[['google',24.94]]]]],
+ [25.34,25.64,[['s',[['и',25.12]]],['b',[['instagram',25.34]]]]],
+ [25.64,27.12,[['s',[['а',25.64],['при',26.26]]],['b',[['необходимости',26.42]]]]],
+ [27.12,28.42,[['s',[['мы',27.12],['сами',27.28],['настроим',27.52]]],['b',[['рекламу',28.00]]]]],
+ [28.42,30.36,[['s',[['и',28.42],['поможем',28.56],['привлекать',29.10]]],['r',[['новых',29.54],['клиентов',29.72]]]]],
+ [30.36,31.10,[['b',[['хотите',30.36]]],['s',[['такой',30.96]]]]],
+ [31.10,32.38,[['b',[['сайт',31.10]]],['s',[['для',31.42],['своего',31.52],['бизнеса?',31.72]]]]],
+ [32.38,33.56,[['b',[['оставьте',32.38]]],['s',[['заявку',33.02]]]]],
+ [33.56,34.88,[['s',[['обсудим',33.56],['ваш',34.20]]],['b',[['проект',34.32]]]]],
+ [34.88,35.72,[['s',[['и',34.66],['предложим',34.88]]],['b',[['решение',35.34]]]]],
+ [35.72,37.40,[['s',[['под',35.72],['ваш',35.86]]],['b',[['бюджет',36.06]]],['s',[['и',36.54],['цели',36.62]]]]],
+];
+const cardEls=[];
+(function(){const R=$('subs');
+ for(const c of CARDS){const ce=el('div','card',R);const words=[];
+  for(const L of c[2]){const le=el('div','line l'+L[0],ce);
+   for(const [txt,at] of L[1]){const w=el('span','w',le);w.textContent=L[0]==='s'?txt.toLowerCase():txt.toUpperCase();words.push([w,at])}}
+  cardEls.push({c,ce,words})}})();
+function renderSubs(t){const y=SUB_Y(t)*1280;
+ for(const k of cardEls){const on=t>=k.c[0]&&t<k.c[1];k.ce.style.display=on?'flex':'none';if(!on)continue;k.ce.style.top=y+'px';
+  for(const [w,at] of k.words)applyPop(w,t,at,'',.15,.55)}}
+
+// ================= 1. PORTFOLIO SHOWCASE (4.00–14.64) =================
+const SITES=[
+ {dir:'1_nacre',n:91,skip:11,at:4.10,tag:'Аренда яхт · Дубай',slot:[30,120,-2.2]},
+ {dir:'2_pislya',n:101,skip:11,at:6.20,tag:'Клининговая компания',slot:[130,280,1.8]},
+ {dir:'3_offset',n:112,skip:11,at:8.40,tag:'Архитектурное бюро',slot:[30,440,-1.6]},
+ {dir:'4_reale',n:93,skip:0,at:10.60,tag:'Байерское агентство · Италия',slot:[130,575,2.2]},
+];
+const SC={wins:[]};
+(function(){const S=mkScene('show','v3bg');SC.S=S;const stack=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});SC.stack=stack;
+ SITES.forEach((s,i)=>{const w=el('div','win',stack,{left:s.slot[0]+'px',top:s.slot[1]+'px'});
+  const bar=el('div','bar',w);['#ff5f57','#febc2e','#28c840'].forEach(c=>el('div','dot',bar,{background:c}));el('div','url',bar);
+  const img=el('img','',w);
+  const tag=el('div','tag',stack);tag.innerHTML=`<b>0${i+1}</b>${s.tag}`;
+  SC.wins.push({w,img,tag,s})});
+ SC.toast=el('div','glass abs',S,{left:'70px',top:'34px',width:'580px',height:'78px',borderRadius:'24px'});
+ SC.toast.innerHTML=`<div style="position:absolute;left:15px;top:14px;width:50px;height:50px;border-radius:14px;background:${ACC};display:flex;align-items:center;justify-content:center">${svgIcon('mail',32)}</div>
+  <div style="position:absolute;left:80px;top:17px;font:700 20px/1 Mont;color:#fff">Новая заявка с сайта</div><div style="position:absolute;left:80px;top:46px;font:500 15px/1 Mont;color:#8e8f97">только что</div>
+  <div style="position:absolute;right:22px;top:27px;font:800 20px/1 Mont;color:#3ddc84">+1</div>`;
+})();
+function renderShow(t){const S=SC.S;const on=t>=4.00&&t<14.64;S.style.display=on?'block':'none';if(!on)return;
+ const p=eOut(lin(t,4.00,4.34));S.style.clipPath=p<1?`inset(${(1-p)*40}% ${(1-p)*26}% ${(1-p)*40}% ${(1-p)*26}% round ${10+30*(1-p)}px)`:'none';
+ SC.stack.style.transform=`translateY(${kf(t,[[4.0,40],[14.64,-40]],x=>x)}px)`;
+ SC.wins.forEach(({w,img,tag,s},i)=>{const q=lin(t,s.at,s.at+.6),e=eOut(q),b=eBack(q);
+  // pushed back by each later window
+  let back=0;for(let j=i+1;j<SITES.length;j++)back+=eOut(lin(t,SITES[j].at,SITES[j].at+.6));
+  const vis=t>=s.at;w.style.display=vis?'block':'none';tag.style.display=vis?'block':'none';if(!vis)return;
+  const fx=i%2?1:-1;
+  w.style.transform=`perspective(1200px) translate(${(1-e)*fx*-120}px,${(1-b)*520}px) rotateX(${(1-e)*38}deg) rotateZ(${s.slot[2]*e+(1-e)*fx*6}deg) scale(${mix(1.12,1,e)*(1-.04*back)})`;
+  w.style.opacity=clamp(q*3);
+  w.style.filter=back>0.01?`brightness(${1-.22*Math.min(back,2)}) blur(${Math.min(back,2)*.5}px)`:'none';
+  const fi=Math.min(s.n,1+s.skip+Math.floor(Math.max(0,t-s.at)*25));setImg(img,`p2_frames/${s.dir}/f_${String(fi).padStart(4,'0')}.jpg`);
+  // niche tag sits on the window's corner
+  const tx=i%2?s.slot[0]+300:s.slot[0]+250, ty=s.slot[1]-22;tag.style.left=(i%2?s.slot[0]-10:s.slot[0]+260)+'px';tag.style.top=ty+'px';
+  applyPop(tag,t,s.at+.45,'',.22,.5);if(back>0.01)tag.style.opacity=Math.max(0,1-back*1.4)});
+ const tq=lin(t,13.42,13.72);SC.toast.style.opacity=t<13.42?0:clamp(tq*2);SC.toast.style.transform=`translateY(${(1-eBack(tq))*-140}px)`;
+}
+
+// ================= 2. FEATURES (17.00–22.74) =================
+const FE={pills:[]};
+const FE_T=[17.06,18.58,19.88,21.22];
+(function(){const S=mkScene('feat','v3bg');FE.S=S;
+ ['Адаптив под смартфоны','SEO-оптимизация','Продуманная структура','Удобные формы заявок'].forEach((txt,i)=>{
+  const p=el('div','pill glass',S,{left:(i%2?370:50)+'px',top:(i<2?100:172)+'px'});p.innerHTML=`<div class="ck"></div>${txt}`;FE.pills.push(p)});
+ const stage=el('div','abs',S,{left:0,top:260,width:'720px',height:'760px'});stage.style.top='260px';FE.stage=stage;
+ // V1 responsive: desktop window morphs into a phone
+ const dev=el('div','abs',stage,{background:'#141519',overflow:'hidden',boxShadow:'0 30px 70px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08)'});FE.dev=dev;
+ FE.devbar=el('div','abs',dev,{left:0,top:0,right:0,height:'30px',background:'#1d1e23'});
+ ['#ff5f57','#febc2e','#28c840'].forEach((c,i)=>el('div','abs',FE.devbar,{left:(14+i*17)+'px',top:'10px',width:'10px',height:'10px',borderRadius:'50%',background:c}));
+ FE.devimg=el('img','abs',dev,{objectFit:'cover'});FE.devimg.src='p2_frames/1_nacre/f_0030.jpg';
+ FE.notch=el('div','abs',dev,{width:'86px',height:'24px',borderRadius:'12px',background:'#0d0d10',left:'50%',top:'10px',marginLeft:'-43px'});
+ // V2 SEO: search results, our site climbs to #1
+ const seo=el('div','glass abs',stage,{left:'70px',top:'40px',width:'580px',height:'520px',borderRadius:'28px',overflow:'hidden'});FE.seo=seo;
+ seo.innerHTML=`<div style="position:absolute;left:24px;top:24px;right:24px;height:54px;border-radius:27px;background:#24252b;border:1px solid #33343b">
+   <svg width="22" height="22" viewBox="0 0 24 24" style="position:absolute;left:18px;top:16px"><circle cx="10" cy="10" r="7" fill="none" stroke="#9a9ba3" stroke-width="2.5"/><path d="M15 15 L21 21" stroke="#9a9ba3" stroke-width="2.5" stroke-linecap="round"/></svg>
+   <span id="seoq" style="position:absolute;left:52px;top:17px;font:600 19px/1 Mont;color:#fff;white-space:pre"></span></div>`;
+ FE.rows=[];for(let i=0;i<4;i++){const r=el('div','abs',seo,{left:'24px',width:'532px',height:'92px',borderRadius:'18px',background:'#1d1e23'});
+  r.innerHTML=`<div style="position:absolute;left:18px;top:18px;width:${150+i*30}px;height:9px;border-radius:5px;background:#3a3b42"></div><div style="position:absolute;left:18px;top:40px;width:${300-i*20}px;height:14px;border-radius:7px;background:#4a4b53"></div><div style="position:absolute;left:18px;top:64px;width:${380-i*30}px;height:8px;border-radius:4px;background:#303137"></div>`;FE.rows.push(r)}
+ const ours=el('div','abs',seo,{left:'24px',width:'532px',height:'92px',borderRadius:'18px',background:'#26241d',border:`2px solid ${ACC}`,boxSizing:'border-box',boxShadow:'0 0 30px rgba(255,178,30,.3)'});FE.ours=ours;
+ ours.innerHTML=`<div style="position:absolute;left:18px;top:16px;font:500 14px/1 Mont;color:#9a9ba3">yacht charter · Dubai</div><div style="position:absolute;left:18px;top:38px;font:700 21px/1 Mont;color:#8ab4ff">NACRE — аренда яхт в Дубае</div>
+  <div style="position:absolute;left:18px;top:66px;width:300px;height:8px;border-radius:4px;background:#3a3b42"></div>
+  <div id="rank" style="position:absolute;right:16px;top:22px;width:48px;height:48px;border-radius:50%;background:${ACC};color:#111;font:800 22px/48px Mont;text-align:center">#3</div>`;
+ // V3 structure tree
+ const tree=el('div','abs',stage,{left:0,top:0,width:'720px',height:'700px'});FE.tree=tree;
+ const sv=svgEl('svg',{width:720,height:700,style:'position:absolute;left:0;top:0;overflow:visible'});tree.appendChild(sv);FE.lines=[];
+ const node=(x,y,w,txt,big)=>{const n=el('div','abs glass',tree,{left:(x-w/2)+'px',top:(y-30)+'px',width:w+'px',height:'60px',borderRadius:'18px',font:`${big?800:700} ${big?22:17}px/60px Mont`,color:big?'#111':'#fff',textAlign:'center',background:big?ACC:'rgba(28,29,34,.94)',border:big?'none':'1.5px solid rgba(255,178,30,.55)',transformOrigin:'50% 50%'});n.textContent=txt;return n};
+ FE.root=node(360,90,220,'Главная',true);
+ const kids=[['Услуги',105],['Кейсы',275],['Отзывы',445],['Контакты',615]];FE.kids=[];FE.subs=[];
+ kids.forEach(([txt,x],i)=>{const l=svgEl('path',{d:`M360 120 C360 190 ${x} 170 ${x} 250`,fill:'none',stroke:ACC,'stroke-width':4,'stroke-linecap':'round','stroke-dasharray':400,'stroke-dashoffset':400},sv);FE.lines.push(l);
+  FE.kids.push(node(x,280,150,txt));
+  for(let k=0;k<2;k++){const l2=svgEl('path',{d:`M${x} 310 V${370+k*80}`,fill:'none',stroke:'#4a4b52','stroke-width':3,'stroke-dasharray':200,'stroke-dashoffset':200},sv);FE.lines.push(l2);
+   const sb=el('div','abs glass',tree,{left:(x-60)+'px',top:(350+k*80)+'px',width:'120px',height:'44px',borderRadius:'14px'});
+   sb.innerHTML=`<div style="position:absolute;left:16px;top:18px;width:${70-k*16}px;height:8px;border-radius:4px;background:#4a4b53"></div>`;FE.subs.push(sb)}});
+ // V4 lead form
+ const form=el('div','glass abs',stage,{left:'70px',top:'60px',width:'580px',height:'360px',borderRadius:'28px'});FE.form=form;
+ form.innerHTML=`<div style="position:absolute;left:30px;top:28px;font:800 26px/1 Mont;color:#fff">Оставить заявку</div>
+  <div class="lbl" style="left:30px;top:84px">Имя</div><div class="inp" style="left:30px;top:104px;width:520px"><span id="fen"></span></div>
+  <div class="lbl" style="left:30px;top:170px">Телефон</div><div class="inp" style="left:30px;top:190px;width:520px"><span id="fep"></span></div>
+  <div id="feb" style="position:absolute;left:30px;top:270px;width:520px;height:58px;border-radius:16px;background:${ACC};color:#111;font:800 20px/58px Mont;text-align:center;overflow:hidden"><span id="fet">Отправить</span><div id="fer" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
+ FE.tap=el('div','abs',stage,{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.38)',border:'3px solid rgba(255,255,255,.9)',boxSizing:'border-box',boxShadow:'0 6px 20px rgba(0,0,0,.35)'});
+})();
+// stage-visual visibility: slide in from the right, out to the left
+function stageVis(e,t,a,b){const i=lin(t,a,a+.32),o=lin(t,b-.22,b);const on=t>=a&&t<b+.001;e.style.display=on?'block':'none';if(!on)return 0;
+ const x=(1-eOut(i))*260-eInOut(o)*260;e.style.opacity=clamp(i*2.5)*(1-o);e.style.filter=(1-i)+o>0.02?`blur(${((1-i)+o)*6}px)`:'none';return x}
+function renderFeat(t){const S=FE.S;const on=t>=17.00&&t<22.74;S.style.display=on?'block':'none';if(!on)return;
+ const sp=eOut(lin(t,17.00,17.34));S.style.transform=sp<1?`translateY(${(1-sp)*100}%)`:'none';S.style.borderRadius=sp<1?'36px 36px 0 0':'0';
+ FE.pills.forEach((p,i)=>{applyPop(p,t,17.18+i*.06,'',.24,.6);const ck=p.firstChild,on=t>=FE_T[i];
+  ck.style.background=on?ACC:'transparent';ck.style.borderColor=on?ACC:'#4a4b52';ck.textContent=on?'✓':'';ck.style.transform=on?`scale(${.6+.4*eBack(lin(t,FE_T[i],FE_T[i]+.2))})`:'none';
+  p.style.borderColor=on?'rgba(255,178,30,.55)':'rgba(255,255,255,.08)'});
+ // V1 responsive morph 17.00–18.58
+ let x=stageVis(FE.dev,t,17.00,18.58);
+ const m=eInOut(lin(t,17.55,18.15));const W=mix(600,270,m),H=mix(420,560,m);
+ Object.assign(FE.dev.style,{width:W+'px',height:H+'px',left:(360-W/2+x)+'px',top:(mix(110,40,m))+'px',borderRadius:mix(16,42,m)+'px',border:`${mix(0,9,m)}px solid #2b2c31`,boxSizing:'border-box'});
+ FE.devbar.style.opacity=1-m*2;FE.notch.style.opacity=clamp(m*2-1);
+ const iw=W-2*mix(0,9,m),ih=H-2*mix(0,9,m)-mix(30,0,m);
+ Object.assign(FE.devimg.style,{left:0,top:mix(30,0,m)+'px',width:iw+'px',height:ih+'px',objectPosition:`${mix(50,30,m)}% 50%`});
+ setImg(FE.devimg,`p2_frames/1_nacre/f_${String(30+Math.floor(clamp((t-17.0)/1.6)*40)).padStart(4,'0')}.jpg`);
+ // V2 SEO 18.58–19.88
+ x=stageVis(FE.seo,t,18.58,19.88);FE.seo.style.transform=`translateX(${x}px)`;
+ $('seoq').textContent=typed('аренда яхт дубай',t,18.66,19.05)+(t<19.2&&Math.floor(t*6)%2?'|':'');
+ const rk=eInOut(lin(t,19.12,19.50));const ourY=mix(98+2*104,98,rk);
+ FE.rows.forEach((r,i)=>{let y=98+i*104;if(i<2)y+=104*rk;else y+=104;r.style.top=y+'px'});
+ FE.ours.style.top=ourY+'px';FE.ours.style.opacity=clamp(lin(t,18.90,19.05)*2);$('rank').textContent=rk>.5?'#1':'#3';
+ // V3 structure 19.88–21.06
+ x=stageVis(FE.tree,t,19.88,21.06);FE.tree.style.transform=`translateX(${x}px)`;
+ applyPop(FE.root,t,19.98,'',.22,.4);
+ FE.lines.forEach((l,i)=>{const a=i%3===0?20.10+Math.floor(i/3)*.08:20.40+Math.floor(i/3)*.06;l.setAttribute('stroke-dashoffset',(i%3===0?400:200)*(1-eOut(lin(t,a,a+.3))))});
+ FE.kids.forEach((k,i)=>applyPop(k,t,20.26+i*.08,'',.2,.5));FE.subs.forEach((s,i)=>applyPop(s,t,20.56+i*.035,'',.18,.5));
+ // V4 form 21.06–22.74
+ x=stageVis(FE.form,t,21.06,22.80);FE.form.style.transform=`translateX(${x}px)`;
+ $('fen').textContent=typed('Александр',t,21.30,21.60);$('fep').textContent=typed('+380 •• ••• •• ••',t,21.60,21.88);
+ const tp=kf(t,[[21.62,[560,640]],[21.92,[360,389]],[30,[360,389]]]);const press=t>=21.96&&t<22.08;
+ FE.tap.style.display=t>=21.62&&t<22.74?'block':'none';FE.tap.style.opacity=lin(t,21.62,21.72)*(1-lin(t,22.4,22.6));FE.tap.style.transform=`translate(${tp[0]-28}px,${tp[1]-28}px) scale(${press?.78:1})`;
+ $('feb').style.transform=press?'scale(.96)':'none';const rp=lin(t,21.98,22.4);$('fer').style.opacity=t>=21.98?(1-rp)*.9:0;$('fer').style.transform=`translate(-50%,-50%) scale(${1+rp*30})`;
+ const done=t>=22.14;$('fet').textContent=done?'✓ Заявка отправлена':'Отправить';$('feb').style.background=done?'#22b455':ACC;$('feb').style.color=done?'#fff':'#111';
+}
+
+// ================= 3. ADS READY (24.08–26.40) + CAMPAIGN (27.12–30.40) overlays =================
+const AD={};
+(function(){const S=mkOv('ads');AD.S=S;
+ const c1=el('div','frost abs',S,{left:'60px',top:'64px',width:'600px',height:'210px',borderRadius:'28px',transformOrigin:'50% 0'});AD.c1=c1;
+ c1.innerHTML=`<div style="position:absolute;left:28px;top:24px;font:800 22px/1 Mont;color:#fff">🚀 Готов к запуску рекламы</div>
+  ${[['g','Google Ads',70],['ig','Instagram Ads',138]].map(([ic,txt,y],i)=>`<div style="position:absolute;left:24px;right:24px;top:${y}px;height:56px;border-radius:16px;background:rgba(255,255,255,.07)">
+   <div style="position:absolute;left:12px;top:8px">${svgIcon(ic,40)}</div><div style="position:absolute;left:66px;top:19px;font:700 18px/1 Mont;color:#fff">${txt}</div>
+   <div id="adst${i}" style="position:absolute;right:12px;top:11px;height:34px;padding:0 14px;border-radius:17px;font:700 15px/34px Mont"></div></div>`).join('')}`;
+ const c2=el('div','frost abs',S,{left:'60px',top:'64px',width:'600px',height:'230px',borderRadius:'28px',transformOrigin:'50% 0'});AD.c2=c2;
+ c2.innerHTML=`<div style="position:absolute;left:28px;top:26px;font:800 22px/1 Mont;color:#fff">Рекламная кампания</div>
+  <div id="tg" style="position:absolute;right:28px;top:18px;width:64px;height:36px;border-radius:18px;background:#3a3b42"><div id="tgk" style="position:absolute;left:4px;top:4px;width:28px;height:28px;border-radius:50%;background:#fff"></div></div>
+  <div id="tgs" style="position:absolute;left:28px;top:60px;font:700 16px/1 Mont;color:#9a9ba3">● На паузе</div>
+  <div style="position:absolute;left:28px;top:104px;font:600 16px/1 Mont;color:#a5a6ad">Новые заявки</div><div id="ldn" style="position:absolute;left:26px;top:130px;font:800 54px/1 Mont;color:#3ddc84"></div>
+  <svg id="bars" width="260" height="90" viewBox="0 0 260 90" style="position:absolute;right:28px;top:110px;overflow:visible"></svg>`;
+ AD.bars=[];const bs=c2.querySelector('#bars');[22,30,26,40,48,44,62,74,86].forEach((h,i)=>{AD.bars.push([svgEl('rect',{x:i*29,y:90,width:20,height:0,rx:5,fill:i>5?ACC:'#4a4b53'},bs),h])});
+})();
+function renderAds(t){const on=t>=24.08&&t<30.40;AD.S.style.display=on?'block':'none';if(!on)return;
+ const p1=lin(t,24.08,24.44),o1=eInOut(lin(t,26.10,26.40));AD.c1.style.display=t<26.40?'block':'none';
+ AD.c1.style.opacity=eOut(p1)*(1-o1);AD.c1.style.transform=`translateY(${(1-eBack(p1))*-70-o1*40}px) scale(${.94+.06*eOut(p1)})`;
+ [24.94,25.34].forEach((at,i)=>{const s=$('adst'+i),ok=t>=at;s.textContent=ok?'✓ Готово':'Настройка…';s.style.background=ok?'rgba(46,204,113,.18)':'rgba(255,255,255,.08)';s.style.color=ok?'#3ddc84':'#9a9ba3';
+  s.style.transform=ok?`scale(${.7+.3*eBack(lin(t,at,at+.2))})`:'none'});
+ const p2=lin(t,27.12,27.48),o2=eInOut(lin(t,30.10,30.40));AD.c2.style.display=t>=27.12?'block':'none';
+ AD.c2.style.opacity=eOut(p2)*(1-o2);AD.c2.style.transform=`translateY(${(1-eBack(p2))*-70-o2*40}px) scale(${.94+.06*eOut(p2)})`;
+ const tg=eOut(lin(t,27.52,27.70));$('tg').style.background=tg>.5?'#22b455':'#3a3b42';$('tgk').style.left=(4+28*tg)+'px';
+ $('tgs').textContent=tg>.5?'● Активна · Google + Instagram':'● На паузе';$('tgs').style.color=tg>.5?'#3ddc84':'#9a9ba3';
+ $('ldn').textContent='+'+fmtInt(38*eOut(lin(t,29.10,30.0)));
+ AD.bars.forEach(([r,h],i)=>{const g=eBack(lin(t,28.0+i*.12,28.3+i*.12))*h;r.setAttribute('y',90-g);r.setAttribute('height',Math.max(0,g))});
+}
+
+// ================= 4. CTA FORM (32.38–end) =================
+const CT={};
+(function(){const S=mkOv('cta');CT.S=S;
+ const c=el('div','frost abs',S,{left:'60px',top:'56px',width:'600px',height:'312px',borderRadius:'30px',transformOrigin:'50% 0'});CT.c=c;
+ c.innerHTML=`<div style="position:absolute;left:30px;top:26px;font:800 26px/1 Mont;color:#fff">Заявка на разработку сайта</div>
+  <div class="lbl" style="left:30px;top:74px">Имя</div><div class="inp" style="left:30px;top:94px;width:540px"><span id="ctn"></span></div>
+  <div class="lbl" style="left:30px;top:156px">Телефон</div><div class="inp" style="left:30px;top:176px;width:540px"><span id="ctp"></span></div>
+  <div id="ctb" style="position:absolute;left:30px;top:242px;width:540px;height:52px;border-radius:16px;background:${ACC};color:#111;font:800 20px/52px Mont;text-align:center;overflow:hidden"><span id="ctt">Оставить заявку</span><div id="ctr" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
+ CT.tap=el('div','abs',S,{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.38)',border:'3px solid rgba(255,255,255,.9)',boxSizing:'border-box',boxShadow:'0 6px 20px rgba(0,0,0,.35)'});
+})();
+function renderCTA(t){const on=t>=32.38;CT.S.style.display=on?'block':'none';if(!on)return;
+ const p=lin(t,32.38,32.76);CT.c.style.opacity=eOut(p);CT.c.style.transform=`translateY(${(1-eBack(p))*-70}px) scale(${.94+.06*eOut(p)})`;
+ $('ctn').textContent=typed('Александр',t,32.62,32.95);$('ctp').textContent=typed('+380 •• ••• •• ••',t,32.98,33.30);
+ const tp=kf(t,[[33.14,[540,560]],[33.48,[360,324]],[40,[360,324]]]);const press=t>=33.54&&t<33.66;
+ CT.tap.style.opacity=t<33.14?0:lin(t,33.14,33.26)*(1-lin(t,34.0,34.25));CT.tap.style.transform=`translate(${tp[0]-28}px,${tp[1]-28}px) scale(${press?.78:1})`;
+ $('ctb').style.transform=press?'scale(.96)':'none';const rp=lin(t,33.56,34.0);$('ctr').style.opacity=t>=33.56?(1-rp)*.9:0;$('ctr').style.transform=`translate(-50%,-50%) scale(${1+rp*30})`;
+ const done=t>=33.72;$('ctt').textContent=done?'✓ Заявка отправлена':'Оставить заявку';$('ctb').style.background=done?'#22b455':ACC;$('ctb').style.color=done?'#fff':'#111';
+}
+
+window.renderAt=function(t){pending.length=0;renderSubs(t);renderShow(t);renderFeat(t);renderAds(t);renderCTA(t);return Promise.all(pending)};
+window.renderAt(0);
+</script></body></html>

@@ -476,7 +476,7 @@ if os.environ.get('LANG_CUT') in ('p5', 'p5uk'):   # affordable-sites reel
         _f = lambda t: float(np.interp(t, [a for a, b in _A], [b for a, b in _A]))
         CUES = [(round(_f(c[0]), 2),) + tuple(c[1:]) for c in CUES]
         CUTS = [4.66, 10.28, 17.20, 19.02, 22.84, 26.84, 28.20, 33.50, 40.10]
-if os.environ.get('LANG_CUT') == 'p6':   # real-estate agency system reel
+if os.environ.get('LANG_CUT') in ('p6', 'p6uk'):   # real-estate agency system reel
     CUES = [
         (0.12, 'ui-blip/kenney-ui-rollover1.ogg', -15, 'onset', 'sky card: cabinet'),
         (0.47, 'ui-blip/kenney-ui-rollover2.ogg', -15, 'onset', 'sky card: site'),
@@ -536,6 +536,18 @@ if os.environ.get('LANG_CUT') == 'p6':   # real-estate agency system reel
         (55.00, 'ding/kenney-interface-confirmation-001.ogg', -13, 'onset', 'request sent'),
     ]
     CUTS = [9.90, 13.90, 22.10, 23.90, 27.40, 31.37, 39.30, 47.20, 54.14]
+    if os.environ.get('LANG_CUT') == 'p6uk':   # same cues, moved onto the Ukrainian speech timing
+        _A = [(0, 0), (2.14, 2.22), (2.66, 2.56), (3.16, 3.14), (4.08, 4.08), (4.38, 4.56), (5.16, 5.20), (5.98, 5.98), (7.40, 7.44),
+              (7.93, 7.80), (9.90, 9.70), (10.32, 10.22), (10.70, 10.60), (11.20, 11.12), (11.92, 11.72), (12.90, 12.82), (13.20, 13.30),
+              (13.70, 13.80), (15.16, 15.34), (16.06, 16.24), (17.02, 17.14), (17.78, 17.96), (19.54, 19.76), (20.30, 20.50), (20.94, 21.14),
+              (21.40, 21.64), (22.10, 22.20), (23.90, 24.20), (24.16, 24.48), (24.66, 24.90), (25.02, 25.34), (25.64, 26.08), (26.26, 26.78),
+              (26.88, 27.28), (27.40, 27.80), (28.84, 29.48), (29.60, 30.18), (30.18, 30.70), (31.37, 31.97), (31.90, 32.36), (32.32, 32.78),
+              (32.92, 33.38), (33.76, 34.18), (34.10, 34.52), (34.48, 34.82), (38.74, 39.26), (39.30, 39.80), (40.28, 40.94), (40.72, 41.34),
+              (43.10, 43.44), (43.50, 43.90), (45.10, 45.42), (45.62, 45.90), (46.36, 46.52), (47.20, 47.37), (49.48, 49.58), (52.84, 52.88),
+              (54.14, 54.58), (54.82, 55.16), (58.60, 59.30)]
+        _f = lambda t: float(np.interp(t, [a for a, b in _A], [b for a, b in _A]))
+        CUES = [(round(_f(c[0]), 2),) + tuple(c[1:]) for c in CUES]
+        CUTS = [9.70, 13.80, 22.20, 24.20, 27.80, 31.97, 39.80, 47.37, 54.58]
 sfx_bus = np.zeros((N, 2), np.float32)
 report = []
 for c in CUES:

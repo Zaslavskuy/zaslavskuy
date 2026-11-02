@@ -8,6 +8,7 @@
 
 ## Ролик «Система для агентства недвижимости» (`output/reels_agency_system_RU.mp4`, 58.6 с)
 Сцена — `scene_p6.html` (`SCENE=scene_p6.html node render_overlay.js …`, `composite.py … p6`, `LANG_CUT=p6 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`). Исходник 30 fps — компоновщик приводит его к 25 fps.
+- Украинская версия: `output/reels_agency_system_UK.mp4` (59.3 с). Сцена `scene_p6_uk.html` собирается из `scene_p6.html` скриптом `python3 make_p6_uk.py`; рендер `SCENE=scene_p6_uk.html …`, `composite.py … p6uk`, `LANG_CUT=p6uk MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`.
 - 0–7.4 с: в небе — «Кабинет риэлтора» → объект → «Сайт агентства» (NEW).
 - 9.9–22.1 с: «Сайт» перечёркивается → «Система агентства» с модулями и командой → кабинет риэлтора: объект, фото, характеристики, автопубликация → каталог на сайте.
 - 23.9–31.4 с: «Панель руководителя»: задачи сотрудникам, показы в календаре, канбан Показ → Переговоры → Сделка.

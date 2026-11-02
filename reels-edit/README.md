@@ -16,7 +16,7 @@
 ```bash
 node render_overlay.js <ovlDir> 25 0 984            # кадры графики (scene.html, renderAt(t))
 python3 composite.py source.mp4 <ovlDir> video_noaudio.mp4
-python3 mix.py source.mp4 <sfxDir> music.mp3 mix.wav
+MUSIC_DB=-9 SFX_DB=4 python3 mix.py source.mp4 <sfxDir> music.mp3 mix.wav   # уровни RU v3 (по умолчанию MUSIC_DB=-13 SFX_DB=0)
 bash mux.sh video_noaudio.mp4 mix.wav output/reels_final.mp4
 ```
 Английская версия — те же команды с `LANG_CUT=en` перед `node`/`mix.py` и аргументом `en` у `composite.py`.

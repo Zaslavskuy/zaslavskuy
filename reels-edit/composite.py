@@ -1,5 +1,5 @@
 """Composite: source video -> camera moves (push-ins / punch-ins / zoom-blur whips) -> overlay frames.
-usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2]
+usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk]
 """
 import sys, os, subprocess
 import numpy as np, cv2
@@ -54,6 +54,15 @@ if len(sys.argv) > 4 and sys.argv[4] == 'p2':      # portfolio reel (B shot full
         (30.60, 32.38, 1.18, 1.23, D), (32.38, 99.0, 1.00, 1.06, D),
     ]
     WHIPS = [14.64, 22.74]
+if len(sys.argv) > 4 and sys.argv[4] == 'p2uk':    # portfolio reel, Ukrainian cut
+    C = (0.46, 0.46)
+    CAM = [
+        (0.00, 1.82, 1.16, 1.20, A), (1.82, 4.10, 1.00, 1.06, A),
+        (14.56, 15.82, 1.00, 1.03, C), (15.82, 17.20, 1.14, 1.18, C),
+        (22.84, 25.86, 1.00, 1.04, C), (25.86, 28.86, 1.12, 1.16, C), (28.86, 31.24, 1.00, 1.04, C),
+        (31.24, 33.08, 1.18, 1.23, D), (33.08, 99.0, 1.00, 1.06, D),
+    ]
+    WHIPS = [14.56, 22.84]
 WHIP_LEN = 0.26
 
 

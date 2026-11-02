@@ -58,6 +58,30 @@ function applyPop(e,t,at,extra='',dur,from){const q=pop(t,at,dur,from);e.style.o
 const typed=(str,t,a,b)=>str.slice(0,Math.round(clamp((t-a)/(b-a))*str.length));
 const fmtInt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const ACC='#FFB21E';
+const UK=new URLSearchParams(location.search).get('lang')==='uk';
+const L=UK?{
+ tags:['Оренда яхт · Дубай','Клінінгова компанія','Архітектурне бюро','Агенція байєрів · Італія'],
+ toast:['Нова заявка з сайту','щойно'], pills:['Адаптив під смартфони','SEO-оптимізація','Продумана структура','Зручні форми заявок'],
+ query:'оренда яхт дубай', ours:'NACRE — оренда яхт у Дубаї', tree:['Головна','Послуги','Кейси','Відгуки','Контакти'],
+ formTitle:'Залишити заявку', name:'Ім\'я', phone:'Телефон', send:'Надіслати', sent:'✓ Заявку надіслано', person:'Олександр',
+ adsTitle:'🚀 Готовий до запуску реклами', adsWait:'Налаштування…', adsOk:'✓ Готово', camp:'Рекламна кампанія', paused:'● На паузі', active:'● Активна · Google + Instagram', leads:'Нові заявки',
+ ctaTitle:'Заявка на розробку сайту', ctaBtn:'Залишити заявку',
+}:{
+ tags:['Аренда яхт · Дубай','Клининговая компания','Архитектурное бюро','Байерское агентство · Италия'],
+ toast:['Новая заявка с сайта','только что'], pills:['Адаптив под смартфоны','SEO-оптимизация','Продуманная структура','Удобные формы заявок'],
+ query:'аренда яхт дубай', ours:'NACRE — аренда яхт в Дубае', tree:['Главная','Услуги','Кейсы','Отзывы','Контакты'],
+ formTitle:'Оставить заявку', name:'Имя', phone:'Телефон', send:'Отправить', sent:'✓ Заявка отправлена', person:'Александр',
+ adsTitle:'🚀 Готов к запуску рекламы', adsWait:'Настройка…', adsOk:'✓ Готово', camp:'Рекламная кампания', paused:'● На паузе', active:'● Активна · Google + Instagram', leads:'Новые заявки',
+ ctaTitle:'Заявка на разработку сайта', ctaBtn:'Оставить заявку',
+};
+// UK cut: remap its timeline onto the RU animation timeline, per scene
+function remap(t,pts){if(t<=pts[0][0])return pts[0][1]+(t-pts[0][0]);for(let i=1;i<pts.length;i++){if(t<=pts[i][0]){const[a,ra]=pts[i-1],[b,rb]=pts[i];return ra+(t-a)/(b-a)*(rb-ra)}}const Z=pts[pts.length-1];return Z[1]+(t-Z[0])}
+const TM=UK?{
+ show:[[4.00,4.00],[13.64,13.42],[14.56,14.64]],
+ feat:[[17.10,17.00],[17.24,17.06],[18.02,17.90],[18.68,18.58],[19.06,18.94],[20.02,19.88],[20.64,20.54],[21.40,21.22],[21.88,21.72],[22.26,22.14],[22.84,22.74]],
+ ads:[[24.26,24.08],[25.14,24.94],[25.58,25.34],[27.34,27.12],[27.94,27.52],[28.38,28.00],[29.66,29.10],[30.60,30.00],[30.98,30.40]],
+ cta:[[33.08,32.38],[33.70,33.02],[34.20,33.56],[34.36,33.72],[38.30,37.66]],
+}:null;
 const root=$('root');
 function mkScene(id,cls){const s=el('div','scene '+(cls||''));s.id=id;root.insertBefore(s,$('subs'));return s}
 function mkOv(id){const s=el('div','ov');s.id=id;root.insertBefore(s,$('subs'));return s}
@@ -72,8 +96,8 @@ const pending=[];
 function setImg(img,src){if(img.dataset.src===src)return;img.dataset.src=src;img.src=src;pending.push(img.decode().catch(()=>{}))}
 
 // ================= SUBTITLES =================
-const SUB_Y=t=>t<4.00?0.625:t<14.64?0.865:t<17.00?0.665:t<22.74?0.865:t<30.60?0.665:0.545;
-const CARDS=[
+const SUB_Y=UK?(t=>t<4.00?0.625:t<14.56?0.865:t<17.10?0.665:t<22.84?0.865:t<31.24?0.665:0.545):(t=>t<4.00?0.625:t<14.64?0.865:t<17.00?0.665:t<22.74?0.865:t<30.60?0.665:0.545);
+const CARDS_RU=[
  [0.00,0.74,[['s',[['нужен',0.00]]],['b',[['современный',0.28]]]]],
  [0.74,1.78,[['b',[['сайт',0.74]]],['s',[['для',1.00],['бизнеса?',1.12]]]]],
  [1.78,2.76,[['b',[['посмотрите,',1.78]]],['s',[['что',2.52]]]]],
@@ -105,6 +129,39 @@ const CARDS=[
  [34.88,35.72,[['s',[['и',34.66],['предложим',34.88]]],['b',[['решение',35.34]]]]],
  [35.72,37.40,[['s',[['под',35.72],['ваш',35.86]]],['b',[['бюджет',36.06]]],['s',[['и',36.54],['цели',36.62]]]]],
 ];
+const CARDS_UK=[
+ [0.00,0.82,[['s',[['потрібен',0.00]]],['b',[['сучасний',0.42]]]]],
+ [0.82,1.82,[['b',[['сайт',0.82]]],['s',[['для',1.04],['бізнесу?',1.16]]]]],
+ [1.82,2.76,[['b',[['подивіться,',1.82]]],['s',[['що',2.52]]]]],
+ [2.76,4.06,[['s',[['ми',2.76],['створюємо',2.98],['для',3.52],['наших',3.64]]],['b',[['клієнтів',3.88]]]]],
+ [4.06,6.34,[['s',[['не',4.52],['просто',4.94],['гарний',5.36]]],['b',[['дизайн',5.90]]]]],
+ [6.34,7.82,[['s',[['а',6.34],['повноцінний',6.66]]],['r',[['інструмент',7.38]]]]],
+ [7.82,9.32,[['s',[['для',7.82],['залучення',8.20]]],['b',[['клієнтів',8.62]]]]],
+ [9.32,10.80,[['s',[['це',9.32],['лише',9.66],['кілька',9.88]]],['b',[['сайтів',10.36]]]]],
+ [10.80,12.54,[['s',[['які',10.80],['ми',11.00],['розробили',11.14]]],['b',[['для',11.54],['клієнтів',11.90]]]]],
+ [12.54,13.34,[['s',[['і',12.54],['які',12.78]]],['b',[['дають',13.04]]]]],
+ [13.34,14.46,[['r',[['результат',13.34]]],['s',[['щодня',13.64]]]]],
+ [14.46,15.82,[['s',[['на',14.46],['виході',14.66],['ви',15.12]]],['b',[['отримуєте',15.32]]]]],
+ [15.82,17.10,[['s',[['повністю',15.82]]],['r',[['готовий',16.40],['сайт',16.78]]]]],
+ [17.10,18.68,[['b',[['адаптований',17.24]]],['s',[['під',17.84],['смартфони',18.02]]]]],
+ [18.68,20.02,[['b',[['seo',18.68]]],['s',[['оптимізований',19.06]]]]],
+ [20.02,21.20,[['s',[['з',20.02],['продуманою',20.24]]],['b',[['структурою',20.64]]]]],
+ [21.20,22.84,[['s',[['та',21.20],['зручними',21.40],['формами',21.88]]],['b',[['заявок',22.26]]]]],
+ [22.84,24.26,[['b',[['сайт',22.84]]],['s',[['вже',23.40],['готовий',23.70]]]]],
+ [24.26,25.14,[['s',[['до',24.26],['запуску',24.34]]],['b',[['реклами',24.74]]]]],
+ [25.14,25.58,[['s',[['в',25.00]]],['b',[['google',25.14]]]]],
+ [25.58,25.86,[['s',[['та',25.36]]],['b',[['instagram',25.58]]]]],
+ [25.86,27.34,[['s',[['а',25.86],['за',26.56]]],['b',[['необхідності',26.66]]]]],
+ [27.34,28.86,[['s',[['ми',27.34],['самі',27.54],['налаштуємо',27.94]]],['b',[['рекламу',28.38]]]]],
+ [28.86,31.02,[['s',[['та',28.86],['допоможемо',29.08],['залучати',29.66]]],['r',[['нових',30.02],['клієнтів',30.38]]]]],
+ [31.02,31.90,[['b',[['бажаєте',31.02]]],['s',[['такий',31.70]]]]],
+ [31.90,33.08,[['b',[['сайт',31.90]]],['s',[['для',32.18],['свого',32.30],['бізнесу?',32.52]]]]],
+ [33.08,34.20,[['b',[['залишіть',33.08]]],['s',[['заявку',33.70]]]]],
+ [34.20,35.64,[['s',[['обговоримо',34.20],['ваш',34.96]]],['b',[['проект',35.06]]]]],
+ [35.64,36.58,[['s',[['і',35.38],['запропонуємо',35.64]]],['b',[['рішення',36.24]]]]],
+ [36.58,38.30,[['s',[['під',36.58],['ваш',36.74]]],['b',[['бюджет',36.96]]],['s',[['та',37.44],['цілі',37.54]]]]],
+];
+const CARDS=UK?CARDS_UK:CARDS_RU;
 const cardEls=[];
 (function(){const R=$('subs');
  for(const c of CARDS){const ce=el('div','card',R);const words=[];
@@ -117,10 +174,10 @@ function renderSubs(t){const y=SUB_Y(t)*1280;
 
 // ================= 1. PORTFOLIO SHOWCASE (4.00–14.64) =================
 const SITES=[
- {dir:'1_nacre',n:91,skip:11,at:4.10,tag:'Аренда яхт · Дубай',slot:[30,120,-2.2]},
- {dir:'2_pislya',n:101,skip:11,at:6.20,tag:'Клининговая компания',slot:[130,280,1.8]},
- {dir:'3_offset',n:112,skip:11,at:8.40,tag:'Архитектурное бюро',slot:[30,440,-1.6]},
- {dir:'4_reale',n:93,skip:0,at:10.60,tag:'Байерское агентство · Италия',slot:[130,575,2.2]},
+ {dir:'1_nacre',n:91,skip:11,at:4.10,tag:L.tags[0],slot:[30,120,-2.2]},
+ {dir:'2_pislya',n:101,skip:11,at:6.20,tag:L.tags[1],slot:[130,280,1.8]},
+ {dir:'3_offset',n:112,skip:11,at:8.40,tag:L.tags[2],slot:[30,440,-1.6]},
+ {dir:'4_reale',n:93,skip:0,at:10.60,tag:L.tags[3],slot:[130,575,2.2]},
 ];
 const SC={wins:[]};
 (function(){const S=mkScene('show','v3bg');SC.S=S;const stack=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});SC.stack=stack;
@@ -131,7 +188,7 @@ const SC={wins:[]};
   SC.wins.push({w,img,tag,s})});
  SC.toast=el('div','glass abs',S,{left:'70px',top:'34px',width:'580px',height:'78px',borderRadius:'24px'});
  SC.toast.innerHTML=`<div style="position:absolute;left:15px;top:14px;width:50px;height:50px;border-radius:14px;background:${ACC};display:flex;align-items:center;justify-content:center">${svgIcon('mail',32)}</div>
-  <div style="position:absolute;left:80px;top:17px;font:700 20px/1 Mont;color:#fff">Новая заявка с сайта</div><div style="position:absolute;left:80px;top:46px;font:500 15px/1 Mont;color:#8e8f97">только что</div>
+  <div style="position:absolute;left:80px;top:17px;font:700 20px/1 Mont;color:#fff">${L.toast[0]}</div><div style="position:absolute;left:80px;top:46px;font:500 15px/1 Mont;color:#8e8f97">${L.toast[1]}</div>
   <div style="position:absolute;right:22px;top:27px;font:800 20px/1 Mont;color:#3ddc84">+1</div>`;
 })();
 function renderShow(t){const S=SC.S;const on=t>=4.00&&t<14.64;S.style.display=on?'block':'none';if(!on)return;
@@ -156,7 +213,7 @@ function renderShow(t){const S=SC.S;const on=t>=4.00&&t<14.64;S.style.display=on
 const FE={pills:[]};
 const FE_T=[17.06,18.58,19.88,21.22];
 (function(){const S=mkScene('feat','v3bg');FE.S=S;
- ['Адаптив под смартфоны','SEO-оптимизация','Продуманная структура','Удобные формы заявок'].forEach((txt,i)=>{
+ L.pills.forEach((txt,i)=>{
   const p=el('div','pill glass',S,{left:(i%2?370:50)+'px',top:(i<2?100:172)+'px'});p.innerHTML=`<div class="ck"></div>${txt}`;FE.pills.push(p)});
  const stage=el('div','abs',S,{left:0,top:260,width:'720px',height:'760px'});stage.style.top='260px';FE.stage=stage;
  // V1 responsive: desktop window morphs into a phone
@@ -173,15 +230,15 @@ const FE_T=[17.06,18.58,19.88,21.22];
  FE.rows=[];for(let i=0;i<4;i++){const r=el('div','abs',seo,{left:'24px',width:'532px',height:'92px',borderRadius:'18px',background:'#1d1e23'});
   r.innerHTML=`<div style="position:absolute;left:18px;top:18px;width:${150+i*30}px;height:9px;border-radius:5px;background:#3a3b42"></div><div style="position:absolute;left:18px;top:40px;width:${300-i*20}px;height:14px;border-radius:7px;background:#4a4b53"></div><div style="position:absolute;left:18px;top:64px;width:${380-i*30}px;height:8px;border-radius:4px;background:#303137"></div>`;FE.rows.push(r)}
  const ours=el('div','abs',seo,{left:'24px',width:'532px',height:'92px',borderRadius:'18px',background:'#26241d',border:`2px solid ${ACC}`,boxSizing:'border-box',boxShadow:'0 0 30px rgba(255,178,30,.3)'});FE.ours=ours;
- ours.innerHTML=`<div style="position:absolute;left:18px;top:16px;font:500 14px/1 Mont;color:#9a9ba3">yacht charter · Dubai</div><div style="position:absolute;left:18px;top:38px;font:700 21px/1 Mont;color:#8ab4ff">NACRE — аренда яхт в Дубае</div>
+ ours.innerHTML=`<div style="position:absolute;left:18px;top:16px;font:500 14px/1 Mont;color:#9a9ba3">yacht charter · Dubai</div><div style="position:absolute;left:18px;top:38px;font:700 21px/1 Mont;color:#8ab4ff">${L.ours}</div>
   <div style="position:absolute;left:18px;top:66px;width:300px;height:8px;border-radius:4px;background:#3a3b42"></div>
   <div id="rank" style="position:absolute;right:16px;top:22px;width:48px;height:48px;border-radius:50%;background:${ACC};color:#111;font:800 22px/48px Mont;text-align:center">#3</div>`;
  // V3 structure tree
  const tree=el('div','abs',stage,{left:0,top:0,width:'720px',height:'700px'});FE.tree=tree;
  const sv=svgEl('svg',{width:720,height:700,style:'position:absolute;left:0;top:0;overflow:visible'});tree.appendChild(sv);FE.lines=[];
  const node=(x,y,w,txt,big)=>{const n=el('div','abs glass',tree,{left:(x-w/2)+'px',top:(y-30)+'px',width:w+'px',height:'60px',borderRadius:'18px',font:`${big?800:700} ${big?22:17}px/60px Mont`,color:big?'#111':'#fff',textAlign:'center',background:big?ACC:'rgba(28,29,34,.94)',border:big?'none':'1.5px solid rgba(255,178,30,.55)',transformOrigin:'50% 50%'});n.textContent=txt;return n};
- FE.root=node(360,90,220,'Главная',true);
- const kids=[['Услуги',105],['Кейсы',275],['Отзывы',445],['Контакты',615]];FE.kids=[];FE.subs=[];
+ FE.root=node(360,90,220,L.tree[0],true);
+ const kids=[[L.tree[1],105],[L.tree[2],275],[L.tree[3],445],[L.tree[4],615]];FE.kids=[];FE.subs=[];
  kids.forEach(([txt,x],i)=>{const l=svgEl('path',{d:`M360 120 C360 190 ${x} 170 ${x} 250`,fill:'none',stroke:ACC,'stroke-width':4,'stroke-linecap':'round','stroke-dasharray':400,'stroke-dashoffset':400},sv);FE.lines.push(l);
   FE.kids.push(node(x,280,150,txt));
   for(let k=0;k<2;k++){const l2=svgEl('path',{d:`M${x} 310 V${370+k*80}`,fill:'none',stroke:'#4a4b52','stroke-width':3,'stroke-dasharray':200,'stroke-dashoffset':200},sv);FE.lines.push(l2);
@@ -189,10 +246,10 @@ const FE_T=[17.06,18.58,19.88,21.22];
    sb.innerHTML=`<div style="position:absolute;left:16px;top:18px;width:${70-k*16}px;height:8px;border-radius:4px;background:#4a4b53"></div>`;FE.subs.push(sb)}});
  // V4 lead form
  const form=el('div','glass abs',stage,{left:'70px',top:'60px',width:'580px',height:'360px',borderRadius:'28px'});FE.form=form;
- form.innerHTML=`<div style="position:absolute;left:30px;top:28px;font:800 26px/1 Mont;color:#fff">Оставить заявку</div>
-  <div class="lbl" style="left:30px;top:84px">Имя</div><div class="inp" style="left:30px;top:104px;width:520px"><span id="fen"></span></div>
-  <div class="lbl" style="left:30px;top:170px">Телефон</div><div class="inp" style="left:30px;top:190px;width:520px"><span id="fep"></span></div>
-  <div id="feb" style="position:absolute;left:30px;top:270px;width:520px;height:58px;border-radius:16px;background:${ACC};color:#111;font:800 20px/58px Mont;text-align:center;overflow:hidden"><span id="fet">Отправить</span><div id="fer" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
+ form.innerHTML=`<div style="position:absolute;left:30px;top:28px;font:800 26px/1 Mont;color:#fff">${L.formTitle}</div>
+  <div class="lbl" style="left:30px;top:84px">${L.name}</div><div class="inp" style="left:30px;top:104px;width:520px"><span id="fen"></span></div>
+  <div class="lbl" style="left:30px;top:170px">${L.phone}</div><div class="inp" style="left:30px;top:190px;width:520px"><span id="fep"></span></div>
+  <div id="feb" style="position:absolute;left:30px;top:270px;width:520px;height:58px;border-radius:16px;background:${ACC};color:#111;font:800 20px/58px Mont;text-align:center;overflow:hidden"><span id="fet">${L.send}</span><div id="fer" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
  FE.tap=el('div','abs',stage,{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.38)',border:'3px solid rgba(255,255,255,.9)',boxSizing:'border-box',boxShadow:'0 6px 20px rgba(0,0,0,.35)'});
 })();
 // stage-visual visibility: slide in from the right, out to the left
@@ -213,7 +270,7 @@ function renderFeat(t){const S=FE.S;const on=t>=17.00&&t<22.74;S.style.display=o
  setImg(FE.devimg,`p2_frames/1_nacre/f_${String(30+Math.floor(clamp((t-17.0)/1.6)*40)).padStart(4,'0')}.jpg`);
  // V2 SEO 18.58–19.88
  x=stageVis(FE.seo,t,18.58,19.88);FE.seo.style.transform=`translateX(${x}px)`;
- $('seoq').textContent=typed('аренда яхт дубай',t,18.66,19.05)+(t<19.2&&Math.floor(t*6)%2?'|':'');
+ $('seoq').textContent=typed(L.query,t,18.66,19.05)+(t<19.2&&Math.floor(t*6)%2?'|':'');
  const rk=eInOut(lin(t,19.12,19.50));const ourY=mix(98+2*104,98,rk);
  FE.rows.forEach((r,i)=>{let y=98+i*104;if(i<2)y+=104*rk;else y+=104;r.style.top=y+'px'});
  FE.ours.style.top=ourY+'px';FE.ours.style.opacity=clamp(lin(t,18.90,19.05)*2);$('rank').textContent=rk>.5?'#1':'#3';
@@ -224,38 +281,38 @@ function renderFeat(t){const S=FE.S;const on=t>=17.00&&t<22.74;S.style.display=o
  FE.kids.forEach((k,i)=>applyPop(k,t,20.26+i*.08,'',.2,.5));FE.subs.forEach((s,i)=>applyPop(s,t,20.56+i*.035,'',.18,.5));
  // V4 form 21.06–22.74
  x=stageVis(FE.form,t,21.06,22.80);FE.form.style.transform=`translateX(${x}px)`;
- $('fen').textContent=typed('Александр',t,21.30,21.60);$('fep').textContent=typed('+380 •• ••• •• ••',t,21.60,21.88);
+ $('fen').textContent=typed(L.person,t,21.30,21.60);$('fep').textContent=typed('+380 •• ••• •• ••',t,21.60,21.88);
  const tp=kf(t,[[21.62,[560,640]],[21.92,[360,389]],[30,[360,389]]]);const press=t>=21.96&&t<22.08;
  FE.tap.style.display=t>=21.62&&t<22.74?'block':'none';FE.tap.style.opacity=lin(t,21.62,21.72)*(1-lin(t,22.4,22.6));FE.tap.style.transform=`translate(${tp[0]-28}px,${tp[1]-28}px) scale(${press?.78:1})`;
  $('feb').style.transform=press?'scale(.96)':'none';const rp=lin(t,21.98,22.4);$('fer').style.opacity=t>=21.98?(1-rp)*.9:0;$('fer').style.transform=`translate(-50%,-50%) scale(${1+rp*30})`;
- const done=t>=22.14;$('fet').textContent=done?'✓ Заявка отправлена':'Отправить';$('feb').style.background=done?'#22b455':ACC;$('feb').style.color=done?'#fff':'#111';
+ const done=t>=22.14;$('fet').textContent=done?L.sent:L.send;$('feb').style.background=done?'#22b455':ACC;$('feb').style.color=done?'#fff':'#111';
 }
 
 // ================= 3. ADS READY (24.08–26.40) + CAMPAIGN (27.12–30.40) overlays =================
 const AD={};
 (function(){const S=mkOv('ads');AD.S=S;
  const c1=el('div','frost abs',S,{left:'60px',top:'64px',width:'600px',height:'210px',borderRadius:'28px',transformOrigin:'50% 0'});AD.c1=c1;
- c1.innerHTML=`<div style="position:absolute;left:28px;top:24px;font:800 22px/1 Mont;color:#fff">🚀 Готов к запуску рекламы</div>
+ c1.innerHTML=`<div style="position:absolute;left:28px;top:24px;font:800 22px/1 Mont;color:#fff">${L.adsTitle}</div>
   ${[['g','Google Ads',70],['ig','Instagram Ads',138]].map(([ic,txt,y],i)=>`<div style="position:absolute;left:24px;right:24px;top:${y}px;height:56px;border-radius:16px;background:rgba(255,255,255,.07)">
    <div style="position:absolute;left:12px;top:8px">${svgIcon(ic,40)}</div><div style="position:absolute;left:66px;top:19px;font:700 18px/1 Mont;color:#fff">${txt}</div>
    <div id="adst${i}" style="position:absolute;right:12px;top:11px;height:34px;padding:0 14px;border-radius:17px;font:700 15px/34px Mont"></div></div>`).join('')}`;
  const c2=el('div','frost abs',S,{left:'60px',top:'64px',width:'600px',height:'230px',borderRadius:'28px',transformOrigin:'50% 0'});AD.c2=c2;
- c2.innerHTML=`<div style="position:absolute;left:28px;top:26px;font:800 22px/1 Mont;color:#fff">Рекламная кампания</div>
+ c2.innerHTML=`<div style="position:absolute;left:28px;top:26px;font:800 22px/1 Mont;color:#fff">${L.camp}</div>
   <div id="tg" style="position:absolute;right:28px;top:18px;width:64px;height:36px;border-radius:18px;background:#3a3b42"><div id="tgk" style="position:absolute;left:4px;top:4px;width:28px;height:28px;border-radius:50%;background:#fff"></div></div>
-  <div id="tgs" style="position:absolute;left:28px;top:60px;font:700 16px/1 Mont;color:#9a9ba3">● На паузе</div>
-  <div style="position:absolute;left:28px;top:104px;font:600 16px/1 Mont;color:#a5a6ad">Новые заявки</div><div id="ldn" style="position:absolute;left:26px;top:130px;font:800 54px/1 Mont;color:#3ddc84"></div>
+  <div id="tgs" style="position:absolute;left:28px;top:60px;font:700 16px/1 Mont;color:#9a9ba3">${L.paused}</div>
+  <div style="position:absolute;left:28px;top:104px;font:600 16px/1 Mont;color:#a5a6ad">${L.leads}</div><div id="ldn" style="position:absolute;left:26px;top:130px;font:800 54px/1 Mont;color:#3ddc84"></div>
   <svg id="bars" width="260" height="90" viewBox="0 0 260 90" style="position:absolute;right:28px;top:110px;overflow:visible"></svg>`;
  AD.bars=[];const bs=c2.querySelector('#bars');[22,30,26,40,48,44,62,74,86].forEach((h,i)=>{AD.bars.push([svgEl('rect',{x:i*29,y:90,width:20,height:0,rx:5,fill:i>5?ACC:'#4a4b53'},bs),h])});
 })();
 function renderAds(t){const on=t>=24.08&&t<30.40;AD.S.style.display=on?'block':'none';if(!on)return;
  const p1=lin(t,24.08,24.44),o1=eInOut(lin(t,26.10,26.40));AD.c1.style.display=t<26.40?'block':'none';
  AD.c1.style.opacity=eOut(p1)*(1-o1);AD.c1.style.transform=`translateY(${(1-eBack(p1))*-70-o1*40}px) scale(${.94+.06*eOut(p1)})`;
- [24.94,25.34].forEach((at,i)=>{const s=$('adst'+i),ok=t>=at;s.textContent=ok?'✓ Готово':'Настройка…';s.style.background=ok?'rgba(46,204,113,.18)':'rgba(255,255,255,.08)';s.style.color=ok?'#3ddc84':'#9a9ba3';
+ [24.94,25.34].forEach((at,i)=>{const s=$('adst'+i),ok=t>=at;s.textContent=ok?L.adsOk:L.adsWait;s.style.background=ok?'rgba(46,204,113,.18)':'rgba(255,255,255,.08)';s.style.color=ok?'#3ddc84':'#9a9ba3';
   s.style.transform=ok?`scale(${.7+.3*eBack(lin(t,at,at+.2))})`:'none'});
  const p2=lin(t,27.12,27.48),o2=eInOut(lin(t,30.10,30.40));AD.c2.style.display=t>=27.12?'block':'none';
  AD.c2.style.opacity=eOut(p2)*(1-o2);AD.c2.style.transform=`translateY(${(1-eBack(p2))*-70-o2*40}px) scale(${.94+.06*eOut(p2)})`;
  const tg=eOut(lin(t,27.52,27.70));$('tg').style.background=tg>.5?'#22b455':'#3a3b42';$('tgk').style.left=(4+28*tg)+'px';
- $('tgs').textContent=tg>.5?'● Активна · Google + Instagram':'● На паузе';$('tgs').style.color=tg>.5?'#3ddc84':'#9a9ba3';
+ $('tgs').textContent=tg>.5?L.active:L.paused;$('tgs').style.color=tg>.5?'#3ddc84':'#9a9ba3';
  $('ldn').textContent='+'+fmtInt(38*eOut(lin(t,29.10,30.0)));
  AD.bars.forEach(([r,h],i)=>{const g=eBack(lin(t,28.0+i*.12,28.3+i*.12))*h;r.setAttribute('y',90-g);r.setAttribute('height',Math.max(0,g))});
 }
@@ -264,21 +321,24 @@ function renderAds(t){const on=t>=24.08&&t<30.40;AD.S.style.display=on?'block':'
 const CT={};
 (function(){const S=mkOv('cta');CT.S=S;
  const c=el('div','frost abs',S,{left:'60px',top:'56px',width:'600px',height:'312px',borderRadius:'30px',transformOrigin:'50% 0'});CT.c=c;
- c.innerHTML=`<div style="position:absolute;left:30px;top:26px;font:800 26px/1 Mont;color:#fff">Заявка на разработку сайта</div>
-  <div class="lbl" style="left:30px;top:74px">Имя</div><div class="inp" style="left:30px;top:94px;width:540px"><span id="ctn"></span></div>
-  <div class="lbl" style="left:30px;top:156px">Телефон</div><div class="inp" style="left:30px;top:176px;width:540px"><span id="ctp"></span></div>
-  <div id="ctb" style="position:absolute;left:30px;top:242px;width:540px;height:52px;border-radius:16px;background:${ACC};color:#111;font:800 20px/52px Mont;text-align:center;overflow:hidden"><span id="ctt">Оставить заявку</span><div id="ctr" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
+ c.innerHTML=`<div style="position:absolute;left:30px;top:26px;font:800 26px/1 Mont;color:#fff">${L.ctaTitle}</div>
+  <div class="lbl" style="left:30px;top:74px">${L.name}</div><div class="inp" style="left:30px;top:94px;width:540px"><span id="ctn"></span></div>
+  <div class="lbl" style="left:30px;top:156px">${L.phone}</div><div class="inp" style="left:30px;top:176px;width:540px"><span id="ctp"></span></div>
+  <div id="ctb" style="position:absolute;left:30px;top:242px;width:540px;height:52px;border-radius:16px;background:${ACC};color:#111;font:800 20px/52px Mont;text-align:center;overflow:hidden"><span id="ctt">${L.ctaBtn}</span><div id="ctr" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
  CT.tap=el('div','abs',S,{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.38)',border:'3px solid rgba(255,255,255,.9)',boxSizing:'border-box',boxShadow:'0 6px 20px rgba(0,0,0,.35)'});
 })();
 function renderCTA(t){const on=t>=32.38;CT.S.style.display=on?'block':'none';if(!on)return;
  const p=lin(t,32.38,32.76);CT.c.style.opacity=eOut(p);CT.c.style.transform=`translateY(${(1-eBack(p))*-70}px) scale(${.94+.06*eOut(p)})`;
- $('ctn').textContent=typed('Александр',t,32.62,32.95);$('ctp').textContent=typed('+380 •• ••• •• ••',t,32.98,33.30);
+ $('ctn').textContent=typed(L.person,t,32.62,32.95);$('ctp').textContent=typed('+380 •• ••• •• ••',t,32.98,33.30);
  const tp=kf(t,[[33.14,[540,560]],[33.48,[360,324]],[40,[360,324]]]);const press=t>=33.54&&t<33.66;
  CT.tap.style.opacity=t<33.14?0:lin(t,33.14,33.26)*(1-lin(t,34.0,34.25));CT.tap.style.transform=`translate(${tp[0]-28}px,${tp[1]-28}px) scale(${press?.78:1})`;
  $('ctb').style.transform=press?'scale(.96)':'none';const rp=lin(t,33.56,34.0);$('ctr').style.opacity=t>=33.56?(1-rp)*.9:0;$('ctr').style.transform=`translate(-50%,-50%) scale(${1+rp*30})`;
- const done=t>=33.72;$('ctt').textContent=done?'✓ Заявка отправлена':'Оставить заявку';$('ctb').style.background=done?'#22b455':ACC;$('ctb').style.color=done?'#fff':'#111';
+ const done=t>=33.72;$('ctt').textContent=done?L.sent:L.ctaBtn;$('ctb').style.background=done?'#22b455':ACC;$('ctb').style.color=done?'#fff':'#111';
 }
 
-window.renderAt=function(t){pending.length=0;renderSubs(t);renderShow(t);renderFeat(t);renderAds(t);renderCTA(t);return Promise.all(pending)};
+window.renderAt=function(t){pending.length=0;renderSubs(t);
+ if(UK){renderShow(remap(t,TM.show));renderFeat(remap(t,TM.feat));renderAds(remap(t,TM.ads));renderCTA(remap(t,TM.cta))}
+ else{renderShow(t);renderFeat(t);renderAds(t);renderCTA(t)}
+ return Promise.all(pending)};
 window.renderAt(0);
 </script></body></html>

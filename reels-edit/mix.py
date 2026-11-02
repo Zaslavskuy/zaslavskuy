@@ -154,11 +154,13 @@ speech = np.clip((20 * np.log10(env + 1e-6) + 45) / 15, 0, 1)        # 0 = silen
 sm = int(0.12 * SR)
 speech = np.convolve(speech, np.ones(sm) / sm, mode='same')
 v_rms = np.sqrt(np.mean(voice ** 2)); m_rms = np.sqrt(np.mean(music ** 2))
-music = music * (v_rms / m_rms) * db(-13) * (1 - 0.45 * speech)[:, None]
+MUSIC_DB = float(os.environ.get('MUSIC_DB', -13))   # music bed vs voice
+SFX_DB = float(os.environ.get('SFX_DB', 0))        # extra SFX boost
+music = music * (v_rms / m_rms) * db(MUSIC_DB) * (1 - 0.45 * speech)[:, None]
 fade = int(1.2 * SR); music[-fade:] *= np.linspace(1, 0, fade)[:, None]
 music[:int(.05 * SR)] *= np.linspace(0, 1, int(.05 * SR))[:, None]
 
-mix = voice + sfx_bus * (v_rms / 0.1) * 0.9 + music
+mix = voice + sfx_bus * (v_rms / 0.1) * 0.9 * db(SFX_DB) + music
 mix.astype(np.float32).tofile(OUT + '.raw')
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'f32le', '-ar', str(SR), '-ac', '2', '-i', OUT + '.raw', OUT], check=True)
 os.remove(OUT + '.raw'); os.remove(vtmp)

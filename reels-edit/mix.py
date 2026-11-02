@@ -415,6 +415,57 @@ if os.environ.get('LANG_CUT') in ('p4', 'p4uk'):   # four-niches reel
         _f = lambda t: float(np.interp(t, [a for a, b in _A], [b for a, b in _A]))
         CUES = [(round(_f(c[0]), 2),) + tuple(c[1:]) for c in CUES]
         CUTS = [6.68, 12.70, 17.24, 22.76, 26.70, 32.04, 34.70, 42.40]
+if os.environ.get('LANG_CUT') == 'p5':   # affordable-sites reel
+    CUES = [
+        (2.00, 'ui-blip/kenney-ui-rollover1.ogg', -16, 'onset', 'glass tag in'),
+        (2.46, 'pop/kenney-interface-drop-001.ogg', -15, 'onset', 'money bag 1'),
+        (2.64, 'pop/kenney-interface-drop-003.ogg', -15, 'onset', 'money bags'),
+        (2.84, 'kit/impact.ogg', -12, 'onset', 'СОСТОЯНИЕ? (accent) + punch-in'),
+        (4.22, 'transition/fs-702773-swipe-wav.ogg', -11, 'peak', 'money struck out'),
+        (4.46, 'kit/whoosh.ogg', -6, 'peak', 'card expands -> showcase'),
+        (4.90, 'transition/fs-786514-swoosh-v2.ogg', -11, 'peak', 'site 1 flies in'),
+        (6.58, 'transition/fs-683096-woosh.ogg', -11, 'peak', 'site 2 flies in'),
+        (8.18, 'transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg', -10, 'peak', 'site 3 flies in'),
+        (9.68, 'transition/fs-850347-swipe-various.ogg', -11, 'peak', 'site 4 flies in'),
+        (9.92, 'ding/kenney-interface-glass-001.ogg', -12, 'onset', 'new request toast'),
+        (10.70, 'whoosh/fs-683101-quick-woosh.ogg', -10, 'peak', 'cascade -> 2x2 grid'),
+        (10.62, 'pop/kenney-interface-drop-001.ogg', -14, 'onset', 'niche labels'),
+        (12.08, 'ui-blip/kenney-ui-rollover2.ogg', -15, 'onset', 'task lines'),
+        (14.12, 'pop/kenney-interface-pluck-001.ogg', -13, 'onset', 'budget tier 1'),
+        (14.26, 'pop/kenney-interface-pluck-002.ogg', -13, 'onset', 'budget tier 2'),
+        (16.40, 'click/kenney-interface-select-001.ogg', -13, 'onset', 'tick 1'),
+        (16.56, 'click/kenney-interface-select-002.ogg', -13, 'onset', 'tick 2'),
+        (16.50, 'ding/kenney-interface-confirmation-001.ogg', -13, 'onset', 'own solution pill'),
+        (17.42, 'whoosh/fs830856.ogg', -6, 'peak', 'zoom-blur to face'),
+        (19.16, 'kit/whoosh.ogg', -7, 'peak', 'slide-up -> brief'),
+        (20.82, 'click/kenney-interface-select-001.ogg', -11, 'onset', 'tick: business'),
+        (21.34, 'click/kenney-interface-select-002.ogg', -11, 'onset', 'tick: tasks'),
+        (22.04, 'click/kenney-interface-select-003.ogg', -11, 'onset', 'tick: budget'),
+        (22.90, 'transition/fs-786514-swoosh-v2.ogg', -11, 'peak', 'brief -> solution'),
+        (23.22, 'pop/kenney-interface-drop-002.ogg', -14, 'onset', 'needed features'),
+        (23.84, 'pop/kenney-interface-drop-003.ogg', -14, 'onset', 'extra features'),
+        (24.48, 'transition/fs-702773-swipe-wav.ogg', -12, 'peak', 'extras struck out'),
+        (24.95, 'whoosh/fs-683101-quick-woosh.ogg', -13, 'peak', 'extras fly away'),
+        (25.50, 'riser/fs-174363-rewind.ogg', -17, 'onset', 'budget bar shrinks', 0.55),
+        (25.92, 'ding/kenney-interface-confirmation-002.ogg', -12, 'onset', 'no extra costs ✓'),
+        (26.62, 'whoosh/fs810485.ogg', -6, 'peak', 'zoom-blur to face'),
+        (27.96, 'kit/whoosh.ogg', -7, 'peak', 'card expands -> ready site'),
+        (28.22, 'impact/kenney-impact-impactsoft-heavy-000.ogg', -13, 'onset', 'ГОТОВЫЙ САЙТ'),
+        (28.64, 'pop/fs-447910-plop.ogg', -12, 'onset', 'badge: adaptive'),
+        (30.46, 'pop/kenney-interface-pluck-001.ogg', -12, 'onset', 'badge: SEO'),
+        (31.74, 'pop/fs527522.ogg', -12, 'onset', 'badge: ads ready'),
+        (32.40, 'ding/kenney-interface-glass-002.ogg', -13, 'onset', 'phone glow'),
+        (33.02, 'whoosh/fs830856.ogg', -6, 'peak', 'zoom-blur to face'),
+        (34.30, 'transition/fs-702773-swipe-wav.ogg', -12, 'peak', 'КАРТИНКУ struck out'),
+        (34.50, 'whoosh/fs393811.ogg', -17, 'peak', 'punch-in'),
+        (34.82, 'impact/kenney-impact-impactsoft-heavy-001.ogg', -12, 'onset', 'ИНСТРУМЕНТ (accent)'),
+        (37.06, 'whoosh/fs393811.ogg', -16, 'peak', 'cut'),
+        (39.30, 'transition/fs-850347-swipe-various.ogg', -11, 'peak', 'request form slides in'),
+        (39.42, 'typing/fs-323432-typing.ogg', -16, 'onset', 'typing', 0.46),
+        (39.94, 'click/fs788933.ogg', -8, 'onset', 'tap Оставить заявку'),
+        (40.10, 'ding/kenney-interface-confirmation-001.ogg', -13, 'onset', 'request sent'),
+    ]
+    CUTS = [4.40, 10.40, 17.40, 19.10, 22.90, 26.60, 27.90, 33.00, 39.26]
 sfx_bus = np.zeros((N, 2), np.float32)
 report = []
 for c in CUES:

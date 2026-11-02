@@ -1,5 +1,5 @@
 """Composite: source video -> camera moves (push-ins / punch-ins / zoom-blur whips) -> overlay frames.
-usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en]
+usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk]
 """
 import sys, os, subprocess
 import numpy as np, cv2
@@ -33,13 +33,25 @@ if len(sys.argv) > 4 and sys.argv[4] == 'en':      # English cut: same shots, di
         (33.10, 35.06, 1.20, 1.24, D), (35.06, 99.0, 1.00, 1.06, D),
     ]
     WHIPS = [6.24, 14.04, 18.90]
+if len(sys.argv) > 4 and sys.argv[4] == 'uk':      # Ukrainian cut (shot C = sitting by the tree is on screen here)
+    C = (0.46, 0.46)
+    CAM = [
+        (0.00, 1.30, 1.16, 1.20, A), (1.30, 3.64, 1.00, 1.06, A),
+        (7.36, 9.12, 1.00, 1.05, B), (9.12, 10.26, 1.10, 1.13, B), (10.26, 11.56, 1.18, 1.22, B),
+        (15.40, 15.98, 1.00, 1.03, C),
+        (20.84, 21.12, 1.14, 1.15, C), (21.12, 23.52, 1.00, 1.04, C), (23.52, 24.98, 1.14, 1.18, C),
+        (24.98, 27.94, 1.00, 1.05, C), (27.94, 28.28, 1.20, 1.22, C),
+        (28.28, 30.44, 1.20, 1.25, D), (30.44, 31.92, 1.00, 1.04, D), (31.92, 34.56, 1.14, 1.19, D),
+        (34.56, 36.74, 1.00, 1.04, D), (36.74, 39.64, 1.18, 1.23, D), (39.64, 99.0, 1.00, 1.06, D),
+    ]
+    WHIPS = [7.36, 15.40, 20.84]
 WHIP_LEN = 0.26
 
 
 def cam_at(t):
     for t0, t1, s0, s1, a in CAM:
         if t0 <= t < t1:
-            p = (t - t0) / max(1e-6, (min(t1, 40) - t0))
+            p = min(1.0, max(0.0, (t - t0) / max(1e-6, (min(t1, N / FPS) - t0))))
             p = p * p * (3 - 2 * p)
             return s0 + (s1 - s0) * p, a
     return 1.0, (0.5, 0.42)

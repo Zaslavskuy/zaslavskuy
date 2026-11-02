@@ -112,6 +112,7 @@ function svgEl(tag,attrs,parent){const e=document.createElementNS('http://www.w3
 // scene.html?lang=en  -> English cut (different speech timings, USD, no profile card)
 const LANG=new URLSearchParams(location.search).get('lang')||'ru';
 const EN=LANG==='en';
+const UK=LANG==='uk';
 if(EN)document.documentElement.classList.add('en');
 // piecewise-linear remap of time: [[t_this_cut, t_ru_animation], ...] (outside: 1:1 shift)
 function remap(t,pts){if(t<=pts[0][0])return pts[0][1]+(t-pts[0][0]);for(let i=1;i<pts.length;i++){if(t<=pts[i][0]){const[a,ra]=pts[i-1],[b,rb]=pts[i];return ra+(t-a)/(b-a)*(rb-ra)}}const L=pts[pts.length-1];return L[1]+(t-L[0])}
@@ -135,7 +136,7 @@ const TXT=EN?{
 
 // ================= SUBTITLES =================
 // line kinds: s = small, b = big white, r = big red. tokens: [text, appearTime]
-const SUB_Y=EN?(t=>t<3.40?0.625:t<6.28?0.58:t<9.90?0.505:0.545):(t=>t<3.42?0.625:t<7.40?0.86:t<11.40?0.505:(t>=15.92&&t<20.28)?0.80:0.545);
+const SUB_Y=UK?(t=>t<3.40?0.625:t<7.36?0.86:t<11.56?0.505:(t>=15.98&&t<20.84)?0.80:t<28.28?0.665:0.545):EN?(t=>t<3.40?0.625:t<6.28?0.58:t<9.90?0.505:0.545):(t=>t<3.42?0.625:t<7.40?0.86:t<11.40?0.505:(t>=15.92&&t<20.28)?0.80:0.545);
 const CARDS_RU=[
  [0.00,0.80,[['b',[['Боитесь',0.00]]],['s',[['заказать',0.30]]]]],
  [0.80,1.16,[['b',[['сайт',0.80]]],['s',[['заказать',0.0]]]]],
@@ -216,7 +217,49 @@ const CARDS_EN=[
  [35.06,36.26,[['s',[['and',35.06],["we'll",35.42],['discuss',35.60],['a',35.84]]],['b',[['solution',36.00]]]]],
  [36.26,38.10,[['b',[['tailored',36.26]]],['s',[['specifically',36.62],['to',36.94],['you',37.54]]]]],
 ];
-const CARDS=EN?CARDS_EN:CARDS_RU;
+const CARDS_UK=[
+ [0.00,0.86,[['b',[['вагаєтесь',0.00]]],['s',[['замовити',0.46]]]]],
+ [0.86,1.30,[['b',[['сайт',0.86]]],['s',[['замовити',0.0]]]]],
+ [1.30,2.06,[['s',[['бо',1.30]]],['b',[['думаєте',1.46]]]]],
+ [2.06,2.38,[['s',[['що',2.06],['він',2.22]]]]],
+ [2.38,3.40,[['s',[['не',2.38],['дасть',2.52]]],['b',[['результатів',2.74]]],'strike',2.98]],
+ [3.40,4.44,[['s',[['тоді',3.44]]],['b',[['погляньте',3.90]]]]],
+ [4.44,5.50,[['s',[['яких',4.44]]],['b',[['результатів',4.92]]]]],
+ [5.50,6.58,[['s',[['досягають',5.50]]],['b',[['наші',5.90],['клієнти',6.18]]]]],
+ [6.58,7.36,[['s',[['вже',6.58]]],['b',[['зараз',6.76]]]]],
+ [7.36,8.18,[['s',[['але',7.38]]],['b',[['секрет',7.78]]]]],
+ [8.18,9.12,[['s',[['не',8.18],['лише',8.32],['в',8.58]]],['b',[['сайті',8.66]]]]],
+ [9.12,10.26,[['b',[['результат',9.12]]],['s',[['приходить',9.74]]]]],
+ [10.26,10.68,[['s',[['коли',10.26]]],['r',[['все',10.46]]]]],
+ [10.68,11.56,[['b',[['працює',10.68]]],['s',[['разом',11.14]]]]],
+ [15.40,15.98,[['b',[['ми',15.18]]],['s',[['створюємо',15.52]]]]],
+ [15.98,16.50,[['b',[['сайти',15.98]]]]],
+ [16.50,17.14,[['s',[['на',16.50],['які',16.64],['можна',16.80]]]]],
+ [17.14,17.78,[['r',[['ефективно',17.14]]]]],
+ [17.78,18.42,[['s',[['залучати',17.78]]],['b',[['людей',18.16]]]]],
+ [18.42,19.16,[['s',[['із',18.42]]],['b',[['реклами',18.72]]]]],
+ [19.16,19.70,[['b',[['facebook',19.16]]]]],
+ [19.70,20.44,[['b',[['instagram',19.70]]]]],
+ [20.44,20.90,[['s',[['та',19.98]]],['b',[['google',20.44]]]]],
+ [20.90,22.12,[['s',[['щоб',20.90]]],['b',[['людина',21.32]]],['s',[['одразу',21.62]]]]],
+ [22.12,23.52,[['b',[['людина',21.32]]],['s',[['зрозуміла',22.12],['вашу',22.54],['пропозицію',22.80]]]]],
+ [23.52,24.98,[['b',[['людина',21.32]]],['s',[['довірилася',23.52],['бізнесу',24.30]]]]],
+ [24.98,26.48,[['s',[['та',24.82],['захотіла',24.98],['залишити',25.46]]],['b',[['заявку',25.88]]]]],
+ [26.48,27.94,[['s',[['або',26.48],['зробити',26.90]]],['b',[['замовлення',27.34]]]]],
+ [27.94,29.04,[['s',[['тож',27.94]]],['b',[['не',28.52],['бійтеся',28.58]]]]],
+ [29.04,30.24,[['s',[['інвестувати',29.04],['у',29.52],['веб-сайт',29.72]]],['b',[['не бійтеся',28.52]]]]],
+ [30.24,31.92,[['s',[['це',30.24],['не',30.56],['просто',30.72]]],['b',[['витрати',30.94]]],['s',[['на',31.42],['дизайн',31.50]]],'strike',31.66]],
+ [31.92,33.10,[['s',[['це',31.92]]],['b',[['інвестиція',32.32]]]]],
+ [33.10,33.78,[['r',[['в',33.10],['інструмент',33.14]]],['s',[['інвестиція',32.32]]]]],
+ [33.78,34.56,[['r',[['в інструмент',33.10]]],['s',[['який',33.78],['допомагає',34.06]]]]],
+ [34.56,36.74,[['s',[['перетворювати',34.56]]],['b',[['відвідувачів',35.22]]],['s',[['на',35.96]]],['r',[['клієнтів',36.06]]]]],
+ [36.74,37.84,[['s',[['якщо',36.74],['вам',37.28]]],['b',[['потрібен',37.42]]]]],
+ [37.84,38.62,[['s',[['сучасний',37.84]]],['b',[['сайт',38.34]]]]],
+ [38.62,39.64,[['s',[['для',38.62],['вашого',38.80]]],['b',[['бізнесу',39.10]]]]],
+ [39.64,40.80,[['b',[['залишайте',39.64]]],['s',[['заявку',40.26]]]]],
+ [40.80,42.60,[['s',[['та',40.80],['обговоримо',40.94]]],['b',[['ваш',41.56],['проєкт',41.68]]]]],
+];
+const CARDS=UK?CARDS_UK:EN?CARDS_EN:CARDS_RU;
 const cardEls=[];
 (function buildSubs(){const root=$('subs');
  for(const c of CARDS){const ce=el('div','card',root);const words=[];let strike=null;
@@ -386,6 +429,21 @@ function renderCard(t){const c=$('pcard'),cu=$('cursor');const T0=35.36;const on
 
 // ================= V3 (RU cut): reworked b-roll, own numbers, request form =================
 const ACC='#FFB21E';
+const T3=UK?{
+ head:'Виручка клієнта · 30 днів', badge:'▲ +38% до минулого місяця',
+ rows:[['С','Стоматологія','214 заявок',263480.90,'+27%'],['Р','Ремонт квартир','168 заявок',537914.80,'+44%'],['О','Онлайн-школа','392 заявки',189730.20,'+31%']],
+ toast:['Нова оплата','щойно · із сайту'], chain:[['mega','продуманий','маркетинг'],['box','сильна','пропозиція'],['users','якісний','трафік']], pill:'= результат',
+ btn:'Залишити заявку', visitors:'👥 Відвідувачі: +',
+ chips:[['fb','Facebook',18,19.10,123],['ig','Instagram',255,19.50,360],['g','Google',492,20.05,597]], chipW:210,
+ form:['Заявка на розробку сайту','Ім\'я','Телефон','Олександр','Залишити заявку','✓ Заявку надіслано'],
+}:{
+ head:'Выручка клиента · 30 дней', badge:'▲ +38% к прошлому месяцу',
+ rows:[['С','Стоматология','214 заявок',263480.90,'+27%'],['Р','Ремонт квартир','168 заявок',537914.80,'+44%'],['О','Онлайн-школа','392 заявки',189730.20,'+31%']],
+ toast:['Новая оплата','только что · с сайта'], chain:[['mega','грамотный','маркетинг'],['box','сильный','продукт'],['users','качественный','трафик']], pill:'= результат',
+ btn:'Оставить заявку', visitors:'👥 Посетители: +',
+ chips:[['ig','Instagram Ads',60,19.36,190],['g','Google Ads',400,20.02,530]], chipW:260,
+ form:['Заявка на разработку сайта','Имя','Телефон','Александр','Оставить заявку','✓ Заявка отправлена'],
+};
 const fmtMoney=v=>{const [i,d]=v.toFixed(2).split('.');return i.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+d+' ₴'};
 const fmtInt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 function mkScene(id,cls){const s=el('div','scene '+(cls||''));s.id=id;$('root').insertBefore(s,$('subs'));return s}
@@ -396,6 +454,7 @@ const ICON={
  users:'<circle class="wst" stroke-width="6" cx="38" cy="34" r="12"/><path class="wst" stroke-width="6" d="M14 82 A24 24 0 0 1 62 82"/><circle class="wst" stroke-width="5" cx="70" cy="40" r="9"/><path class="wst" stroke-width="5" d="M60 62 A18 18 0 0 1 88 78"/>',
  ig:'<rect x="12" y="12" width="76" height="76" rx="22" fill="none" stroke="'+ACC+'" stroke-width="9"/><circle cx="50" cy="50" r="17" fill="none" stroke="'+ACC+'" stroke-width="9"/><circle cx="70" cy="30" r="5" fill="'+ACC+'"/>',
  g:'<path fill="none" stroke="'+ACC+'" stroke-width="12" d="M80 30 A36 36 0 1 0 86 54 L52 54"/>',
+ fb:'<circle cx="50" cy="50" r="40" fill="none" stroke="'+ACC+'" stroke-width="9"/><path fill="none" stroke="'+ACC+'" stroke-width="10" d="M58 30 H52 Q44 30 44 40 V90 M34 54 H62"/>',
  mail:'<path fill="none" stroke="#111" stroke-width="8" stroke-linejoin="round" d="M14 26 H86 V74 H14 Z M14 26 L50 54 L86 26"/>',
 };
 const svgIcon=(name,size)=>`<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;display:block">${ICON[name]}</svg>`;
@@ -403,13 +462,13 @@ const svgIcon=(name,size)=>`<svg viewBox="0 0 100 100" width="${size}" height="$
 // ---------- 1. RESULTS (3.38–7.40) ----------
 const R3={rows:[]};
 const R3_TOTAL=418260.50;
-const R3_ROWS=[['С','Стоматология','214 заявок',263480.90,'+27%'],['Р','Ремонт квартир','168 заявок',537914.80,'+44%'],['О','Онлайн-школа','392 заявки',189730.20,'+31%']];
+const R3_ROWS=T3.rows;
 (function(){const S=mkScene('res3','v3bg');R3.S=S;
  const card=el('div','glass abs',S,{left:'40px',top:'170px',width:'640px',height:'470px',transformOrigin:'50% 0'});R3.card=card;
  const hd=el('div','abs',card,{left:'34px',top:'32px',font:'600 21px/1 Mont',color:'#9a9ba3'});
- hd.innerHTML=`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ACC};margin-right:10px;vertical-align:2px"></span>Выручка клиента · 30 дней`;
+ hd.innerHTML=`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ACC};margin-right:10px;vertical-align:2px"></span>${T3.head}`;
  R3.num=el('div','abs',card,{left:'32px',top:'74px',font:'800 62px/1 Mont',color:'#fff',letterSpacing:'-1.5px',whiteSpace:'nowrap'});
- R3.badge=el('div','abs',card,{left:'34px',top:'154px',padding:'9px 15px',borderRadius:'20px',background:'rgba(46,204,113,.16)',color:'#3ddc84',font:'700 19px/1 Mont',transformOrigin:'0 50%'});R3.badge.textContent='▲ +38% к прошлому месяцу';
+ R3.badge=el('div','abs',card,{left:'34px',top:'154px',padding:'9px 15px',borderRadius:'20px',background:'rgba(46,204,113,.16)',color:'#3ddc84',font:'700 19px/1 Mont',transformOrigin:'0 50%'});R3.badge.textContent=T3.badge;
  R3.live=el('div','abs',card,{right:'28px',top:'26px',padding:'8px 13px',borderRadius:'14px',background:'rgba(255,77,77,.15)',color:'#ff5a5a',font:'800 16px/1 Mont',letterSpacing:'1.5px'});
  R3.live.innerHTML='<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff4d4d;margin-right:8px;vertical-align:1px"></span>LIVE';R3.dot=R3.live.firstChild;
  const W=580,H=220;const sv=svgEl('svg',{width:W,height:H+10,style:'position:absolute;left:30px;top:224px;overflow:visible'},card);
@@ -429,7 +488,7 @@ const R3_ROWS=[['С','Стоматология','214 заявок',263480.90,'+2
    <div style="position:absolute;right:22px;top:53px;font:700 16px/1 Mont;color:#3ddc84">▲ ${pct}</div>`;R3.rows.push(row)});
  R3.toast=el('div','glass abs',S,{left:'70px',top:'40px',width:'580px',height:'78px',borderRadius:'24px'});
  R3.toast.innerHTML=`<div style="position:absolute;left:16px;top:15px;width:48px;height:48px;border-radius:14px;background:#2ecc71;color:#fff;font:800 26px/48px Mont;text-align:center">₴</div>
-  <div style="position:absolute;left:80px;top:17px;font:700 20px/1 Mont;color:#fff">Новая оплата</div><div style="position:absolute;left:80px;top:45px;font:500 15px/1 Mont;color:#8e8f97">только что · с сайта</div>
+  <div style="position:absolute;left:80px;top:17px;font:700 20px/1 Mont;color:#fff">${T3.toast[0]}</div><div style="position:absolute;left:80px;top:45px;font:500 15px/1 Mont;color:#8e8f97">${T3.toast[1]}</div>
   <div style="position:absolute;right:22px;top:26px;font:800 24px/1 Mont;color:#3ddc84">+12 400 ₴</div>`;
 })();
 function renderRes3(t){const S=R3.S;const on=t>=3.38&&t<7.40;S.style.display=on?'block':'none';if(!on)return;
@@ -453,7 +512,7 @@ const C3={rows:[]};const C3_Y=[350,580,810];
  const ln=d=>{const p=svgEl('path',{d,fill:'none',stroke:ACC,'stroke-width':6,'stroke-linecap':'round'},sv);p.setAttribute('stroke-dasharray',900);p.setAttribute('stroke-dashoffset',900);return p};
  C3.l1=ln(`M155 ${C3_Y[0]+72} V${C3_Y[1]-72}`);C3.l2=ln(`M155 ${C3_Y[1]+72} V${C3_Y[2]-72}`);
  C3.l3=ln(`M155 ${C3_Y[2]+72} V985 Q155 1030 200 1030 H232`);
- const data=[['mega','грамотный','маркетинг'],['box','сильный','продукт'],['users','качественный','трафик']];
+ const data=T3.chain;
  data.forEach(([ic,sm,bg],i)=>{const y=C3_Y[i];
   const c=el('div','abs',W,{left:'90px',top:(y-65)+'px',width:'130px',height:'130px',borderRadius:'50%',boxSizing:'border-box',border:`6px solid ${ACC}`,background:'#17181c',boxShadow:`0 0 40px rgba(255,178,30,.25)`,display:'flex',alignItems:'center',justifyContent:'center'});
   c.innerHTML=svgIcon(ic,72);
@@ -462,7 +521,7 @@ const C3={rows:[]};const C3_Y=[350,580,810];
   const b=el('div','abs',W,{left:'249px',top:(y-20)+'px',font:'600 70px/1 Osw',color:'#fff',textTransform:'uppercase',transformOrigin:'0 50%'});b.textContent=bg;
   C3.rows.push({c,ck,s,b})});
  C3.pill=el('div','abs',W,{left:'232px',top:'992px',height:'76px',padding:'0 34px',borderRadius:'38px',background:ACC,color:'#111',font:'600 46px/76px Osw',textTransform:'uppercase',whiteSpace:'nowrap',transformOrigin:'0 50%',boxShadow:'0 10px 40px rgba(255,178,30,.45)'});
- C3.pill.textContent='= результат';
+ C3.pill.textContent=T3.pill;
 })();
 function renderChain3(t){const S=C3.S;const on=t>=11.40&&t<15.36;S.style.display=on?'block':'none';if(!on)return;
  const intro=lin(t,11.40,11.62);S.style.opacity=clamp(intro*3);
@@ -486,12 +545,12 @@ const P3={blocks:[],parts:[]};
  B({left:'18px',top:'50px',width:'244px',height:'26px'},`<div style="position:absolute;left:0;top:2px;width:22px;height:22px;border-radius:50%;background:${ACC}"></div><div style="position:absolute;left:32px;top:8px;width:70px;height:10px;border-radius:5px;background:#1d1d22"></div><div style="position:absolute;right:0;top:8px;width:60px;height:10px;border-radius:5px;background:#c9cad2"></div>`);
  B({left:'18px',top:'98px',width:'244px',height:'70px'},`<div style="height:20px;width:230px;border-radius:6px;background:#1d1d22"></div><div style="margin-top:10px;height:20px;width:160px;border-radius:6px;background:#1d1d22"></div><div style="margin-top:14px;height:9px;width:200px;border-radius:5px;background:#c3c4cc"></div>`);
  B({left:'18px',top:'200px',width:'244px',height:'150px',borderRadius:'18px',background:`linear-gradient(135deg,${ACC},#ff8f3a)`});
- B({left:'18px',top:'366px',width:'244px',height:'48px',borderRadius:'24px',background:'#141417',color:'#fff',font:'700 16px/48px Mont',textAlign:'center'}).textContent='Оставить заявку';
+ B({left:'18px',top:'366px',width:'244px',height:'48px',borderRadius:'24px',background:'#141417',color:'#fff',font:'700 16px/48px Mont',textAlign:'center'}).textContent=T3.btn;
  for(let i=0;i<3;i++)B({left:(18+i*84)+'px',top:'430px',width:'76px',height:'100px',borderRadius:'14px',background:'#e3e4ea'});
  P3.btn=P3.blocks[3];
- const chip=(x,ic,txt)=>{const c=el('div','glass abs',S,{left:x+'px',top:'110px',width:'260px',height:'70px',borderRadius:'35px'});
+ const chip=(x,ic,txt)=>{const c=el('div','glass abs',S,{left:x+'px',top:'110px',width:T3.chipW+'px',height:'70px',borderRadius:'35px'});
   c.innerHTML=`<div style="position:absolute;left:14px;top:13px">${svgIcon(ic,44)}</div><div style="position:absolute;left:72px;top:25px;font:700 20px/1 Mont;color:#fff">${txt}</div>`;return c};
- P3.ig=chip(60,'ig','Instagram Ads');P3.gg=chip(400,'g','Google Ads');
+ P3.chips=T3.chips.map(([ic,txt,x,at,sx])=>({el:chip(x,ic,txt),at,src:[sx,180]}));
  for(let i=0;i<26;i++){const d=el('div','abs',S,{width:'12px',height:'12px',borderRadius:'50%',background:ACC,boxShadow:`0 0 12px ${ACC}`,left:0,top:0});P3.parts.push(d)}
  P3.cnt=el('div','glass abs',S,{left:'180px',top:'890px',width:'360px',height:'64px',borderRadius:'32px',font:'700 22px/64px Mont',color:'#fff',textAlign:'center'});
 })();
@@ -503,16 +562,16 @@ function renderSite3(t){const S=P3.S;const on=t>=15.90&&t<20.28;S.style.display=
  const BT=[16.16,16.30,16.44,16.60,16.72,16.80,16.88];
  P3.blocks.forEach((b,i)=>{const q=lin(t,BT[i],BT[i]+.22);b.style.opacity=t<BT[i]?0:clamp(q*2);b.style.transform=`translateY(${(1-eBack(q))*30}px)`});
  const bp=t>=17.56?.5+.5*Math.abs(Math.sin((t-17.56)*4)):0;P3.btn.style.boxShadow=`0 0 ${24*bp}px rgba(255,178,30,${bp})`;
- applyPop(P3.ig,t,19.36,'',.22,.4);applyPop(P3.gg,t,20.02,'',.22,.4);
+ P3.chips.forEach(c=>applyPop(c.el,t,c.at,'',.22,.4));const live=P3.chips.filter(c=>t>=c.at);
  const tgt=[360,270];
  P3.parts.forEach((d,i)=>{const t0=18.36+i*.075;if(t<t0){d.style.opacity=0;return}
   const ph=((t-t0)%0.85)/0.85;let src;
-  if(t>=20.02&&i%2===1)src=[530,180];else if(t>=19.36&&(i%2===0||t<20.02))src=[190,180];else src=[80+((i*137)%560),-20];
+  if(live.length)src=live[i%live.length].src;else src=[80+((i*137)%560),-20];
   const ctl=[(src[0]+tgt[0])/2+(i%3-1)*60,(src[1]+tgt[1])/2-40];const u=eInOut(ph);
   const x=(1-u)*(1-u)*src[0]+2*(1-u)*u*ctl[0]+u*u*tgt[0],y=(1-u)*(1-u)*src[1]+2*(1-u)*u*ctl[1]+u*u*tgt[1];
   d.style.opacity=Math.sin(Math.PI*ph);d.style.transform=`translate(${x-6}px,${y-6}px) scale(${1-.4*u})`});
  const cq=lin(t,18.36,18.56);P3.cnt.style.opacity=t<18.36?0:clamp(cq*2);P3.cnt.style.transform=`scale(${.7+.3*eBack(cq)})`;
- P3.cnt.textContent='👥 Посетители: +'+fmtInt(1284*eInOut(lin(t,18.40,20.28)));
+ P3.cnt.textContent=T3.visitors+fmtInt(1284*eInOut(lin(t,18.40,20.28)));
 }
 
 // ---------- 4. NIGHT LEADS (32.12–34.75) ----------
@@ -532,27 +591,47 @@ function renderNotif3(t){const S=N3.S;const on=t>=32.12&&t<34.75;S.style.display
 const F3={};
 (function(){const S=mkOverlay('form3');F3.S=S;
  const c=el('div','abs',S,{left:'60px',top:'64px',width:'600px',height:'320px',borderRadius:'30px',background:'rgba(18,18,22,.62)',border:'1px solid rgba(255,255,255,.14)',backdropFilter:'blur(16px)',boxShadow:'0 20px 60px rgba(0,0,0,.35)',transformOrigin:'50% 0'});F3.c=c;
- c.innerHTML=`<div style="position:absolute;left:30px;top:26px;font:800 26px/1 Mont;color:#fff">Заявка на разработку сайта</div>
-  <div style="position:absolute;left:30px;top:76px;font:600 14px/1 Mont;color:#9a9ba3">Имя</div>
+ c.innerHTML=`<div style="position:absolute;left:30px;top:26px;font:800 26px/1 Mont;color:#fff">${T3.form[0]}</div>
+  <div style="position:absolute;left:30px;top:76px;font:600 14px/1 Mont;color:#9a9ba3">${T3.form[1]}</div>
   <div style="position:absolute;left:30px;top:96px;width:540px;height:50px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)"><span id="f3n" style="position:absolute;left:16px;top:15px;font:600 19px/1 Mont;color:#fff;white-space:pre"></span></div>
-  <div style="position:absolute;left:30px;top:160px;font:600 14px/1 Mont;color:#9a9ba3">Телефон</div>
+  <div style="position:absolute;left:30px;top:160px;font:600 14px/1 Mont;color:#9a9ba3">${T3.form[2]}</div>
   <div style="position:absolute;left:30px;top:180px;width:540px;height:50px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)"><span id="f3p" style="position:absolute;left:16px;top:15px;font:600 19px/1 Mont;color:#fff;white-space:pre"></span></div>
-  <div id="f3b" style="position:absolute;left:30px;top:248px;width:540px;height:54px;border-radius:16px;background:${ACC};color:#111;font:800 20px/54px Mont;text-align:center;overflow:hidden"><span id="f3t">Оставить заявку</span><div id="f3r" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
+  <div id="f3b" style="position:absolute;left:30px;top:248px;width:540px;height:54px;border-radius:16px;background:${ACC};color:#111;font:800 20px/54px Mont;text-align:center;overflow:hidden"><span id="f3t">${T3.form[4]}</span><div id="f3r" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
  F3.tap=el('div','abs',S,{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.38)',border:'3px solid rgba(255,255,255,.9)',boxSizing:'border-box',boxShadow:'0 6px 20px rgba(0,0,0,.35)'});
 })();
 function renderForm3(t){const S=F3.S;const on=t>=35.36;S.style.display=on?'block':'none';if(!on)return;
  const p=lin(t,35.36,35.76);F3.c.style.opacity=eOut(p);F3.c.style.transform=`translateY(${(1-eBack(p))*-70}px) scale(${.94+.06*eOut(p)})`;
- $('f3n').textContent=typed('Александр',t,35.62,35.95)+(t>=35.62&&t<35.98&&Math.floor(t*6)%2?'|':'');
+ $('f3n').textContent=typed(T3.form[3],t,35.62,35.95)+(t>=35.62&&t<35.98&&Math.floor(t*6)%2?'|':'');
  $('f3p').textContent=typed('+380 •• ••• •• ••',t,35.98,36.36);
  const tp=kf(t,[[36.24,[520,560]],[36.56,[360,340]],[40,[360,340]]]);const tv=lin(t,36.24,36.38)*(1-lin(t,37.05,37.3));
  const press=t>=36.62&&t<36.76;F3.tap.style.opacity=t<36.24?0:tv;F3.tap.style.transform=`translate(${tp[0]-28}px,${tp[1]-28}px) scale(${press?.78:1})`;
  const b=$('f3b');b.style.transform=press?'scale(.96)':'none';
  const rp=lin(t,36.64,37.1),r=$('f3r');r.style.opacity=t>=36.64?(1-rp)*.9:0;r.style.transform=`translate(-50%,-50%) scale(${1+rp*30})`;
- const done=t>=36.80;$('f3t').textContent=done?'✓ Заявка отправлена':'Оставить заявку';b.style.background=done?'#22b455':ACC;b.style.color=done?'#fff':'#111';
+ const done=t>=36.80;$('f3t').textContent=done?T3.form[5]:T3.form[4];b.style.background=done?'#22b455':ACC;b.style.color=done?'#fff':'#111';
 }
 
+// ---------- UK: visitors -> clients conversion (34.56–36.74) ----------
+const V3={};
+(function(){const S=mkOverlay('conv3');V3.S=S;
+ const c=el('div','abs',S,{left:'40px',top:'70px',width:'640px',height:'176px',borderRadius:'28px',background:'rgba(18,18,22,.66)',border:'1px solid rgba(255,255,255,.14)',backdropFilter:'blur(16px)',boxShadow:'0 20px 60px rgba(0,0,0,.35)',transformOrigin:'50% 0'});V3.c=c;
+ c.innerHTML=`<div style="position:absolute;left:34px;top:28px;font:600 18px/1 Mont;color:#a5a6ad">👥 Відвідувачі</div><div id="v3a" style="position:absolute;left:32px;top:58px;font:800 54px/1 Mont;color:#fff"></div>
+  <div style="position:absolute;right:34px;top:28px;font:600 18px/1 Mont;color:#a5a6ad;text-align:right">✓ Клієнти</div><div id="v3b" style="position:absolute;right:32px;top:58px;font:800 54px/1 Mont;color:#3ddc84;text-align:right"></div>
+  <svg id="v3arr" width="150" height="40" viewBox="0 0 150 40" style="position:absolute;left:245px;top:66px;overflow:visible"><path d="M6 20 H136 M118 6 L138 20 L118 34" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div id="v3c" style="position:absolute;left:0;right:0;top:134px;text-align:center;font:700 17px/1 Mont;color:${ACC}">конверсія 7,5%</div>`;})();
+function renderConv3(t){const S=V3.S;const on=t>=34.56&&t<36.95;S.style.display=on?'block':'none';if(!on)return;
+ const p=lin(t,34.56,34.92),out=eInOut(lin(t,36.70,36.95));V3.c.style.opacity=eOut(p)*(1-out);V3.c.style.transform=`translateY(${(1-eBack(p))*-70-out*50}px) scale(${.94+.06*eOut(p)})`;
+ $('v3a').textContent=fmtInt(1284*eOut(lin(t,35.22,35.90)));$('v3b').textContent=fmtInt(96*eOut(lin(t,36.06,36.50)));
+ const a=lin(t,35.70,36.06);$('v3arr').style.clipPath=`inset(0 ${(1-eOut(a))*100}% 0 0)`;$('v3c').style.opacity=lin(t,36.30,36.50);
+}
+const TMAP3=UK?{
+ res:[[3.38,3.38],[3.44,3.42],[3.90,3.84],[4.44,4.44],[4.92,4.74],[5.50,5.44],[5.90,5.86],[6.58,6.54],[6.76,6.82],[7.36,7.40]],
+ chain:[[11.56,11.40],[11.64,11.48],[12.26,12.08],[12.94,12.70],[13.36,13.28],[14.14,13.96],[14.62,14.56],[15.40,15.36]],
+ site:[[15.98,15.90],[16.20,16.16],[16.94,16.95],[17.14,17.56],[17.78,18.36],[18.42,18.80],[19.16,19.10],[19.70,19.50],[20.44,20.05],[20.84,20.28]],
+ form:[[37.42,35.36],[38.10,35.62],[38.90,35.98],[39.40,36.20],[39.92,36.58],[40.26,36.64],[40.42,36.80],[42.60,38.98]],
+}:null;
 window.renderAt=function(t){renderSubs(t);
  if(EN){renderDash(remap(t,TMAP.dash));renderDiag(remap(t,TMAP.diag));renderBrow(remap(t,TMAP.brow));renderAvatar(remap(t,TMAP.avatar));renderCard(-1)}
+ else if(UK){renderRes3(remap(t,TMAP3.res));renderChain3(remap(t,TMAP3.chain));renderSite3(remap(t,TMAP3.site));renderConv3(t);renderForm3(remap(t,TMAP3.form))}
  else{renderRes3(t);renderChain3(t);renderSite3(t);renderNotif3(t);renderForm3(t)}};
 window.renderAt(0);
 </script></body></html>

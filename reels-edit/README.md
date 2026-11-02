@@ -3,6 +3,7 @@
 Финальные видео (1080×1920, 25 fps, −14 LUFS / −2 dBTP):
 - `output/reels_final_RU_v3.mp4` — **актуальная русская версия** (39.3 с): свои цифры, переработанная инфографика (карточка выручки + клиенты, цепочка «маркетинг/продукт/трафик → результат», сборка сайта в телефоне + трафик из Instagram/Google Ads, ночные заявки), в финале — форма заявки с нажатием
 - `output/reels_final.mp4` — предыдущая русская версия (по шаблону, с карточкой Instagram)
+- `output/reels_final_UK.mp4` — украинская версия (42.4 с): стиль RU v3, украинские тексты и цифры, чипы Facebook/Instagram/Google, карточка конверсии «Відвідувачі → Клієнти», форма заявки в финале
 - `output/reels_final_EN.mp4` — английская версия (38.0 с): субтитры и вся инфографика на английском, суммы в долларах, без карточки Instagram в финале
 
 ## Что повторено из референса
@@ -19,6 +20,7 @@ python3 composite.py source.mp4 <ovlDir> video_noaudio.mp4
 MUSIC_DB=-9 SFX_DB=4 python3 mix.py source.mp4 <sfxDir> music.mp3 mix.wav   # уровни RU v3 (по умолчанию MUSIC_DB=-13 SFX_DB=0)
 bash mux.sh video_noaudio.mp4 mix.wav output/reels_final.mp4
 ```
+Украинская версия — `LANG_CUT=uk` (+ `MUSIC_DB=-9 SFX_DB=4` для mix.py) и аргумент `uk` у `composite.py`.
 Английская версия — те же команды с `LANG_CUT=en` перед `node`/`mix.py` и аргументом `en` у `composite.py`.
 Русская версия рендерится сценами V3 (`renderRes3`, `renderChain3`, `renderSite3`, `renderNotif3`, `renderForm3`); английская — сценами по шаблону.
 В `scene.html` (`?lang=en`) — свои субтитры `CARDS_EN`, тексты `TXT` и тайм-ремап анимаций `TMAP` под английскую речь.

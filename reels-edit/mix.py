@@ -354,7 +354,7 @@ if os.environ.get('LANG_CUT') == 'p3uk':   # "ads that don't bring clients" reel
         (45.12, 'ding/kenney-interface-confirmation-002.ogg', -13, 'onset', 'request sent'),
     ]
     CUTS = [7.30, 13.80, 15.50, 19.52, 23.10, 31.40, 35.40, 41.40]
-if os.environ.get('LANG_CUT') == 'p4':   # four-niches reel
+if os.environ.get('LANG_CUT') in ('p4', 'p4uk'):   # four-niches reel
     CUES = [
         (0.90, 'ui-blip/kenney-ui-rollover1.ogg', -16, 'onset', 'sky chip: Dubai'),
         (2.06, 'ui-blip/kenney-ui-rollover2.ogg', -16, 'onset', 'sky chip: Italy'),
@@ -405,6 +405,16 @@ if os.environ.get('LANG_CUT') == 'p4':   # four-niches reel
         (46.90, 'ding/kenney-interface-confirmation-001.ogg', -13, 'onset', 'request sent'),
     ]
     CUTS = [6.80, 12.70, 17.56, 22.56, 26.44, 31.92, 35.10, 42.56]
+    if os.environ.get('LANG_CUT') == 'p4uk':   # same cues, moved onto the Ukrainian speech timing
+        _A = [(0, 0), (0.90, 0.90), (2.06, 2.06), (3.94, 3.92), (6.10, 5.88), (6.82, 6.70), (8.26, 8.20), (12.28, 12.28),
+              (12.70, 12.70), (13.66, 13.62), (14.86, 14.88), (16.32, 16.18), (16.70, 16.56), (17.56, 17.24), (18.78, 18.32),
+              (20.10, 19.74), (21.46, 21.66), (21.94, 22.18), (22.56, 22.76), (23.14, 23.32), (24.34, 24.62), (24.74, 25.06),
+              (25.98, 26.30), (26.44, 26.70), (27.84, 28.08), (29.48, 29.44), (29.56, 29.58), (30.56, 30.58), (31.92, 32.04),
+              (33.50, 33.46), (34.98, 34.50), (35.10, 34.70), (35.66, 35.20), (37.24, 36.96), (37.94, 37.68), (39.30, 39.10),
+              (39.82, 39.56), (40.52, 40.42), (41.70, 41.60), (42.56, 42.40), (44.02, 43.76), (46.00, 45.86), (46.74, 46.50), (50.04, 49.96)]
+        _f = lambda t: float(np.interp(t, [a for a, b in _A], [b for a, b in _A]))
+        CUES = [(round(_f(c[0]), 2),) + tuple(c[1:]) for c in CUES]
+        CUTS = [6.68, 12.70, 17.24, 22.76, 26.70, 32.04, 34.70, 42.40]
 sfx_bus = np.zeros((N, 2), np.float32)
 report = []
 for c in CUES:

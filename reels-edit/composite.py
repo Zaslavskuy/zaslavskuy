@@ -1,5 +1,5 @@
 """Composite: source video -> camera moves (push-ins / punch-ins / zoom-blur whips) -> overlay frames.
-usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk|p4]
+usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk|p4|p4uk]
 """
 import sys, os, subprocess
 import numpy as np, cv2
@@ -92,6 +92,15 @@ if len(sys.argv) > 4 and sys.argv[4] == 'p4':      # four-niches reel
         (42.56, 44.02, 1.00, 1.03, D), (44.02, 46.00, 1.16, 1.20, D), (46.00, 99.0, 1.00, 1.05, D),
     ]
     WHIPS = [31.92, 42.56]
+if len(sys.argv) > 4 and sys.argv[4] == 'p4uk':    # four-niches reel, Ukrainian cut
+    A, B, C, D = (0.50, 0.45), (0.50, 0.33), (0.46, 0.46), (0.49, 0.36)
+    CAM = [
+        (0.00, 6.68, 1.00, 1.06, A),
+        (6.68, 8.20, 1.00, 1.03, B), (8.20, 10.50, 1.12, 1.15, B), (10.50, 12.80, 1.00, 1.04, B),
+        (32.04, 33.46, 1.00, 1.03, C), (33.46, 34.82, 1.14, 1.18, C),
+        (42.40, 43.76, 1.00, 1.03, D), (43.76, 45.86, 1.16, 1.20, D), (45.86, 99.0, 1.00, 1.05, D),
+    ]
+    WHIPS = [32.04, 42.40]
 WHIP_LEN = 0.26
 
 

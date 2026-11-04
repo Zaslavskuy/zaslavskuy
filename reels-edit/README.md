@@ -8,6 +8,7 @@
 
 ## Ролик «Миллион за 3 месяца» (`output/reels_million_RU.mp4`, 60.9 с)
 Сцена — `scene_p8.html` (`SCENE=scene_p8.html node render_overlay.js …`, `composite.py … p8`, `LANG_CUT=p8 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`). Креативы — `assets/p4/`, фото — `assets/vadim.jpg`.
+- Украинская версия: `output/reels_million_UK.mp4` (60.6 с). Сцена `scene_p8_uk.html` собирается из `scene_p8.html` скриптом `python3 make_p8_uk.py`; рендер `SCENE=scene_p8_uk.html …`, `composite.py … p8uk`, `LANG_CUT=p8uk MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`.
 - 0–6.4 с: в небе — счётчик до $1 000 000, «за 3 месяца»; «волшебная кнопка» → тап → ничего → знак запрета.
 - 14–23 с: «Вся связка» кольцом вокруг пустого центра; «Реклама ✕ отдельно» → в центре «ВАШ БИЗНЕС».
 - 25–42 с: 3 кейса (Италия, клининг, Дубай) с креативами и кольцом ROAS → «Своя стратегия» по странам, всего 6 673 заявки.

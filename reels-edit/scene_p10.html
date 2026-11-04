@@ -1,0 +1,417 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Ad budget reel overlay</title>
+<style>
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:200 700}
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-lat.woff2) format('woff2');font-weight:200 700}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:100 900}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-lat.woff2) format('woff2');font-weight:100 900}
+:root{--acc:#FFB21E;--green:#2ecc71}
+html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+#root{position:relative;width:720px;height:1280px;overflow:hidden}
+.scene{position:absolute;inset:0;overflow:hidden;display:none}
+.abs{position:absolute}
+.ov{position:absolute;left:0;top:0;width:720px;height:1280px;display:none}
+/* subtitles */
+#subs{position:absolute;inset:0;pointer-events:none}
+.card{position:absolute;left:0;width:720px;display:none;flex-direction:column;align-items:center;transform:translateY(-50%)}
+.line{display:flex;gap:.22em;justify-content:center;white-space:nowrap;position:relative}
+.w{display:inline-block;transform-origin:50% 60%}
+.ls{font:600 32px/1.1 Mont;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 3px rgba(0,0,0,.5)}
+.lb,.lr{font:600 78px/0.98 Osw;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.45),0 0 3px rgba(0,0,0,.35)}
+.lr{color:var(--acc);text-shadow:0 0 2px rgba(0,0,0,.75),0 3px 6px rgba(0,0,0,.45),0 4px 22px rgba(0,0,0,.6)}
+/* look */
+.v3bg{background:radial-gradient(140% 38% at 50% 0%,rgba(255,178,30,.13) 0%,rgba(255,178,30,.05) 55%,rgba(255,178,30,0) 100%),radial-gradient(circle,#2c2d33 1.6px,transparent 2px) 0 0/30px 30px,#0f1013}
+.glass{background:rgba(28,29,34,.94);border:1px solid rgba(255,255,255,.08);border-radius:26px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.frost{background:rgba(18,18,22,.64);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+svg .wst{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round}
+/* browser window */
+.win{position:absolute;width:560px;border-radius:16px;overflow:hidden;background:#141519;box-shadow:0 30px 70px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07);transform-origin:50% 50%}
+.win .bar{height:32px;display:flex;align-items:center;gap:7px;padding-left:14px;background:#1d1e23}
+.win .dot{width:10px;height:10px;border-radius:50%}
+.win .url{margin-left:14px;width:250px;height:18px;border-radius:9px;background:#2a2b31;position:relative}
+.win .url:before{content:'';position:absolute;left:9px;top:5px;width:7px;height:8px;border-radius:2px;background:#6b6c74}
+.win img{display:block;width:560px;height:421px;object-fit:cover}
+.tag{position:absolute;padding:0 18px;height:46px;border-radius:23px;font:700 18px/46px Mont;color:#fff;white-space:nowrap;background:rgba(20,20,24,.9);border:1px solid rgba(255,178,30,.5);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.tag b{color:var(--acc);margin-right:8px}
+.pill{position:absolute;width:300px;height:58px;border-radius:29px;font:700 18px/58px Mont;color:#fff;white-space:nowrap;padding-left:62px;box-sizing:border-box}
+.pill .ck{position:absolute;left:12px;top:11px;width:36px;height:36px;border-radius:50%;box-sizing:border-box;border:2px solid #4a4b52;color:#111;font:800 20px/32px Mont;text-align:center}
+.inp{position:absolute;height:50px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.inp span{position:absolute;left:16px;top:15px;font:600 19px/1 Mont;color:#fff;white-space:pre}
+.lbl{position:absolute;font:600 14px/1 Mont;color:#9a9ba3}
+</style></head>
+<body><div id="root"><div id="subs"></div></div>
+<script>
+// ================= helpers =================
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const lin=(t,a,b)=>clamp((t-a)/(b-a));
+const eOut=p=>1-Math.pow(1-p,3);
+const eInOut=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eBack=p=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
+const mix=(a,b,p)=>a+(b-a)*p;
+const $=id=>document.getElementById(id);
+function el(tag,cls,parent,style){const e=document.createElement(tag);if(cls)e.className=cls;if(style)Object.assign(e.style,style);if(parent)parent.appendChild(e);return e}
+function svgEl(tag,attrs,parent){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function kf(t,keys,ease=eInOut){if(t<=keys[0][0])return keys[0][1];for(let i=1;i<keys.length;i++){if(t<=keys[i][0]){const[a,va]=keys[i-1],[b,vb]=keys[i];const p=ease((t-a)/(b-a));return Array.isArray(va)?va.map((v,j)=>mix(v,vb[j],p)):mix(va,vb,p)}}return keys[keys.length-1][1]}
+function pop(t,at,dur=.16,from=.6){const p=lin(t,at,at+dur);return{o:t<at?0:clamp(p*2.2),s:from+(1-from)*eBack(p),b:(1-p)*5}}
+function applyPop(e,t,at,extra='',dur,from){const q=pop(t,at,dur,from);e.style.opacity=q.o;e.style.transform=`${extra} scale(${q.s})`;e.style.filter=q.b>.05?`blur(${q.b}px)`:'none'}
+const typed=(str,t,a,b)=>str.slice(0,Math.round(clamp((t-a)/(b-a))*str.length));
+const fmtInt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const ACC='#FFB21E';
+const UK=new URLSearchParams(location.search).get('lang')==='uk';
+const L=UK?{
+ tags:['Оренда яхт · Дубай','Клінінгова компанія','Архітектурне бюро','Агенція байєрів · Італія'],
+ toast:['Нова заявка з сайту','щойно'], pills:['Адаптив під смартфони','SEO-оптимізація','Продумана структура','Зручні форми заявок'],
+ query:'оренда яхт дубай', ours:'NACRE — оренда яхт у Дубаї', tree:['Головна','Послуги','Кейси','Відгуки','Контакти'],
+ formTitle:'Залишити заявку', name:'Ім\'я', phone:'Телефон', send:'Надіслати', sent:'✓ Заявку надіслано', person:'Олександр',
+ adsTitle:'🚀 Готовий до запуску реклами', adsWait:'Налаштування…', adsOk:'✓ Готово', camp:'Рекламна кампанія', paused:'● На паузі', active:'● Активна · Google + Instagram', leads:'Нові заявки',
+ ctaTitle:'Заявка на розробку сайту', ctaBtn:'Залишити заявку',
+}:{
+ tags:['Аренда яхт · Дубай','Клининговая компания','Архитектурное бюро','Байерское агентство · Италия'],
+ toast:['Новая заявка с сайта','только что'], pills:['Адаптив под смартфоны','SEO-оптимизация','Продуманная структура','Удобные формы заявок'],
+ query:'аренда яхт дубай', ours:'NACRE — аренда яхт в Дубае', tree:['Главная','Услуги','Кейсы','Отзывы','Контакты'],
+ formTitle:'Оставить заявку', name:'Имя', phone:'Телефон', send:'Отправить', sent:'✓ Заявка отправлена', person:'Александр',
+ adsTitle:'🚀 Готов к запуску рекламы', adsWait:'Настройка…', adsOk:'✓ Готово', camp:'Рекламная кампания', paused:'● На паузе', active:'● Активна · Google + Instagram', leads:'Новые заявки',
+ ctaTitle:'Заявка на разработку сайта', ctaBtn:'Оставить заявку',
+};
+// UK cut: remap its timeline onto the RU animation timeline, per scene
+function remap(t,pts){if(t<=pts[0][0])return pts[0][1]+(t-pts[0][0]);for(let i=1;i<pts.length;i++){if(t<=pts[i][0]){const[a,ra]=pts[i-1],[b,rb]=pts[i];return ra+(t-a)/(b-a)*(rb-ra)}}const Z=pts[pts.length-1];return Z[1]+(t-Z[0])}
+const TM=UK?{
+ show:[[4.00,4.00],[13.64,13.42],[14.56,14.64]],
+ feat:[[17.10,17.00],[17.24,17.06],[18.02,17.90],[18.68,18.58],[19.06,18.94],[20.02,19.88],[20.64,20.54],[21.40,21.22],[21.88,21.72],[22.26,22.14],[22.84,22.74]],
+ ads:[[24.26,24.08],[25.14,24.94],[25.58,25.34],[27.34,27.12],[27.94,27.52],[28.38,28.00],[29.66,29.10],[30.60,30.00],[30.98,30.40]],
+ cta:[[33.08,32.38],[33.70,33.02],[34.20,33.56],[34.36,33.72],[38.30,37.66]],
+}:null;
+const root=$('root');
+function mkScene(id,cls){const s=el('div','scene '+(cls||''));s.id=id;root.insertBefore(s,$('subs'));return s}
+function mkOv(id){const s=el('div','ov');s.id=id;root.insertBefore(s,$('subs'));return s}
+const ICON={
+ g:`<path fill="none" stroke="${ACC}" stroke-width="12" d="M80 30 A36 36 0 1 0 86 54 L52 54"/>`,
+ ig:`<rect x="12" y="12" width="76" height="76" rx="22" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="50" cy="50" r="17" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="70" cy="30" r="5" fill="${ACC}"/>`,
+ mail:'<path fill="none" stroke="#111" stroke-width="8" stroke-linejoin="round" d="M14 26 H86 V74 H14 Z M14 26 L50 54 L86 26"/>',
+};
+const svgIcon=(name,size)=>`<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;display:block">${ICON[name]}</svg>`;
+// image swap that resolves once the new frame is decoded
+const pending=[];
+function setImg(img,src){if(img.dataset.src===src)return;img.dataset.src=src;img.src=src;pending.push(img.decode().catch(()=>{}))}
+
+// ================= P3: "ads that don't bring clients" reel =================
+const RED='#ff4d4d';
+const T=UK?{
+ warn:'⚠ Де губляться заявки',
+ prob:[['Креативи','не чіпляють увагу'],['Пропозиція','не виділяє серед конкурентів'],['Налаштування реклами','бюджет іде не тій аудиторії'],['Посадкова сторінка','люди йдуть без заявки']],
+ cab:'Рекламний кабінет · 30 днів', spent:'Витрачено', leads:'Заявки', cpl:'Ціна заявки', exp:'витрати', lds:'заявки', will:'Бажання займатися рекламою',
+ resHead:'Результати <span style="color:#FFB21E">наших клієнтів</span>',
+ niches:[['Нерухомість','Дубай'],['Оптовий продаж одягу','Італія'],['Сфера послуг',''],['Сіра ніша','']], nda:'ніша під NDA', b2c:'B2C-послуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">зв\'язка</span>', nodes:['Пропозиція','Креативи','Сайт','Instagram','Заявка'],
+ cta:'Заявка на просування', name:'Ім\'я', phone:'Телефон', btn:'Залишити заявку', sent:'✓ Заявку надіслано', person:'Олександр',
+}:{
+ warn:'⚠ Где теряются заявки',
+ prob:[['Креативы','не цепляют внимание'],['Предложение','не выделяет среди конкурентов'],['Настройки рекламы','бюджет уходит не той аудитории'],['Посадочная страница','люди уходят без заявки']],
+ cab:'Рекламный кабинет · 30 дней', spent:'Потрачено', leads:'Заявки', cpl:'Цена заявки', exp:'расходы', lds:'заявки', will:'Желание заниматься рекламой',
+ resHead:'Результаты <span style="color:#FFB21E">наших клиентов</span>',
+ niches:[['Недвижимость','Дубай'],['Оптовая продажа одежды','Италия'],['Сфера услуг',''],['Серая ниша','']], nda:'ниша под NDA', b2c:'B2C-услуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">связка</span>', nodes:['Предложение','Креативы','Сайт','Instagram','Заявка'],
+ cta:'Заявка на продвижение', name:'Имя', phone:'Телефон', btn:'Оставить заявку', sent:'✓ Заявка отправлена', person:'Александр',
+};
+const TM3=UK?{
+ prob:[[7.30,7.30],[7.42,7.62],[8.62,8.98],[9.32,9.64],[10.58,10.88],[11.68,12.06],[13.80,14.10]],
+ budget:[[15.50,15.70],[16.48,16.56],[16.92,17.06],[18.54,18.52],[19.30,19.30],[19.52,20.20]],
+ res:[[23.10,22.20],[24.04,23.30],[25.68,25.10],[27.64,27.30],[29.32,29.00],[30.34,30.02],[30.72,30.32],[31.40,31.20]],
+ chain:[[35.40,35.00],[36.16,35.52],[36.92,36.58],[37.94,37.34],[38.62,38.04],[39.18,38.54],[40.04,39.34],[40.92,40.20],[41.40,40.60]],
+ cta:[[44.30,43.34],[44.96,44.04],[45.12,44.20],[48.60,47.68]],
+}:null;
+const IC={
+ img:`<rect x="12" y="20" width="76" height="60" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><circle cx="34" cy="40" r="7" fill="${ACC}"/><path d="M16 74 L40 52 L56 66 L68 56 L86 74" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ tag:`<path d="M14 50 L50 14 H86 V50 L50 86 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><circle cx="68" cy="32" r="7" fill="${ACC}"/>`,
+ sliders:`<path d="M14 28 H86 M14 50 H86 M14 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="66" cy="28" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="30" cy="50" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="74" cy="72" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/>`,
+ page:`<rect x="30" y="12" width="56" height="72" rx="8" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M42 32 H74 M42 46 H66" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/><path d="M8 80 L28 60 M28 60 L14 60 M28 60 L28 74" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ home:`<path d="M14 48 L50 18 L86 48 M24 42 V84 H76 V42" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><rect x="42" y="58" width="16" height="26" fill="${ACC}"/>`,
+ hanger:`<path d="M50 30 Q50 18 60 20 Q68 24 60 32 L50 40 L12 70 Q8 76 16 76 H84 Q92 76 88 70 L50 40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`,
+ tools:`<path d="M30 70 L62 38 M58 22 A16 16 0 0 0 78 42 L66 38 L62 34 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><path d="M22 78 L30 70" stroke="${ACC}" stroke-width="12" stroke-linecap="round"/>`,
+ mask:`<path d="M10 36 Q50 22 90 36 Q90 66 66 70 Q56 72 50 60 Q44 72 34 70 Q10 66 10 36 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><ellipse cx="32" cy="46" rx="8" ry="5" fill="${ACC}"/><ellipse cx="68" cy="46" rx="8" ry="5" fill="${ACC}"/>`,
+ browser:`<rect x="10" y="18" width="80" height="64" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M10 36 H90" stroke="${ACC}" stroke-width="7"/><circle cx="22" cy="27" r="3.5" fill="${ACC}"/><circle cx="33" cy="27" r="3.5" fill="${ACC}"/>`,
+ ig:ICON.ig, check:`<path d="M22 52 L42 72 L80 30" fill="none" stroke="#111" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`,
+};
+const ic=(n,s)=>`<svg viewBox="0 0 100 100" width="${s}" height="${s}" style="overflow:visible;display:block">${IC[n]}</svg>`;
+function slideScene(S,t,a){const sp=eOut(lin(t,a,a+.34));S.style.transform=sp<1?`translateY(${(1-sp)*100}%)`:'none';S.style.borderRadius=sp<1?'36px 36px 0 0':'0'}
+function expandScene(S,t,a){const p=eOut(lin(t,a,a+.34));S.style.clipPath=p<1?`inset(${(1-p)*40}% ${(1-p)*26}% ${(1-p)*40}% ${(1-p)*26}% round ${10+30*(1-p)}px)`:'none'}
+
+// ---------- extra icons ----------
+Object.assign(IC,{
+ users:`<circle cx="38" cy="34" r="13" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M14 82 A24 24 0 0 1 62 82" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="70" cy="40" r="9" fill="none" stroke="${ACC}" stroke-width="6"/><path d="M62 62 A18 18 0 0 1 88 78" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ user:`<circle cx="50" cy="34" r="16" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M20 86 A30 30 0 0 1 80 86" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/>`,
+ chart:`<path d="M14 84 H88" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><path d="M18 70 L40 48 L56 60 L84 24" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M68 24 H84 V40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`,
+ cal:`<rect x="12" y="20" width="76" height="66" rx="12" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M12 40 H88 M32 10 V28 M68 10 V28" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/>`,
+ list:`<path d="M34 28 H86 M34 50 H86 M34 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="16" cy="28" r="5" fill="${ACC}"/><circle cx="16" cy="50" r="5" fill="${ACC}"/><circle cx="16" cy="72" r="5" fill="${ACC}"/>`,
+ deal:`<path d="M10 50 L30 30 L50 40 L70 30 L90 50 L62 78 Q56 84 50 78 L10 50 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ grid:`<rect x="12" y="12" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="56" y="12" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="12" y="56" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="56" y="56" width="32" height="32" rx="6" fill="${ACC}"/>`,
+});
+const AVC=['#e67e22','#3498db','#9b59b6','#1abc9c','#e84393'];
+const avatar=(par,x,y,ini,i,sz=40)=>{const a=el('div','abs',par,{left:x+'px',top:y+'px',width:sz+'px',height:sz+'px',borderRadius:'50%',background:AVC[i%5],color:'#fff',font:`800 ${Math.round(sz*.42)}px/${sz}px Mont`,textAlign:'center',border:'2.5px solid #1c1d22',boxSizing:'border-box'});a.textContent=ini;return a};
+// stylised property photo
+const PH=[['#f3c98b','#c97b4a','#5a3b2e'],['#9ec9e8','#4a7fa8','#24384d'],['#e9d9c4','#b59a7a','#4a4036']];
+function photo(par,x,y,w,h,k){const p=el('div','abs',par,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:'12px',overflow:'hidden',background:`linear-gradient(180deg,${PH[k][0]},${PH[k][1]})`});
+ p.innerHTML=`<svg viewBox="0 0 100 70" preserveAspectRatio="none" width="100%" height="100%" style="position:absolute;left:0;top:0"><path d="M0 70 V40 H14 V22 H30 V34 H44 V12 H58 V30 H70 V20 H84 V38 H100 V70 Z" fill="${PH[k][2]}" opacity=".85"/>
+  <g fill="rgba(255,220,150,.75)"><rect x="17" y="27" width="3" height="3"/><rect x="23" y="27" width="3" height="3"/><rect x="47" y="17" width="3" height="3"/><rect x="52" y="22" width="3" height="3"/><rect x="47" y="27" width="3" height="3"/><rect x="73" y="25" width="3" height="3"/><rect x="78" y="31" width="3" height="3"/></g></svg>`;return p}
+function phaseVis(e,t,a,b,dist=260){const i=lin(t,a,a+.32),o=lin(t,b-.24,b);const on=t>=a&&t<b+.001;e.style.display=on?'block':'none';if(!on)return 0;
+ e.style.opacity=clamp(i*2.5)*(1-o);e.style.filter=(1-i)+o>0.02?`blur(${((1-i)+o)*6}px)`:'none';return (1-eOut(i))*dist-eInOut(o)*dist}
+
+// ---------- P10: "how much to spend on ads" reel ----------
+const EMO="'Noto Color Emoji',sans-serif";
+const GRN='#3ddc84';
+const skyGlass={background:'rgba(18,20,26,.46)',border:'1px solid rgba(255,255,255,.28)',backdropFilter:'blur(14px)',boxShadow:'0 14px 40px rgba(0,0,0,.18)'};
+const floatOut=(e,t,out,i=0)=>{e.style.opacity=Math.min(1,parseFloat(e.style.opacity)||0)*(1-out);e.style.transform+=` translateY(${Math.sin(t*1.5+i)*3-out*40}px)`};
+const skyChip=(par,y,html,extra)=>{const c=el('div','abs',par,Object.assign({left:'50%',top:y+'px',height:'60px',padding:'0 24px',borderRadius:'30px',color:'#fff',font:`800 22px/60px Mont,${EMO}`,whiteSpace:'nowrap'},skyGlass,extra||{}));c.innerHTML=html;return c};
+const head=(par,html,top=110)=>{const h=el('div','abs',par,{left:'30px',top:top+'px',width:'660px',textAlign:'center',font:'600 58px/1.05 Osw',color:'#fff',textTransform:'uppercase'});h.innerHTML=html;return h};
+const A_=s=>`<span style="color:${ACC}">${s}</span>`;
+const glassBox=(par,x,y,w,h,extra)=>el('div','glass abs',par,Object.assign({left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:'24px'},extra||{}));
+function vis(S,t,a,b,mode){const on=t>=a&&t<b;S.style.display=on?'block':'none';if(!on)return false;(mode==='slide'?slideScene:expandScene)(S,t,a);return true}
+const money=v=>'$'+fmtInt(v);
+
+// ---------- SUBTITLES ----------
+const FULL=[[5.70,11.00],[12.06,19.76],[24.10,27.55],[30.86,38.30],[43.60,50.40],[57.40,60.20]];
+const isFull=t=>FULL.some(([a,b])=>t>=a&&t<b);
+const SUB_Y=t=>isFull(t)?0.87:t<6.0?0.46:t<19.76?0.40:t<31.12?0.45:t<42.52?0.45:t<53.92?0.56:0.57;
+const CARDS=[
+ [0.00,1.32,[['s',[['сколько',0.00]]],['b',[['денег',0.28]]],['s',[['нужно',0.58],['вложить',0.84],['в',1.22]]]]],
+ [1.32,2.76,[['b',[['рекламу,',1.32]]],['s',[['чтобы',1.74],['пошли',1.92]]],['r',[['продажи?',2.24]]]]],
+ [2.76,3.76,[['r',[['$500?',2.76]]]]],
+ [3.76,4.36,[['r',[['$1000?',3.76]]]]],
+ [4.36,5.76,[['s',[['а',4.36],['может',4.68]]],['r',[['$5000?',4.84]]]]],
+ [5.76,6.92,[['s',[['казалось',5.76],['бы,',6.30],['чем',6.58]]]]],
+ [6.92,7.74,[['b',[['больше',6.92],['бюджет',7.16]]]]],
+ [7.74,8.88,[['s',[['тем',7.74],['лучше',8.00]]],['b',[['результат',8.26]]]]],
+ [8.88,10.04,[['s',[['но',8.88],['на',9.34]]],['b',[['практике',9.54]]]]],
+ [10.04,11.14,[['s',[['всё',10.04],['немного',10.20]]],['r',[['сложнее',10.46]]]]],
+ [11.14,12.08,[['s',[['сейчас',11.14]]],['b',[['объясню',11.52]]]]],
+ [12.08,13.44,[['s',[['есть',12.08],['простая',12.48]]],['b',[['формула',12.88]]]]],
+ [13.44,15.62,[['b',[['стоимость',13.44]]],['s',[['привлечения',14.08],['одного',14.66],['покупателя',14.92]]]]],
+ [15.62,17.78,[['s',[['умножаем',15.62],['на',16.28],['количество',16.42],['нужных',16.68]]],['b',[['продаж',17.24]]]]],
+ [17.78,19.56,[['s',[['получаем',17.78]]],['r',[['ориентир',18.42]]],['s',[['по',18.98],['бюджету',19.06]]]]],
+ [19.56,20.88,[['s',[['но',19.56],['есть',19.98]]],['r',[['нюанс',20.26]]]]],
+ [20.88,22.64,[['s',[['откуда',20.88],['взять',21.52]]],['b',[['стоимость',21.68]]],['s',[['клиента',22.08]]]]],
+ [22.64,24.28,[['s',[['если',22.64],['рекламу',22.90],['ещё',23.34],['не',23.46]]],['b',[['запускали?',23.58]]]]],
+ [24.28,25.66,[['s',[['для',24.28],['этого',24.70],['мы',24.96]]],['r',[['тестируем',25.14]]]]],
+ [25.66,26.96,[['b',[['аудитории,',25.66]]],['s',[['креативы,',26.34]]]]],
+ [26.96,27.60,[['b',[['предложения',26.96]]]]],
+ [27.60,29.34,[['s',[['и',27.60],['смотрим,',27.94],['сколько',28.42]]],['b',[['заявок',28.76]]]]],
+ [29.34,30.86,[['s',[['превращается',29.34],['в',29.84],['реальные',29.98]]],['r',[['продажи',30.28]]]]],
+ [30.86,32.26,[['s',[['например,',30.86]]],['b',[['заявка',31.56]]],['s',[['стоит',32.12]]]]],
+ [32.26,33.28,[['r',[['$10',32.26]]]]],
+ [33.28,34.34,[['s',[['из',33.28],['пяти',33.60]]],['b',[['заявок',33.82]]]]],
+ [34.34,35.86,[['b',[['одна',34.34]]],['s',[['заканчивается',34.58]]],['r',[['продажей',35.28]]]]],
+ [35.86,37.12,[['s',[['значит,',35.86],['один',36.38]]],['b',[['клиент',36.66]]]]],
+ [37.12,38.76,[['s',[['обходится',37.12],['в',37.52]]],['r',[['$50',37.74]]]]],
+ [38.76,40.08,[['s',[['хотите',38.76]]],['b',[['20',39.26],['продаж?',39.48]]]]],
+ [40.08,42.28,[['s',[['ориентир',40.08]]],['r',[['$1000',40.84]]],['s',[['на',41.62],['рекламу',41.82]]]]],
+ [42.28,43.70,[['s',[['но',42.28],['это',42.66]]],['b',[['не',42.96],['гарантия',43.14]]]]],
+ [43.70,44.98,[['s',[['при',43.70]]],['b',[['увеличении',44.10]]],['s',[['бюджета',44.60]]]]],
+ [44.98,46.76,[['s',[['стоимость',44.98],['клиента',45.42],['может',45.84]]],['r',[['измениться',46.04]]]]],
+ [46.76,48.72,[['s',[['поэтому',46.76],['отдельно',47.28]]],['b',[['закладываем',48.02]]]]],
+ [48.72,50.48,[['s',[['от',48.50]]],['r',[['20',48.72],['до',48.96],['30%',49.36]]],['s',[['на',50.10]]]]],
+ [50.48,51.96,[['b',[['масштабирование',50.48]]],['s',[['и',51.12],['обязательно',51.46]]]]],
+ [51.96,53.86,[['s',[['считаем',51.96]]],['r',[['прибыль',52.62]]],['s',[['с',52.94],['каждой',53.02],['продажи',53.38]]]]],
+ [53.86,55.78,[['s',[['и',53.86],['вот',54.00],['поэтому',54.16],['хороший',54.58]]],['b',[['маркетолог',55.12]]]]],
+ [55.78,57.60,[['s',[['не',55.78],['называет',55.94],['точный',56.38],['бюджет',56.74]]],['b',[['с',57.02],['потолка',57.08]]],'strike',57.36]],
+ [57.60,58.70,[['s',[['сначала',57.60]]],['r',[['цифры',58.20]]]]],
+ [58.70,60.30,[['s',[['потом',58.70]]],['b',[['масштабирование',59.12]]]]],
+ [60.30,61.38,[['b',[['сохраняйте',60.30]]],['s',[['видео',60.74]]]]],
+ [61.38,62.96,[['s',[['а',61.16],['если',61.38],['нужен',61.58]]],['b',[['расчёт',61.76]]],['s',[['под',62.20],['ваш',62.30],['бизнес',62.50]]]]],
+ [62.96,64.40,[['b',[['пишите',62.96]]],['s',[['мне',63.42],['в']]],['r',[['direct',63.68]]]]],
+];
+const cardEls=[];
+(function(){const R=$('subs');
+ for(const c of CARDS){const ce=el('div','card',R);const words=[];let strike=null;
+  for(const L of c[2]){if(typeof L!=='object')continue;const le=el('div','line l'+L[0],ce);
+   for(const [txt,at] of L[1]){const w=el('span','w',le);w.textContent=L[0]==='s'?txt.toLowerCase():txt.toUpperCase();words.push([w,at===undefined?63.56:at])}
+   if(c[2].includes('strike')&&L[0]==='b')strike=el('div','abs',le,{left:'-6px',right:'-6px',top:'50%',height:'7px',background:ACC,transformOrigin:'0 50%',borderRadius:'2px'})}
+  const si=c[2].indexOf('strike');cardEls.push({c,ce,words,strike,sAt:si>=0?c[2][si+1]:0})}})();
+function renderSubs(t){const y=SUB_Y(t)*1280;
+ for(const k of cardEls){const on=t>=k.c[0]&&t<k.c[1];k.ce.style.display=on?'flex':'none';if(!on)continue;k.ce.style.top=y+'px';
+  for(const [w,at] of k.words)applyPop(w,t,at,'',.15,.55);
+  if(k.strike){const p=eOut(lin(t,k.sAt,k.sAt+.2));k.strike.style.transform=`scaleX(${p})`;k.strike.style.opacity=p>0?1:0}}}
+
+// ================= FACE OVERLAYS =================
+const OV={};
+(function(){const S=mkOv('ov');OV.S=S;
+ // V1 0–5.7: budget question + price chips (head top ≈ 270px)
+ OV.q=skyChip(S,40,`💸 Сколько вложить в рекламу?`);
+ OV.p=['$500?','$1 000?','$5 000?'].map((x,i)=>{const c=el('div','abs',S,Object.assign({left:[70,262,470][i]+'px',top:'126px',width:'180px',height:'84px',borderRadius:'24px',textAlign:'center',color:'#fff',font:'600 44px/84px Osw'},skyGlass));
+  c.innerHTML=`<span style="background:linear-gradient(180deg,#FFD36A,#FFB21E 55%,#FF8A1A);-webkit-background-clip:text;background-clip:text;color:transparent">${x}</span>`;return c});
+ // V3 19.76–24.1: nuance + CAC = ?
+ OV.nu=skyChip(S,40,`⚠ Есть нюанс`,{border:'1px solid rgba(255,178,30,.7)'});
+ OV.cac=el('div','abs',S,Object.assign({left:'120px',top:'116px',width:'480px',height:'130px',borderRadius:'24px'},skyGlass));
+ OV.cac.innerHTML=`<div style="position:absolute;left:24px;top:22px;font:700 16px/1 Mont;color:#e9eaee">Стоимость клиента</div><div style="position:absolute;left:24px;top:52px;font:600 56px/1 Osw;color:${ACC}">$ ?</div>
+  <div id="ovnl" style="position:absolute;right:20px;top:46px;height:38px;padding:0 14px;border-radius:19px;background:rgba(255,77,77,.25);border:1px solid rgba(255,77,77,.6);color:#fff;font:800 14px/38px Mont">реклама ещё не запускалась</div>`;
+ // V5 27.55–30.86: funnel leads → sales
+ OV.fun=el('div','abs',S,Object.assign({left:'90px',top:'44px',width:'540px',height:'206px',borderRadius:'26px'},skyGlass));
+ OV.fun.innerHTML=`<div style="position:absolute;left:24px;top:20px;font:800 17px/1 Mont;color:#fff">Воронка</div>
+  <div style="position:absolute;left:24px;top:56px;font:700 15px/1 Mont;color:#e9eaee">Заявки</div><div style="position:absolute;left:130px;top:52px;width:386px;height:26px;border-radius:13px;background:rgba(255,255,255,.12);overflow:hidden"><div id="fl" style="height:26px;width:0;background:${ACC};border-radius:13px"></div></div>
+  <div style="position:absolute;left:24px;top:102px;font:700 15px/1 Mont;color:#e9eaee">Продажи</div><div style="position:absolute;left:130px;top:98px;width:386px;height:26px;border-radius:13px;background:rgba(255,255,255,.12);overflow:hidden"><div id="fs" style="height:26px;width:0;background:#2ecc71;border-radius:13px"></div></div>
+  <div id="fc" style="position:absolute;left:24px;top:148px;height:38px;padding:0 14px;border-radius:19px;background:rgba(255,255,255,.14);color:#fff;font:800 15px/38px Mont">Конверсия заявки в продажу: ?</div>`;
+ // V6 38.3–42.52: bottom card (shot D, head high)
+ OV.goal=el('div','frost abs',S,{left:'60px',top:'930px',width:'600px',height:'196px',borderRadius:'28px'});
+ OV.goal.innerHTML=`<div style="position:absolute;left:28px;top:24px;font:700 16px/1 Mont;color:#c9cad2">Расчёт бюджета</div>
+  <div style="position:absolute;left:24px;top:58px;display:flex;align-items:center;gap:14px;font:600 50px/1 Osw;color:#fff">
+   <span id="g1">20 продаж</span><span id="g2" style="color:#8e8f97">×</span><span id="g3">$50</span></div>
+  <div id="g4" style="position:absolute;left:24px;top:126px;height:50px;padding:0 20px;border-radius:25px;background:${ACC};color:#111;font:800 22px/50px Mont">= $1 000 на рекламу</div>`;
+ // V6b 42.52–43.6: not a guarantee (shot E head top ≈ 400)
+ OV.ng=skyChip(S,120,`⚠ Это не гарантия`,{border:'1px solid rgba(255,77,77,.7)'});
+ // V8 50.4–53.9: profit per sale
+ OV.pr=el('div','abs',S,Object.assign({left:'70px',top:'90px',width:'580px',height:'250px',borderRadius:'26px'},skyGlass));
+ OV.pr.innerHTML=`<div style="position:absolute;left:24px;top:22px;font:800 19px/1 Mont,${EMO};color:#fff">💰 Прибыль с каждой продажи</div>
+  ${[['Чек продажи','+','#fff'],['Реклама (стоимость клиента)','−','#ffb0b0'],['Себестоимость','−','#ffb0b0']].map(([a,s,c],i)=>`<div class="prr" style="position:absolute;left:24px;top:${62+i*44}px;width:532px;height:36px;border-radius:12px;background:rgba(255,255,255,.1)"><div style="position:absolute;left:14px;top:0;font:800 18px/36px Mont;color:${c}">${s}</div><div style="position:absolute;left:40px;top:0;font:700 16px/36px Mont;color:#e9eaee">${a}</div></div>`).join('')}
+  <div id="prz" style="position:absolute;left:24px;top:198px;width:532px;height:38px;border-radius:12px;background:rgba(46,204,113,.3);border:1px solid rgba(46,204,113,.8);box-sizing:border-box;font:800 18px/36px Mont;color:#fff;padding-left:14px">= Чистая прибыль ✓</div>`;
+ OV.prr=[...OV.pr.querySelectorAll('.prr')];
+ // V9 53.92–57.4: budget out of thin air
+ OV.ce=el('div','abs',S,Object.assign({left:'110px',top:'80px',width:'500px',height:'200px',borderRadius:'26px'},skyGlass));
+ OV.ce.innerHTML=`<div style="position:absolute;left:24px;top:22px;font:800 18px/1 Mont,${EMO};color:#fff">🎲 Бюджет «с потолка»</div>
+  <div id="cen" style="position:absolute;left:0;right:0;top:68px;text-align:center;font:600 76px/1 Osw;color:#fff"></div>
+  <div id="cex" style="position:absolute;left:40px;right:40px;top:104px;height:10px;border-radius:5px;background:${RED};transform-origin:0 50%;transform:scaleX(0)"></div>`;
+ // V10 60.2–end: save + Direct
+ OV.sv=skyChip(S,50,`🔖 Сохрани, чтобы не потерять`);
+ OV.dm=el('div','frost abs',S,{left:'70px',top:'56px',width:'580px',height:'300px',borderRadius:'30px'});
+ OV.dm.innerHTML=`<div style="position:absolute;left:22px;top:20px;width:52px;height:52px;border-radius:50%;padding:3px;background:conic-gradient(#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5,#feda75);box-sizing:border-box"><img src="assets/vadim.jpg" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:3px solid #141519;box-sizing:border-box"></div>
+  <div style="position:absolute;left:88px;top:24px;font:800 19px/1 Mont;color:#fff">zaslavskuy</div><div style="position:absolute;left:88px;top:50px;font:600 14px/1 Mont;color:#9a9ba3">Direct</div>
+  <div id="dmb" style="position:absolute;right:22px;top:96px;max-width:440px;padding:14px 18px;border-radius:22px 22px 6px 22px;background:linear-gradient(135deg,#7b3fe4,#d62976);color:#fff;font:700 18px/1.35 Mont;white-space:pre-wrap"></div>
+  <div style="position:absolute;left:22px;right:22px;bottom:20px;height:52px;border-radius:26px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)"><div id="dmi" style="position:absolute;left:20px;top:0;font:600 17px/52px Mont;color:#e9eaee;white-space:pre"></div>
+   <div id="dms" style="position:absolute;right:6px;top:6px;width:40px;height:40px;border-radius:50%;background:#3797f0;color:#fff;font:800 20px/40px Mont;text-align:center">➤</div></div>`;
+})();
+function renderOV(t){OV.S.style.display=isFull(t)?'none':'block';if(isFull(t))return;
+ const show=(e,a,b,tr,from=.6,i=0)=>{const on=t>=a&&t<b;e.style.display=on?'block':'none';if(!on)return;applyPop(e,t,a,tr||'',.28,from);floatOut(e,t,eInOut(lin(t,b-.3,b)),i)};
+ show(OV.q,0.06,5.70,'translateX(-50%)');
+ OV.p.forEach((c,i)=>{show(c,[2.76,3.76,4.84][i],5.70,'',.4,i);if(t>=2.76&&t<5.7){const act=t>=[2.76,3.76,4.84][i]&&(i===2||t<[3.76,4.84][i+0]+99);c.style.borderColor=(i===(t<3.76?0:t<4.84?1:2))?'rgba(255,178,30,.9)':'rgba(255,255,255,.28)'}});
+ show(OV.nu,19.90,24.10,'translateX(-50%)');show(OV.cac,21.68,24.10,'',.6,1);applyPop($('ovnl'),t,23.46,'',.22,.5);
+ show(OV.fun,27.60,30.86,'',.7);if(t>=27.6&&t<30.9){$('fl').style.width=(100*eOut(lin(t,28.76,29.30)))+'%';$('fs').style.width=(20*eOut(lin(t,30.28,30.70)))+'%'}
+ show(OV.goal,38.40,42.52,'',.8);if(t>=38.4&&t<42.6){applyPop($('g1'),t,39.26,'',.2,.5);applyPop($('g2'),t,40.08,'',.2,.5);applyPop($('g3'),t,40.20,'',.2,.5);applyPop($('g4'),t,40.84,'',.24,.4)}
+ show(OV.ng,42.62,43.60,'translateX(-50%)',.5);if(t>42.96&&t<43.3)OV.ng.style.transform+=` translateX(${Math.sin(t*90)*5}px)`;
+ show(OV.pr,50.50,53.92,'',.75);OV.prr.forEach((r,i)=>applyPop(r,t,51.10+i*.22,'',.2,.8));applyPop($('prz'),t,52.62,'',.24,.6);
+ show(OV.ce,54.10,57.40,'',.7);if(t>=54.1&&t<57.4){const n=[1500,3000,7000,5000][Math.min(3,Math.floor(lin(t,54.6,56.38)*4))];$('cen').textContent=money(n)+'?';$('cen').style.color=t>=56.38?'#fff':'#c9cad2';$('cex').style.transform=`scaleX(${eOut(lin(t,57.08,57.28))})`}
+ show(OV.sv,60.30,62.50,'translateX(-50%)');
+ show(OV.dm,62.50,64.40,'',.85);if(t>=62.5){const msg='Нужен расчёт бюджета под мой бизнес';const typing=t<63.60;$('dmi').textContent=typing?typed(msg,t,62.80,63.50)+(Math.floor(t*6)%2?'|':''):'Сообщение…';
+  const sent=t>=63.68;$('dmb').style.display=sent?'block':'none';$('dmb').textContent=msg;if(sent){const q=lin(t,63.68,63.95);$('dmb').style.transform=`translateY(${(1-eBack(q))*30}px) scale(${.8+.2*eBack(q)})`;$('dmb').style.opacity=clamp(q*2)}
+  $('dms').style.transform=t>=63.58&&t<63.70?'scale(.85)':'none'}
+}
+
+// ================= FULL SCENES =================
+// F1 5.70–11.00: expectation vs reality
+const F1={};
+(function(){const S=mkScene('f1','v3bg');F1.S=S;
+ F1.h=head(S,`Больше бюджет =<br>${A_('больше продаж?')}`,96);
+ const c=glassBox(S,40,300,640,560);F1.c=c;
+ const sv=svgEl('svg',{width:560,height:420,viewBox:'0 0 560 420',style:'position:absolute;left:46px;top:50px;overflow:visible'},c);
+ svgEl('path',{d:'M0 400 H560 M0 400 V0',stroke:'#4a4b52','stroke-width':3,fill:'none'},sv);
+ for(let i=1;i<4;i++)svgEl('line',{x1:0,x2:560,y1:400-i*100,y2:400-i*100,stroke:'#24252b','stroke-width':1.5},sv);
+ F1.l1=svgEl('path',{d:'M0 390 L560 20',stroke:ACC,'stroke-width':6,fill:'none','stroke-dasharray':'14 10','stroke-linecap':'round'},sv);
+ F1.l2=svgEl('path',{d:'M0 390 C60 330 110 300 160 300 C220 300 230 360 290 330 C350 300 370 230 420 240 C470 250 500 290 560 280',stroke:GRN,'stroke-width':6,fill:'none','stroke-linecap':'round','stroke-dasharray':900,'stroke-dashoffset':900},sv);
+ c.insertAdjacentHTML('beforeend',`<div style="position:absolute;right:30px;top:486px;font:700 15px/1 Mont;color:#8e8f97">Бюджет →</div><div style="position:absolute;left:12px;top:22px;font:700 15px/1 Mont;color:#8e8f97">Продажи ↑</div>`);
+ F1.e=el('div','abs',c,{right:'40px',top:'52px',height:'40px',padding:'0 16px',borderRadius:'20px',background:'rgba(255,178,30,.16)',border:`1px solid ${ACC}`,color:'#fff',font:'800 16px/40px Mont'});F1.e.textContent='Ожидание';
+ F1.r=el('div','abs',c,{right:'40px',top:'250px',height:'40px',padding:'0 16px',borderRadius:'20px',background:'rgba(46,204,113,.16)',border:'1px solid #2ecc71',color:'#fff',font:'800 16px/40px Mont'});F1.r.textContent='Реальность';
+ F1.qs=[0,1,2].map(i=>{const q=el('div','abs',S,{left:[90,560,330][i]+'px',top:[880,900,930][i]+'px',font:'600 70px/1 Osw',color:ACC});q.textContent='?';return q});
+})();
+function renderF1(t){if(!vis(F1.S,t,5.70,11.00))return;
+ applyPop(F1.h,t,5.80,'',.26,.7);applyPop(F1.c,t,5.90,'',.28,.85);
+ F1.l1.style.clipPath=`inset(0 ${(1-eInOut(lin(t,6.92,7.80)))*100}% 0 0)`;applyPop(F1.e,t,8.00,'',.22,.5);
+ if(t>=9.0)F1.l1.style.opacity=1-.6*lin(t,9.0,9.4);
+ F1.l2.setAttribute('stroke-dashoffset',900*(1-eInOut(lin(t,9.34,10.40))));applyPop(F1.r,t,10.10,'',.22,.5);
+ F1.qs.forEach((q,i)=>applyPop(q,t,10.46+i*.1,`rotate(${[-12,10,-4][i]}deg)`,.24,.3));
+}
+// F2 12.06–19.76: formula
+const F2={};
+(function(){const S=mkScene('f2','v3bg');F2.S=S;
+ F2.h=head(S,`Простая ${A_('формула')}`,110);
+ const blk=(y,ico,a,b,acc)=>{const c=glassBox(S,60,y,600,150,acc?{background:ACC,border:'none',boxShadow:'0 14px 60px rgba(255,178,30,.45)'}:{});
+  c.innerHTML=`<div style="position:absolute;left:24px;top:31px;width:88px;height:88px;border-radius:24px;background:${acc?'rgba(0,0,0,.12)':'#17181c'};display:flex;align-items:center;justify-content:center;font:46px/1 ${EMO}">${ico}</div>
+   <div style="position:absolute;left:134px;top:36px;font:700 16px/1 Mont;color:${acc?'#3a2400':'#8e8f97'}">${b}</div><div style="position:absolute;left:132px;top:62px;font:800 30px/1.1 Mont;color:${acc?'#111':'#fff'}">${a}</div>`;return c};
+ F2.b1=blk(220,'👤','Стоимость покупателя','привлечение одного клиента');
+ F2.x=el('div','abs',S,{left:0,width:'720px',top:'382px',textAlign:'center',font:'600 70px/1 Osw',color:ACC});F2.x.textContent='×';
+ F2.b2=blk(470,'🛒','Нужные продажи','сколько клиентов хотите');
+ F2.eq=el('div','abs',S,{left:0,width:'720px',top:'632px',textAlign:'center',font:'600 70px/1 Osw',color:ACC});F2.eq.textContent='=';
+ F2.b3=blk(720,'🎯','Ориентир по бюджету','на рекламу',true);
+})();
+function renderF2(t){if(!vis(F2.S,t,12.06,19.76))return;
+ applyPop(F2.h,t,12.48,'',.26,.6);
+ const sl=(e,at,dir)=>{const q=lin(t,at,at+.38);e.style.opacity=t<at?0:clamp(q*2);e.style.transform=`translateX(${(1-eBack(q))*dir*420}px)`};
+ sl(F2.b1,13.44,-1);applyPop(F2.x,t,15.62,'',.24,.3);sl(F2.b2,16.42,1);applyPop(F2.eq,t,17.78,'',.24,.3);applyPop(F2.b3,t,18.42,'',.3,.5);
+}
+// F3 24.10–27.55: tests
+const F3={cols:[]};
+(function(){const S=mkScene('f3','v3bg');F3.S=S;
+ F3.h=head(S,`${A_('Тестируем')}`,110);
+ [['👥','Аудитории',['25–34, бизнес','Родители','Предприниматели']],['🎨','Креативы',['Видео','Карусель','Фото']],['🏷','Предложения',['Скидка −15%','Бесплатный замер','Подарок']]].forEach(([ico,tt,items],i)=>{
+  const c=glassBox(S,40+i*216,220,204,620);
+  c.innerHTML=`<div style="position:absolute;left:0;right:0;top:26px;text-align:center;font:44px/1 ${EMO}">${ico}</div><div style="position:absolute;left:0;right:0;top:86px;text-align:center;font:800 19px/1 Mont;color:#fff">${tt}</div>`;
+  const rows=items.map((x,j)=>{const r=el('div','abs',c,{left:'14px',top:(132+j*150)+'px',width:'176px',height:'130px',borderRadius:'18px',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',boxSizing:'border-box'});
+   r.innerHTML=`<div style="position:absolute;left:12px;top:14px;height:26px;padding:0 10px;border-radius:13px;background:#24252b;color:#c9cad2;font:800 13px/26px Mont">${'ABC'[j]}</div><div style="position:absolute;left:12px;top:52px;right:10px;font:700 15px/1.25 Mont;color:#e9eaee">${x}</div>
+    <div class="br" style="position:absolute;left:12px;right:12px;bottom:14px;height:8px;border-radius:4px;background:#2c2d33"><div class="bf" style="height:8px;border-radius:4px;width:0;background:${ACC}"></div></div>`;return{r,bf:r.querySelector('.bf')}});
+  F3.cols.push({c,rows,at:[25.66,26.34,26.96][i],win:[1,0,1][i]})});
+})();
+function renderF3(t){if(!vis(F3.S,t,24.10,27.55,'slide'))return;
+ applyPop(F3.h,t,25.14,'',.26,.6);
+ F3.cols.forEach(({c,rows,at,win},i)=>{applyPop(c,t,24.30+i*.1,'',.26,.8);
+  rows.forEach(({r,bf},j)=>{applyPop(r,t,at+j*.08,'',.2,.7);const v=[[45,85,60],[80,50,40],[55,90,35]][i][j];bf.style.width=(v*eOut(lin(t,at+.2,at+.9)))+'%';
+   const w=j===win&&t>=at+.95;r.style.borderColor=w?'rgba(46,204,113,.8)':'rgba(255,255,255,.08)';bf.style.background=w?'#2ecc71':ACC})});
+}
+// F4 30.86–38.30: worked example
+const F4={ld:[]};
+(function(){const S=mkScene('f4','v3bg');F4.S=S;
+ F4.h=head(S,`${A_('Пример')} расчёта`,104);
+ F4.c1=glassBox(S,60,210,600,140);F4.c1.innerHTML=`<div style="position:absolute;left:28px;top:30px;font:700 17px/1 Mont;color:#8e8f97">Стоимость заявки</div><div id="e1" style="position:absolute;left:26px;top:60px;font:800 56px/1 Mont;color:#fff"></div><div style="position:absolute;right:30px;top:40px;font:60px/1 ${EMO}">📩</div>`;
+ F4.c2=glassBox(S,60,374,600,240);F4.c2.innerHTML=`<div style="position:absolute;left:28px;top:26px;font:700 17px/1 Mont;color:#8e8f97">Из 5 заявок → 1 продажа</div><div id="e2" style="position:absolute;right:28px;top:20px;height:34px;padding:0 14px;border-radius:17px;background:rgba(46,204,113,.18);color:${GRN};font:800 15px/34px Mont">конверсия 20%</div>`;
+ for(let i=0;i<5;i++){const d=el('div','abs',F4.c2,{left:(28+i*112)+'px',top:'80px',width:'96px',height:'132px',borderRadius:'20px',background:'rgba(255,255,255,.05)',border:'1.5px solid rgba(255,255,255,.12)',boxSizing:'border-box'});
+  d.innerHTML=`<div style="position:absolute;left:0;right:0;top:20px;text-align:center;font:42px/1 ${EMO}">📩</div><div class="lb" style="position:absolute;left:0;right:0;top:84px;text-align:center;font:800 13px/1.2 Mont;color:#9a9ba3">заявка</div>`;F4.ld.push(d)}
+ F4.c3=glassBox(S,60,640,600,230,{background:'rgba(28,29,34,.97)',border:`1.5px solid ${ACC}`});
+ F4.c3.innerHTML=`<div style="position:absolute;left:28px;top:28px;font:700 17px/1 Mont;color:#8e8f97">Стоимость одного клиента</div>
+  <div style="position:absolute;left:26px;top:64px;font:600 46px/1 Osw;color:#c9cad2">$10 × 5 =</div>
+  <div id="e3" style="position:absolute;left:26px;top:122px;font:600 92px/1 Osw;background:linear-gradient(180deg,#FFD36A,#FFB21E 55%,#FF8A1A);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,170,40,.45))"></div>
+  <div style="position:absolute;right:30px;top:80px;font:90px/1 ${EMO}">👤</div>`;
+})();
+function renderF4(t){if(!vis(F4.S,t,30.86,38.30))return;
+ applyPop(F4.h,t,31.00,'',.26,.6);applyPop(F4.c1,t,31.56,'',.26,.8);$('e1').textContent=t>=32.26?money(10*eOut(lin(t,32.26,32.60))):'';
+ applyPop(F4.c2,t,33.28,'',.26,.8);F4.ld.forEach((d,i)=>{applyPop(d,t,33.60+i*.06,'',.2,.5);const win=i===2&&t>=34.34;
+  d.style.background=win?'rgba(46,204,113,.18)':'rgba(255,255,255,.05)';d.style.borderColor=win?'#2ecc71':'rgba(255,255,255,.12)';d.querySelector('.lb').textContent=win?'✓ продажа':'заявка';d.querySelector('.lb').style.color=win?GRN:'#9a9ba3';
+  d.style.opacity=t>=34.6&&!win?Math.min(parseFloat(d.style.opacity),.45):d.style.opacity});applyPop($('e2'),t,35.28,'',.22,.5);
+ applyPop(F4.c3,t,35.86,'',.28,.8);$('e3').textContent=t>=37.74?'$'+Math.round(mix(10,50,eOut(lin(t,37.74,38.10)))):'';
+}
+// F5 43.60–50.40: CAC rises + scaling buffer
+const F5={};
+(function(){const S=mkScene('f5','v3bg');F5.S=S;
+ F5.h=head(S,`Бюджет растёт —<br>${A_('цена клиента тоже')}`,96);
+ F5.c=glassBox(S,40,290,640,340);
+ F5.c.innerHTML=`<div style="position:absolute;left:28px;top:24px;font:700 16px/1 Mont;color:#8e8f97">Стоимость клиента</div><div id="f5v" style="position:absolute;right:28px;top:16px;font:800 34px/1 Mont;color:#fff"></div>
+  <div style="position:absolute;left:28px;top:300px;font:700 14px/1 Mont;color:#8e8f97">$1 000</div><div style="position:absolute;right:28px;top:300px;font:700 14px/1 Mont;color:#8e8f97">$3 000 бюджет</div>`;
+ const sv=svgEl('svg',{width:584,height:210,viewBox:'0 0 584 210',style:'position:absolute;left:28px;top:76px;overflow:visible'},F5.c);
+ svgEl('line',{x1:0,x2:584,y1:150,y2:150,stroke:'#4a4b52','stroke-width':2,'stroke-dasharray':'6 8'},sv);
+ F5.ln=svgEl('path',{d:'M0 150 C150 150 260 140 340 110 S500 40 584 30',stroke:RED,'stroke-width':6,fill:'none','stroke-linecap':'round','stroke-dasharray':700,'stroke-dashoffset':700},sv);
+ F5.b=glassBox(S,40,660,640,250);
+ F5.b.innerHTML=`<div style="position:absolute;left:28px;top:26px;font:800 20px/1 Mont;color:#fff">Бюджет с запасом</div>
+  <div style="position:absolute;left:28px;top:76px;width:584px;height:64px;border-radius:18px;background:#24252b;overflow:hidden"><div id="bb" style="position:absolute;left:0;top:0;bottom:0;width:0;background:${ACC};font:800 20px/64px Mont;color:#111;padding-left:18px;box-sizing:border-box;white-space:nowrap">$1 000</div>
+   <div id="bx" style="position:absolute;top:0;bottom:0;left:76.9%;width:0;background:repeating-linear-gradient(135deg,#FFD36A 0 10px,#e8940f 10px 20px);font:800 17px/64px Mont;color:#111;text-align:center;white-space:nowrap;overflow:hidden">+20–30%</div></div>
+  <div id="bl" style="position:absolute;left:28px;top:162px;height:44px;padding:0 18px;border-radius:22px;background:rgba(255,178,30,.16);border:1px solid ${ACC};color:#fff;font:800 17px/44px Mont">📈 Запас на масштабирование → $1 200–1 300</div>`;
+})();
+function renderF5(t){if(!vis(F5.S,t,43.60,50.40,'slide'))return;
+ applyPop(F5.h,t,43.80,'',.26,.6);applyPop(F5.c,t,44.10,'',.26,.85);
+ const r=eInOut(lin(t,44.60,46.20));F5.ln.setAttribute('stroke-dashoffset',700*(1-r));$('f5v').textContent='$'+Math.round(mix(50,65,r));$('f5v').style.color=r>.3?'#ff8b8b':'#fff';
+ applyPop(F5.b,t,46.76,'',.26,.85);$('bb').style.width=(76.9*eOut(lin(t,47.28,47.90)))+'%';$('bx').style.width=(23.1*eOut(lin(t,48.72,49.62)))+'%';applyPop($('bl'),t,50.00,'',.22,.6);
+}
+// F6 57.40–60.20: numbers first, then scale
+const F6={};
+(function(){const S=mkScene('f6','v3bg');F6.S=S;
+ F6.h=head(S,`Сначала — ${A_('потом')}`,110);
+ const st=(y,n,ico,tt,sub,acc)=>{const c=glassBox(S,70,y,580,200,acc?{border:`1.5px solid ${ACC}`}:{});
+  c.innerHTML=`<div style="position:absolute;left:26px;top:46px;width:108px;height:108px;border-radius:30px;background:${acc?ACC:'#17181c'};display:flex;align-items:center;justify-content:center;font:56px/1 ${EMO}">${ico}</div>
+   <div style="position:absolute;left:160px;top:56px;font:700 16px/1 Mont;color:#8e8f97">Шаг ${n}</div><div style="position:absolute;left:158px;top:84px;font:600 52px/1 Osw;color:#fff;text-transform:uppercase">${tt}</div><div style="position:absolute;left:160px;top:144px;font:600 15px/1 Mont;color:#9a9ba3">${sub}</div>`;return c};
+ F6.s1=st(240,1,'🧮','Цифры','тест · стоимость клиента · прибыль');
+ F6.ar=el('div','abs',S,{left:0,width:'720px',top:'452px',textAlign:'center',font:'600 70px/1 Osw',color:ACC});F6.ar.textContent='↓';
+ F6.s2=st(540,2,'🚀','Масштабирование','бюджет растёт по расчёту',true);
+})();
+function renderF6(t){if(!vis(F6.S,t,57.40,60.20))return;
+ applyPop(F6.h,t,57.50,'',.26,.6);applyPop(F6.s1,t,58.20,'',.28,.6);applyPop(F6.ar,t,58.70,'',.22,.4);applyPop(F6.s2,t,59.12,'',.28,.6);
+ const g=eOut(lin(t,59.3,59.6));F6.s2.style.boxShadow=`0 24px 60px rgba(0,0,0,.5),0 0 ${50*g}px rgba(255,178,30,${.4*g})`;
+}
+
+window.renderAt=function(t){pending.length=0;document.querySelectorAll('img').forEach(im=>{if(im.src)pending.push(im.decode().catch(()=>{}))});
+ renderSubs(t);renderOV(t);renderF1(t);renderF2(t);renderF3(t);renderF4(t);renderF5(t);renderF6(t);return Promise.all(pending)};
+window.renderAt(0);
+</script></body></html>

@@ -6,6 +6,12 @@
 - `output/reels_final_UK.mp4` — украинская версия (42.4 с): стиль RU v3, украинские тексты и цифры, чипы Facebook/Instagram/Google, карточка конверсии «Відвідувачі → Клієнти», форма заявки в финале
 - `output/reels_final_EN.mp4` — английская версия (38.0 с): субтитры и вся инфографика на английском, суммы в долларах, без карточки Instagram в финале
 
+## Ролик «Сколько вкладывать в рекламу» (`output/reels_ad_budget_RU.mp4`, 64.3 с)
+Сцена — `scene_p10.html` (`SCENE=scene_p10.html node render_overlay.js …`, `composite.py … p10`, `LANG_CUT=p10 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`).
+Чередование: кадры с лицом + графика над головой ↔ полноэкранные сцены (список `FULL` в сцене).
+- Лицо: «Сколько вложить?» + $500/$1 000/$5 000; «Есть нюанс» + «Стоимость клиента = ?»; воронка; «20 продаж × $50 = $1 000»; «Не гарантия»; «Прибыль с каждой продажи»; «Бюджет с потолка» ✕; «Сохрани» + Direct.
+- Полный экран: ожидание vs реальность; формула; тесты аудиторий/креативов/предложений; пример $10 × 5 = $50; рост стоимости клиента и запас +20–30%; «Сначала цифры → потом масштабирование».
+
 ## Ролик «CRM для агентства недвижимости» (`output/reels_agency_crm_RU.mp4`, 54.1 с)
 Сцена — `scene_p9.html` (`SCENE=scene_p9.html node render_overlay.js …`, `composite.py … p9`, `LANG_CUT=p9 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`).
 - Украинская версия: `output/reels_agency_crm_UK.mp4` (55.3 с). Сцена `scene_p9_uk.html` собирается из `scene_p9.html` скриптом `python3 make_p9_uk.py`; рендер `SCENE=scene_p9_uk.html …`, `composite.py … p9uk`, `LANG_CUT=p9uk MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`.

@@ -1,5 +1,5 @@
 """Composite: source video -> camera moves (push-ins / punch-ins / zoom-blur whips) -> overlay frames.
-usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk|p4|p4uk|p5|p5uk|p6|p6uk|p8|p8uk|p9|p9uk]
+usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk|p4|p4uk|p5|p5uk|p6|p6uk|p8|p8uk|p9|p9uk|p10]
 """
 import sys, os, subprocess
 import numpy as np, cv2
@@ -179,6 +179,17 @@ if len(sys.argv) > 4 and sys.argv[4] == 'p9uk':    # agency CRM reel, Ukrainian 
         (45.28, 48.58, 1.00, 1.04, E), (48.58, 99.0, 1.12, 1.16, E),
     ]
     WHIPS = [35.28, 45.28]
+if len(sys.argv) > 4 and sys.argv[4] == 'p10':     # ad budget reel (face shots alternate with full-screen scenes)
+    A, B, C, D, E, F = (0.50, 0.30), (0.50, 0.25), (0.50, 0.30), (0.50, 0.25), (0.50, 0.40), (0.50, 0.40)
+    CAM = [
+        (0.00, 2.76, 1.00, 1.05, A), (2.76, 5.80, 1.12, 1.16, A),
+        (11.00, 12.10, 1.06, 1.09, B),
+        (19.76, 22.64, 1.00, 1.04, C), (22.64, 24.20, 1.12, 1.15, C), (27.55, 30.90, 1.08, 1.12, C),
+        (38.30, 42.52, 1.00, 1.04, D), (42.52, 43.70, 1.14, 1.17, E),
+        (50.40, 53.92, 1.06, 1.10, E), (53.92, 55.78, 1.00, 1.03, F), (55.78, 57.50, 1.14, 1.17, F),
+        (60.20, 62.96, 1.00, 1.04, F), (62.96, 99.0, 1.12, 1.16, F),
+    ]
+    WHIPS = [11.00, 19.76, 27.55, 38.30, 50.40, 60.20]
 WHIP_LEN = 0.26
 
 

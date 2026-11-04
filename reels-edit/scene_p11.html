@@ -1,0 +1,393 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Rich clients reel overlay</title>
+<style>
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:200 700}
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-lat.woff2) format('woff2');font-weight:200 700}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:100 900}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-lat.woff2) format('woff2');font-weight:100 900}
+:root{--acc:#FFB21E;--green:#2ecc71}
+html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+#root{position:relative;width:720px;height:1280px;overflow:hidden}
+.scene{position:absolute;inset:0;overflow:hidden;display:none}
+.abs{position:absolute}
+.ov{position:absolute;left:0;top:0;width:720px;height:1280px;display:none}
+/* subtitles */
+#subs{position:absolute;inset:0;pointer-events:none}
+.card{position:absolute;left:0;width:720px;display:none;flex-direction:column;align-items:center;transform:translateY(-50%)}
+.line{display:flex;gap:.22em;justify-content:center;white-space:nowrap;position:relative}
+.w{display:inline-block;transform-origin:50% 60%}
+.ls{font:600 32px/1.1 Mont;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 3px rgba(0,0,0,.5)}
+.lb,.lr{font:600 78px/0.98 Osw;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.45),0 0 3px rgba(0,0,0,.35)}
+.lr{color:var(--acc);text-shadow:0 0 2px rgba(0,0,0,.75),0 3px 6px rgba(0,0,0,.45),0 4px 22px rgba(0,0,0,.6)}
+/* look */
+.v3bg{background:radial-gradient(140% 38% at 50% 0%,rgba(255,178,30,.13) 0%,rgba(255,178,30,.05) 55%,rgba(255,178,30,0) 100%),radial-gradient(circle,#2c2d33 1.6px,transparent 2px) 0 0/30px 30px,#0f1013}
+.glass{background:rgba(28,29,34,.94);border:1px solid rgba(255,255,255,.08);border-radius:26px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.frost{background:rgba(18,18,22,.64);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+svg .wst{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round}
+/* browser window */
+.win{position:absolute;width:560px;border-radius:16px;overflow:hidden;background:#141519;box-shadow:0 30px 70px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07);transform-origin:50% 50%}
+.win .bar{height:32px;display:flex;align-items:center;gap:7px;padding-left:14px;background:#1d1e23}
+.win .dot{width:10px;height:10px;border-radius:50%}
+.win .url{margin-left:14px;width:250px;height:18px;border-radius:9px;background:#2a2b31;position:relative}
+.win .url:before{content:'';position:absolute;left:9px;top:5px;width:7px;height:8px;border-radius:2px;background:#6b6c74}
+.win img{display:block;width:560px;height:421px;object-fit:cover}
+.tag{position:absolute;padding:0 18px;height:46px;border-radius:23px;font:700 18px/46px Mont;color:#fff;white-space:nowrap;background:rgba(20,20,24,.9);border:1px solid rgba(255,178,30,.5);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.tag b{color:var(--acc);margin-right:8px}
+.pill{position:absolute;width:300px;height:58px;border-radius:29px;font:700 18px/58px Mont;color:#fff;white-space:nowrap;padding-left:62px;box-sizing:border-box}
+.pill .ck{position:absolute;left:12px;top:11px;width:36px;height:36px;border-radius:50%;box-sizing:border-box;border:2px solid #4a4b52;color:#111;font:800 20px/32px Mont;text-align:center}
+.inp{position:absolute;height:50px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.inp span{position:absolute;left:16px;top:15px;font:600 19px/1 Mont;color:#fff;white-space:pre}
+.lbl{position:absolute;font:600 14px/1 Mont;color:#9a9ba3}
+</style></head>
+<body><div id="root"><div id="subs"></div></div>
+<script>
+// ================= helpers =================
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const lin=(t,a,b)=>clamp((t-a)/(b-a));
+const eOut=p=>1-Math.pow(1-p,3);
+const eInOut=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eBack=p=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
+const mix=(a,b,p)=>a+(b-a)*p;
+const $=id=>document.getElementById(id);
+function el(tag,cls,parent,style){const e=document.createElement(tag);if(cls)e.className=cls;if(style)Object.assign(e.style,style);if(parent)parent.appendChild(e);return e}
+function svgEl(tag,attrs,parent){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function kf(t,keys,ease=eInOut){if(t<=keys[0][0])return keys[0][1];for(let i=1;i<keys.length;i++){if(t<=keys[i][0]){const[a,va]=keys[i-1],[b,vb]=keys[i];const p=ease((t-a)/(b-a));return Array.isArray(va)?va.map((v,j)=>mix(v,vb[j],p)):mix(va,vb,p)}}return keys[keys.length-1][1]}
+function pop(t,at,dur=.16,from=.6){const p=lin(t,at,at+dur);return{o:t<at?0:clamp(p*2.2),s:from+(1-from)*eBack(p),b:(1-p)*5}}
+function applyPop(e,t,at,extra='',dur,from){const q=pop(t,at,dur,from);e.style.opacity=q.o;e.style.transform=`${extra} scale(${q.s})`;e.style.filter=q.b>.05?`blur(${q.b}px)`:'none'}
+const typed=(str,t,a,b)=>str.slice(0,Math.round(clamp((t-a)/(b-a))*str.length));
+const fmtInt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const ACC='#FFB21E';
+const UK=new URLSearchParams(location.search).get('lang')==='uk';
+const L=UK?{
+ tags:['Оренда яхт · Дубай','Клінінгова компанія','Архітектурне бюро','Агенція байєрів · Італія'],
+ toast:['Нова заявка з сайту','щойно'], pills:['Адаптив під смартфони','SEO-оптимізація','Продумана структура','Зручні форми заявок'],
+ query:'оренда яхт дубай', ours:'NACRE — оренда яхт у Дубаї', tree:['Головна','Послуги','Кейси','Відгуки','Контакти'],
+ formTitle:'Залишити заявку', name:'Ім\'я', phone:'Телефон', send:'Надіслати', sent:'✓ Заявку надіслано', person:'Олександр',
+ adsTitle:'🚀 Готовий до запуску реклами', adsWait:'Налаштування…', adsOk:'✓ Готово', camp:'Рекламна кампанія', paused:'● На паузі', active:'● Активна · Google + Instagram', leads:'Нові заявки',
+ ctaTitle:'Заявка на розробку сайту', ctaBtn:'Залишити заявку',
+}:{
+ tags:['Аренда яхт · Дубай','Клининговая компания','Архитектурное бюро','Байерское агентство · Италия'],
+ toast:['Новая заявка с сайта','только что'], pills:['Адаптив под смартфоны','SEO-оптимизация','Продуманная структура','Удобные формы заявок'],
+ query:'аренда яхт дубай', ours:'NACRE — аренда яхт в Дубае', tree:['Главная','Услуги','Кейсы','Отзывы','Контакты'],
+ formTitle:'Оставить заявку', name:'Имя', phone:'Телефон', send:'Отправить', sent:'✓ Заявка отправлена', person:'Александр',
+ adsTitle:'🚀 Готов к запуску рекламы', adsWait:'Настройка…', adsOk:'✓ Готово', camp:'Рекламная кампания', paused:'● На паузе', active:'● Активна · Google + Instagram', leads:'Новые заявки',
+ ctaTitle:'Заявка на разработку сайта', ctaBtn:'Оставить заявку',
+};
+// UK cut: remap its timeline onto the RU animation timeline, per scene
+function remap(t,pts){if(t<=pts[0][0])return pts[0][1]+(t-pts[0][0]);for(let i=1;i<pts.length;i++){if(t<=pts[i][0]){const[a,ra]=pts[i-1],[b,rb]=pts[i];return ra+(t-a)/(b-a)*(rb-ra)}}const Z=pts[pts.length-1];return Z[1]+(t-Z[0])}
+const TM=UK?{
+ show:[[4.00,4.00],[13.64,13.42],[14.56,14.64]],
+ feat:[[17.10,17.00],[17.24,17.06],[18.02,17.90],[18.68,18.58],[19.06,18.94],[20.02,19.88],[20.64,20.54],[21.40,21.22],[21.88,21.72],[22.26,22.14],[22.84,22.74]],
+ ads:[[24.26,24.08],[25.14,24.94],[25.58,25.34],[27.34,27.12],[27.94,27.52],[28.38,28.00],[29.66,29.10],[30.60,30.00],[30.98,30.40]],
+ cta:[[33.08,32.38],[33.70,33.02],[34.20,33.56],[34.36,33.72],[38.30,37.66]],
+}:null;
+const root=$('root');
+function mkScene(id,cls){const s=el('div','scene '+(cls||''));s.id=id;root.insertBefore(s,$('subs'));return s}
+function mkOv(id){const s=el('div','ov');s.id=id;root.insertBefore(s,$('subs'));return s}
+const ICON={
+ g:`<path fill="none" stroke="${ACC}" stroke-width="12" d="M80 30 A36 36 0 1 0 86 54 L52 54"/>`,
+ ig:`<rect x="12" y="12" width="76" height="76" rx="22" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="50" cy="50" r="17" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="70" cy="30" r="5" fill="${ACC}"/>`,
+ mail:'<path fill="none" stroke="#111" stroke-width="8" stroke-linejoin="round" d="M14 26 H86 V74 H14 Z M14 26 L50 54 L86 26"/>',
+};
+const svgIcon=(name,size)=>`<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;display:block">${ICON[name]}</svg>`;
+// image swap that resolves once the new frame is decoded
+const pending=[];
+function setImg(img,src){if(img.dataset.src===src)return;img.dataset.src=src;img.src=src;pending.push(img.decode().catch(()=>{}))}
+
+// ================= P3: "ads that don't bring clients" reel =================
+const RED='#ff4d4d';
+const T=UK?{
+ warn:'⚠ Де губляться заявки',
+ prob:[['Креативи','не чіпляють увагу'],['Пропозиція','не виділяє серед конкурентів'],['Налаштування реклами','бюджет іде не тій аудиторії'],['Посадкова сторінка','люди йдуть без заявки']],
+ cab:'Рекламний кабінет · 30 днів', spent:'Витрачено', leads:'Заявки', cpl:'Ціна заявки', exp:'витрати', lds:'заявки', will:'Бажання займатися рекламою',
+ resHead:'Результати <span style="color:#FFB21E">наших клієнтів</span>',
+ niches:[['Нерухомість','Дубай'],['Оптовий продаж одягу','Італія'],['Сфера послуг',''],['Сіра ніша','']], nda:'ніша під NDA', b2c:'B2C-послуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">зв\'язка</span>', nodes:['Пропозиція','Креативи','Сайт','Instagram','Заявка'],
+ cta:'Заявка на просування', name:'Ім\'я', phone:'Телефон', btn:'Залишити заявку', sent:'✓ Заявку надіслано', person:'Олександр',
+}:{
+ warn:'⚠ Где теряются заявки',
+ prob:[['Креативы','не цепляют внимание'],['Предложение','не выделяет среди конкурентов'],['Настройки рекламы','бюджет уходит не той аудитории'],['Посадочная страница','люди уходят без заявки']],
+ cab:'Рекламный кабинет · 30 дней', spent:'Потрачено', leads:'Заявки', cpl:'Цена заявки', exp:'расходы', lds:'заявки', will:'Желание заниматься рекламой',
+ resHead:'Результаты <span style="color:#FFB21E">наших клиентов</span>',
+ niches:[['Недвижимость','Дубай'],['Оптовая продажа одежды','Италия'],['Сфера услуг',''],['Серая ниша','']], nda:'ниша под NDA', b2c:'B2C-услуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">связка</span>', nodes:['Предложение','Креативы','Сайт','Instagram','Заявка'],
+ cta:'Заявка на продвижение', name:'Имя', phone:'Телефон', btn:'Оставить заявку', sent:'✓ Заявка отправлена', person:'Александр',
+};
+const TM3=UK?{
+ prob:[[7.30,7.30],[7.42,7.62],[8.62,8.98],[9.32,9.64],[10.58,10.88],[11.68,12.06],[13.80,14.10]],
+ budget:[[15.50,15.70],[16.48,16.56],[16.92,17.06],[18.54,18.52],[19.30,19.30],[19.52,20.20]],
+ res:[[23.10,22.20],[24.04,23.30],[25.68,25.10],[27.64,27.30],[29.32,29.00],[30.34,30.02],[30.72,30.32],[31.40,31.20]],
+ chain:[[35.40,35.00],[36.16,35.52],[36.92,36.58],[37.94,37.34],[38.62,38.04],[39.18,38.54],[40.04,39.34],[40.92,40.20],[41.40,40.60]],
+ cta:[[44.30,43.34],[44.96,44.04],[45.12,44.20],[48.60,47.68]],
+}:null;
+const IC={
+ img:`<rect x="12" y="20" width="76" height="60" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><circle cx="34" cy="40" r="7" fill="${ACC}"/><path d="M16 74 L40 52 L56 66 L68 56 L86 74" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ tag:`<path d="M14 50 L50 14 H86 V50 L50 86 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><circle cx="68" cy="32" r="7" fill="${ACC}"/>`,
+ sliders:`<path d="M14 28 H86 M14 50 H86 M14 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="66" cy="28" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="30" cy="50" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="74" cy="72" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/>`,
+ page:`<rect x="30" y="12" width="56" height="72" rx="8" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M42 32 H74 M42 46 H66" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/><path d="M8 80 L28 60 M28 60 L14 60 M28 60 L28 74" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ home:`<path d="M14 48 L50 18 L86 48 M24 42 V84 H76 V42" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><rect x="42" y="58" width="16" height="26" fill="${ACC}"/>`,
+ hanger:`<path d="M50 30 Q50 18 60 20 Q68 24 60 32 L50 40 L12 70 Q8 76 16 76 H84 Q92 76 88 70 L50 40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`,
+ tools:`<path d="M30 70 L62 38 M58 22 A16 16 0 0 0 78 42 L66 38 L62 34 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><path d="M22 78 L30 70" stroke="${ACC}" stroke-width="12" stroke-linecap="round"/>`,
+ mask:`<path d="M10 36 Q50 22 90 36 Q90 66 66 70 Q56 72 50 60 Q44 72 34 70 Q10 66 10 36 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><ellipse cx="32" cy="46" rx="8" ry="5" fill="${ACC}"/><ellipse cx="68" cy="46" rx="8" ry="5" fill="${ACC}"/>`,
+ browser:`<rect x="10" y="18" width="80" height="64" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M10 36 H90" stroke="${ACC}" stroke-width="7"/><circle cx="22" cy="27" r="3.5" fill="${ACC}"/><circle cx="33" cy="27" r="3.5" fill="${ACC}"/>`,
+ ig:ICON.ig, check:`<path d="M22 52 L42 72 L80 30" fill="none" stroke="#111" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`,
+};
+const ic=(n,s)=>`<svg viewBox="0 0 100 100" width="${s}" height="${s}" style="overflow:visible;display:block">${IC[n]}</svg>`;
+function slideScene(S,t,a){const sp=eOut(lin(t,a,a+.34));S.style.transform=sp<1?`translateY(${(1-sp)*100}%)`:'none';S.style.borderRadius=sp<1?'36px 36px 0 0':'0'}
+function expandScene(S,t,a){const p=eOut(lin(t,a,a+.34));S.style.clipPath=p<1?`inset(${(1-p)*40}% ${(1-p)*26}% ${(1-p)*40}% ${(1-p)*26}% round ${10+30*(1-p)}px)`:'none'}
+
+// ---------- extra icons ----------
+Object.assign(IC,{
+ users:`<circle cx="38" cy="34" r="13" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M14 82 A24 24 0 0 1 62 82" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="70" cy="40" r="9" fill="none" stroke="${ACC}" stroke-width="6"/><path d="M62 62 A18 18 0 0 1 88 78" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ user:`<circle cx="50" cy="34" r="16" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M20 86 A30 30 0 0 1 80 86" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/>`,
+ chart:`<path d="M14 84 H88" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><path d="M18 70 L40 48 L56 60 L84 24" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M68 24 H84 V40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`,
+ cal:`<rect x="12" y="20" width="76" height="66" rx="12" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M12 40 H88 M32 10 V28 M68 10 V28" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/>`,
+ list:`<path d="M34 28 H86 M34 50 H86 M34 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="16" cy="28" r="5" fill="${ACC}"/><circle cx="16" cy="50" r="5" fill="${ACC}"/><circle cx="16" cy="72" r="5" fill="${ACC}"/>`,
+ deal:`<path d="M10 50 L30 30 L50 40 L70 30 L90 50 L62 78 Q56 84 50 78 L10 50 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ grid:`<rect x="12" y="12" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="56" y="12" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="12" y="56" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="56" y="56" width="32" height="32" rx="6" fill="${ACC}"/>`,
+});
+const AVC=['#e67e22','#3498db','#9b59b6','#1abc9c','#e84393'];
+const avatar=(par,x,y,ini,i,sz=40)=>{const a=el('div','abs',par,{left:x+'px',top:y+'px',width:sz+'px',height:sz+'px',borderRadius:'50%',background:AVC[i%5],color:'#fff',font:`800 ${Math.round(sz*.42)}px/${sz}px Mont`,textAlign:'center',border:'2.5px solid #1c1d22',boxSizing:'border-box'});a.textContent=ini;return a};
+// stylised property photo
+const PH=[['#f3c98b','#c97b4a','#5a3b2e'],['#9ec9e8','#4a7fa8','#24384d'],['#e9d9c4','#b59a7a','#4a4036']];
+function photo(par,x,y,w,h,k){const p=el('div','abs',par,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:'12px',overflow:'hidden',background:`linear-gradient(180deg,${PH[k][0]},${PH[k][1]})`});
+ p.innerHTML=`<svg viewBox="0 0 100 70" preserveAspectRatio="none" width="100%" height="100%" style="position:absolute;left:0;top:0"><path d="M0 70 V40 H14 V22 H30 V34 H44 V12 H58 V30 H70 V20 H84 V38 H100 V70 Z" fill="${PH[k][2]}" opacity=".85"/>
+  <g fill="rgba(255,220,150,.75)"><rect x="17" y="27" width="3" height="3"/><rect x="23" y="27" width="3" height="3"/><rect x="47" y="17" width="3" height="3"/><rect x="52" y="22" width="3" height="3"/><rect x="47" y="27" width="3" height="3"/><rect x="73" y="25" width="3" height="3"/><rect x="78" y="31" width="3" height="3"/></g></svg>`;return p}
+function phaseVis(e,t,a,b,dist=260){const i=lin(t,a,a+.32),o=lin(t,b-.24,b);const on=t>=a&&t<b+.001;e.style.display=on?'block':'none';if(!on)return 0;
+ e.style.opacity=clamp(i*2.5)*(1-o);e.style.filter=(1-i)+o>0.02?`blur(${((1-i)+o)*6}px)`:'none';return (1-eOut(i))*dist-eInOut(o)*dist}
+
+// ---------- P11: "rich clients need more than ads" reel ----------
+const EMO="'Noto Color Emoji',sans-serif";
+const GRN='#3ddc84';
+const skyGlass={background:'rgba(18,20,26,.46)',border:'1px solid rgba(255,255,255,.28)',backdropFilter:'blur(14px)',boxShadow:'0 14px 40px rgba(0,0,0,.18)'};
+const floatOut=(e,t,out,i=0)=>{e.style.opacity=Math.min(1,parseFloat(e.style.opacity)||0)*(1-out);e.style.transform+=` translateY(${Math.sin(t*1.5+i)*3-out*40}px)`};
+const skyChip=(par,y,html,extra)=>{const c=el('div','abs',par,Object.assign({left:'50%',top:y+'px',height:'60px',padding:'0 24px',borderRadius:'30px',color:'#fff',font:`800 22px/60px Mont,${EMO}`,whiteSpace:'nowrap'},skyGlass,extra||{}));c.innerHTML=html;return c};
+const head=(par,html,top=110)=>{const h=el('div','abs',par,{left:'30px',top:top+'px',width:'660px',textAlign:'center',font:'600 58px/1.05 Osw',color:'#fff',textTransform:'uppercase'});h.innerHTML=html;return h};
+const A_=s=>`<span style="color:${ACC}">${s}</span>`;
+const glassBox=(par,x,y,w,h,extra)=>el('div','glass abs',par,Object.assign({left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:'24px'},extra||{}));
+function vis(S,t,a,b,mode){const on=t>=a&&t<b;S.style.display=on?'block':'none';if(!on)return false;(mode==='slide'?slideScene:expandScene)(S,t,a);return true}
+const xBadge=(par,x,y)=>{const b=el('div','abs',par,{left:x+'px',top:y+'px',width:'40px',height:'40px',borderRadius:'50%',background:RED,color:'#fff',font:'800 22px/40px Mont',textAlign:'center',boxShadow:'0 6px 16px rgba(0,0,0,.4)'});b.textContent='✕';return b};
+
+// ---------- SUBTITLES ----------
+const FULL=[[5.90,11.75],[13.00,18.00],[25.56,30.00],[33.90,40.00],[42.70,47.04]];
+const isFull=t=>FULL.some(([a,b])=>t>=a&&t<b);
+const SUB_Y=t=>isFull(t)?0.87:t<6.4?0.58:t<25.56?0.585:t<40?0.66:t<47.04?0.62:0.72;
+const CARDS=[
+ [0.00,1.40,[['b',[['думаете,',0.00]]],['s',[['добавили',0.50],['в',1.00],['таргет',1.14]]]]],
+ [1.40,2.50,[['r',[['rolex,',1.40],['яхты',1.92]]],['s',[['и',2.40]]]]],
+ [2.50,3.56,[['r',[['rolls-royce',2.50]]],['s',[['и',2.96],['всё,',3.22]]]]],
+ [3.56,4.94,[['s',[['получили',3.56]]],['b',[['богатых',4.00],['клиентов?',4.36]]]]],
+ [4.94,6.34,[['b',[['ага,',4.94],['конечно',5.48]]]]],
+ [6.34,7.86,[['b',[['интересоваться',6.34]]],['s',[['дорогими',6.98],['вещами',7.38]]]]],
+ [7.86,9.56,[['s',[['и',7.86],['быть',8.14],['готовым',8.32],['за',8.86],['них']]],['r',[['платить',9.06]]]]],
+ [9.56,11.96,[['s',[['это',9.56],['две',10.00],['совершенно',10.18]]],['b',[['разные',10.64],['истории',11.14]]]]],
+ [11.96,13.42,[['b',[['представьте,',11.96]]],['s',[['у',12.62],['вас',12.90],['салон',13.06]]]]],
+ [13.42,15.00,[['s',[['дорогой',13.42]]],['b',[['мебели',13.76]]],['s',[['качественные',14.20]]]]],
+ [15.00,16.90,[['b',[['материалы',15.00]]],['s',[['отличная',15.72],['фурнитура',16.22]]]]],
+ [16.90,18.12,[['s',[['идеальная',16.90]]],['r',[['сборка',17.48]]]]],
+ [18.12,19.74,[['s',[['а',18.12],['в',18.58],['instagram',18.60]]],['b',[['фотографии',19.10]]],['s',[['на',19.66],['телефон',19.74]]]]],
+ [19.74,21.72,[['b',[['сайт',20.30]]],['r',[['2000-х',20.66]]],['s',[['годов',21.20]]]]],
+ [21.72,23.20,[['b',[['непонятные',21.72]]],['s',[['предложения',22.34],['и',23.00]]]]],
+ [23.20,25.34,[['b',[['сообщения,',23.20]]],['s',[['на',23.80],['которые',23.92],['отвечают',24.12],['через',24.60]]],['r',[['сутки',24.78]]]]],
+ [25.34,26.82,[['s',[['и',25.34],['вот',25.66]]],['b',[['вопрос',25.78]]],['s',[['почему',26.34]]]]],
+ [26.82,28.26,[['s',[['клиент',26.82],['должен']]],['b',[['доверить',27.62]]],['s',[['вам',28.12]]]]],
+ [28.26,30.00,[['s',[['несколько',28.26]]],['r',[['тысяч',28.68],['долларов?',29.12]]]]],
+ [30.00,31.70,[['s',[['хотите',30.00],['привлекать',30.34],['клиентов',30.78],['с',31.18]]],['b',[['высоким',31.32],['чеком?',31.70]]]]],
+ [31.70,34.08,[['s',[['тогда',32.08],['работайте',32.56]]],['b',[['не',33.00],['только',33.18]]],['s',[['над',33.40],['рекламой',33.60]]]]],
+ [34.08,35.58,[['s',[['нужны',34.08],['сильная',34.56]]],['b',[['упаковка',34.96]]]]],
+ [35.58,36.72,[['s',[['качественный',35.58]]],['b',[['контент',36.14]]]]],
+ [36.72,38.12,[['s',[['понятное',36.72]]],['b',[['позиционирование',37.34]]]]],
+ [38.12,39.82,[['s',[['и',38.12],['нормальная',38.26]]],['b',[['обработка',38.78]]],['s',[['заявок',39.32]]]]],
+ [39.82,41.34,[['s',[['потому',39.82],['что',40.18]]],['b',[['реклама',40.42]]],['s',[['лишь',41.08]]]]],
+ [41.34,43.38,[['b',[['приводит',41.34]]],['s',[['человека',41.90],['к',42.14],['вашему',42.40],['предложению',42.68]]]]],
+ [43.38,45.08,[['s',[['а',43.38],['вот',43.72]]],['r',[['убедить',43.86]]],['s',[['его',44.32],['купить',44.50]]]]],
+ [45.08,46.84,[['s',[['задача',45.08],['всей',45.64],['остальной',45.80]]],['b',[['системы',46.26]]]]],
+ [46.84,48.98,[['s',[['поэтому,',46.84],['прежде',47.34],['чем',47.88],['увеличивать',48.04]]],['b',[['бюджет',48.98]]]]],
+ [48.98,50.94,[['r',[['убедитесь,',49.40]]],['s',[['что',50.14],['ваш',50.38],['бизнес',50.60]]]]],
+ [50.94,52.38,[['b',[['готов',50.94]]],['s',[['к',51.34],['этим',51.62],['клиентам',51.76]]]]],
+ [52.38,54.10,[['s',[['а',52.38],['если',52.78],['не',52.96],['знаете,',53.10],['с',53.36],['чего']]],['b',[['начать',53.62]]]]],
+ [54.10,55.30,[['b',[['напишите',54.10]]],['s',[['мне',54.60],['в',54.74]]],['r',[['direct',54.86]]]]],
+ [55.30,56.78,[['b',[['разберём',55.30]]],['s',[['вашу',55.90],['ситуацию',56.12]]]]],
+ [56.78,59.10,[['s',[['и',56.60],['обсудим,',56.78],['как',57.24],['привлечь',57.52]]],['b',[['больше',57.96],['клиентов',58.12]]]]],
+];
+const cardEls=[];
+(function(){const R=$('subs');
+ for(const c of CARDS){const ce=el('div','card',R);const words=[];
+  for(const L of c[2]){if(typeof L!=='object')continue;const le=el('div','line l'+L[0],ce);let last=c[0];
+   for(const [txt,at] of L[1]){const w=el('span','w',le);w.textContent=L[0]==='s'?txt.toLowerCase():txt.toUpperCase();const a=at===undefined?last+.1:at;last=a;words.push([w,a])}}
+  cardEls.push({c,ce,words})}})();
+function renderSubs(t){const y=SUB_Y(t)*1280;
+ for(const k of cardEls){const on=t>=k.c[0]&&t<k.c[1];k.ce.style.display=on?'flex':'none';if(!on)continue;k.ce.style.top=y+'px';
+  for(const [w,at] of k.words)applyPop(w,t,at,'',.15,.55)}}
+
+// ================= FACE OVERLAYS =================
+const OV={};
+(function(){const S=mkOv('ov');OV.S=S;
+ // A 0–5.9: targeting interests (head top ≈ 340px)
+ OV.tg=el('div','abs',S,Object.assign({left:'60px',top:'40px',width:'600px',height:'150px',borderRadius:'26px'},skyGlass));
+ OV.tg.innerHTML=`<div style="position:absolute;left:24px;top:18px;font:800 17px/1 Mont,${EMO};color:#fff">🎯 Таргетинг · интересы</div>`;
+ OV.ti=['⌚ Rolex','🛥 Яхты','🚗 Rolls-Royce'].map((x,i)=>{const c=el('div','abs',OV.tg,{left:[20,192,350][i]+'px',top:'60px',height:'60px',padding:'0 18px',borderRadius:'30px',background:'rgba(255,178,30,.22)',border:`1px solid ${ACC}`,color:'#fff',font:`800 21px/58px Mont,${EMO}`,whiteSpace:'nowrap',boxSizing:'border-box'});c.textContent=x;return c});
+ OV.rich=skyChip(S,206,`= 💎 Богатые клиенты?`);
+ OV.richX=el('div','abs',OV.rich,{left:'14px',right:'14px',top:'27px',height:'6px',borderRadius:'3px',background:RED,transformOrigin:'0 50%',transform:'scaleX(0)'});
+ OV.eye=el('div','abs',S,{left:'560px',top:'190px',font:`70px/1 ${EMO}`});OV.eye.textContent='🙄';
+ // C1 11.75–13: salon chip (head top ≈ 230)
+ OV.sal=skyChip(S,50,`🛋 Салон дорогой мебели`);
+ // C2 18–25.56: 4 problem cards at the bottom
+ OV.pc=[];const PC=[['📱','Фото на телефон',19.10],['🌐','Сайт из 2000-х',20.30],['❓','Непонятный оффер',21.72],['💬','Ответ через сутки',23.20]];
+ PC.forEach(([ico,tt,at],i)=>{const x=40+(i%2)*326,y=846+Math.floor(i/2)*196;const c=el('div','frost abs',S,{left:x+'px',top:y+'px',width:'314px',height:'180px',borderRadius:'22px',overflow:'hidden'});
+  let vis='';
+  if(i===0)vis=`<div style="position:absolute;left:16px;top:56px;width:282px;height:104px;border-radius:12px;background:linear-gradient(135deg,#a58f78,#6d5a4a);filter:blur(6px)"></div><div style="position:absolute;left:30px;top:70px;width:120px;height:70px;border-radius:8px;background:#c9b49a;filter:blur(5px)"></div>`;
+  if(i===1)vis=`<div style="position:absolute;left:16px;top:56px;width:282px;height:104px;border-radius:4px;background:linear-gradient(180deg,#0000aa,#5555ff 30%,#c0c0c0 30%);border:2px outset #ddd;box-sizing:border-box"><div style="position:absolute;left:8px;top:4px;font:700 14px/1 'Times New Roman',serif;color:#ff0;font-style:italic">Добро пожаловать!!!</div><div style="position:absolute;left:8px;top:40px;font:400 13px/1.3 'Times New Roman',serif;color:#00e;text-decoration:underline">Главная | Каталог | Гостевая</div><div style="position:absolute;right:8px;bottom:6px;font:400 11px/1 'Times New Roman',serif;color:#000">Посетителей: 000127</div></div>`;
+  if(i===2)vis=`<div style="position:absolute;left:16px;top:58px;width:282px;font:800 19px/1.3 Mont;color:#fff">Звоните!!! Цены договорные. Скидки есть???</div>`;
+  if(i===3)vis=`<div style="position:absolute;left:16px;top:60px;padding:10px 14px;border-radius:16px 16px 16px 4px;background:rgba(255,255,255,.14);color:#e9eaee;font:700 15px/1 Mont">Добрый день, сколько стоит?</div><div class="clk" style="position:absolute;right:16px;bottom:16px;font:800 30px/1 Mont;color:#ff8b8b"></div>`;
+  c.innerHTML=`<div style="position:absolute;left:16px;top:16px;font:800 18px/1 Mont,${EMO};color:#fff;white-space:nowrap">${ico} ${tt}</div>${vis}`;
+  const x_=xBadge(c,262,10);OV.pc.push({c,at,x:x_,clk:c.querySelector('.clk')})});
+ // E 30–33.9: high ticket (head top ≈ 420)
+ OV.hi=skyChip(S,90,`💎 Клиенты с высоким чеком`);
+ OV.nr=el('div','abs',S,Object.assign({left:'110px',top:'176px',width:'500px',height:'150px',borderRadius:'26px'},skyGlass));
+ OV.nr.innerHTML=`<div style="position:absolute;left:24px;top:22px;font:800 18px/1 Mont;color:#fff">Работать не только над рекламой</div>
+  <div style="position:absolute;left:24px;top:66px;display:flex;gap:10px;font:800 20px/56px Mont,${EMO};color:#fff"><div style="height:56px;padding:0 18px;border-radius:28px;background:rgba(255,255,255,.14)">📣 Реклама</div><div style="color:${ACC};font-size:34px">+</div><div id="nrq" style="height:56px;padding:0 18px;border-radius:28px;background:rgba(255,178,30,.25);border:1px solid ${ACC}">ещё 4 вещи</div></div>`;
+ // F 40–42.7: ads → person → offer (head top ≈ 270)
+ OV.fl=[['📣 Реклама',40.42],['👤',41.34],['🎁 Предложение',42.68]].map(([x,at],i)=>{const c=el('div','abs',S,Object.assign({left:[40,300,420][i]+'px',top:'60px',height:'70px',padding:'0 22px',borderRadius:'35px',color:'#fff',font:`800 22px/70px Mont,${EMO}`,whiteSpace:'nowrap'},skyGlass));c.textContent=x;return{c,at}});
+ OV.fa=[0,1].map(i=>{const a=el('div','abs',S,{left:[240,370][i]+'px',top:'72px',font:'600 44px/1 Osw',color:ACC});a.textContent='→';return a});
+ // G1 47–52.3: checklist before scaling budget (head top ≈ 470)
+ OV.ck=el('div','abs',S,Object.assign({left:'70px',top:'50px',width:'580px',height:'360px',borderRadius:'28px'},skyGlass));
+ OV.ck.innerHTML=`<div style="position:absolute;left:24px;top:22px;font:800 19px/1 Mont;color:#fff">Прежде чем увеличить бюджет</div>
+  <div id="bud" style="position:absolute;right:20px;top:14px;height:40px;padding:0 14px;border-radius:20px;background:rgba(255,255,255,.14);font:800 16px/40px Mont,${EMO};color:#fff">📈 Бюджет <span id="lock">🔒</span></div>`;
+ OV.ci=['Упаковка','Контент','Позиционирование','Обработка заявок'].map((x,i)=>{const r=el('div','abs',OV.ck,{left:'20px',top:(70+i*56)+'px',width:'540px',height:'46px',borderRadius:'14px',background:'rgba(255,255,255,.1)'});
+  r.innerHTML=`<div class="cb" style="position:absolute;left:10px;top:7px;width:32px;height:32px;border-radius:9px;border:2px solid rgba(255,255,255,.5);box-sizing:border-box;color:#111;font:800 18px/28px Mont;text-align:center"></div><div style="position:absolute;left:56px;top:0;font:700 18px/46px Mont;color:#fff">${x}</div>`;return r.querySelector('.cb')});
+ OV.rd=el('div','abs',OV.ck,{left:'20px',top:'296px',width:'540px',height:'48px',borderRadius:'14px',background:'rgba(46,204,113,.3)',border:'1px solid rgba(46,204,113,.8)',boxSizing:'border-box',color:'#fff',font:'800 19px/46px Mont',textAlign:'center'});OV.rd.textContent='✓ Бизнес готов к этим клиентам';
+ // G2/G3 52.3–end
+ OV.st=skyChip(S,60,`🤔 Не знаете, с чего начать?`);
+ OV.dm=el('div','frost abs',S,{left:'70px',top:'50px',width:'580px',height:'370px',borderRadius:'30px'});
+ OV.dm.innerHTML=`<div style="position:absolute;left:22px;top:20px;width:52px;height:52px;border-radius:50%;padding:3px;background:conic-gradient(#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5,#feda75);box-sizing:border-box"><img src="assets/vadim.jpg" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:3px solid #141519;box-sizing:border-box"></div>
+  <div style="position:absolute;left:88px;top:24px;font:800 19px/1 Mont;color:#fff">zaslavskuy</div><div style="position:absolute;left:88px;top:50px;font:600 14px/1 Mont;color:#9a9ba3">Direct</div>
+  <div id="dmb" style="position:absolute;right:22px;top:96px;max-width:420px;padding:14px 18px;border-radius:22px 22px 6px 22px;background:linear-gradient(135deg,#7b3fe4,#d62976);color:#fff;font:700 18px/1.35 Mont"></div>
+  <div id="dmr" style="position:absolute;left:22px;top:170px;max-width:440px;padding:14px 18px;border-radius:22px 22px 22px 6px;background:rgba(255,255,255,.14);color:#fff;font:700 18px/1.35 Mont,${EMO}">Разберём вашу ситуацию и обсудим, как привлечь больше клиентов 🚀</div>
+  <div style="position:absolute;left:22px;right:22px;bottom:20px;height:52px;border-radius:26px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)"><div id="dmi" style="position:absolute;left:20px;top:0;font:600 17px/52px Mont;color:#e9eaee;white-space:pre"></div>
+   <div id="dms" style="position:absolute;right:6px;top:6px;width:40px;height:40px;border-radius:50%;background:#3797f0;color:#fff;font:800 20px/40px Mont;text-align:center">➤</div></div>`;
+})();
+function renderOV(t){OV.S.style.display=isFull(t)?'none':'block';if(isFull(t))return;
+ const show=(e,a,b,tr,from=.6,i=0)=>{const on=t>=a&&t<b;e.style.display=on?'block':'none';if(!on)return false;applyPop(e,t,a,tr||'',.28,from);floatOut(e,t,eInOut(lin(t,b-.3,b)),i);return true};
+ // A
+ if(show(OV.tg,0.50,5.90,'',.7)){OV.ti.forEach((c,i)=>applyPop(c,t,[1.40,1.92,2.60][i],'',.24,.4))}
+ show(OV.rich,3.56,5.90,'translateX(-50%)',.6,1);OV.richX.style.transform=`scaleX(${eOut(lin(t,5.48,5.66))})`;
+ show(OV.eye,4.94,5.90,'rotate(-8deg)',.3,2);
+ show(OV.sal,12.62,13.00,'translateX(-50%)',.6);if(t>=11.75&&t<12.62)OV.sal.style.display='none';
+ // C2
+ OV.pc.forEach(({c,at,x,clk},i)=>{if(!show(c,at,25.56,'',.7,i))return;applyPop(x,t,at+.35,'',.2,.3);
+  if(clk){const h=Math.round(24*eOut(lin(t,23.92,24.80)));clk.textContent=t>=23.92?h+' ч':''}});
+ // E
+ show(OV.hi,31.32,33.90,'translateX(-50%)',.6);show(OV.nr,33.00,33.90,'',.75,1);
+ // F
+ OV.fl.forEach(({c,at},i)=>show(c,at,42.70,'',.5,i));OV.fa.forEach((a,i)=>show(a,[41.10,42.40][i],42.70,'',.4,i));
+ // G1
+ if(show(OV.ck,47.34,52.30,'',.8)){OV.ci.forEach((cb,i)=>{const at=49.40+i*.34,ok=t>=at;cb.style.background=ok?ACC:'transparent';cb.style.borderColor=ok?ACC:'rgba(255,255,255,.5)';cb.textContent=ok?'✓':'';if(ok)cb.style.transform=`scale(${.6+.4*eBack(lin(t,at,at+.2))})`});
+  applyPop(OV.rd,t,51.76,'',.24,.6);$('lock').textContent=t>=51.90?'🔓':'🔒';$('bud').style.background=t>=51.90?'rgba(46,204,113,.35)':'rgba(255,255,255,.14)';if(t>=51.9&&t<52.1)$('bud').style.transform=`scale(${1+.15*Math.sin(lin(t,51.9,52.1)*Math.PI)})`}
+ show(OV.st,52.38,54.10,'translateX(-50%)',.6);
+ if(show(OV.dm,54.10,59.10,'',.85)){const msg='Хочу разбор своей ситуации';$('dmi').textContent=t<55.10?typed(msg,t,54.40,55.00)+(Math.floor(t*6)%2?'|':''):'Сообщение…';
+  const sent=t>=55.20;$('dmb').style.display=sent?'block':'none';$('dmb').textContent=msg;if(sent){const q=lin(t,55.20,55.45);$('dmb').style.opacity=clamp(q*2);$('dmb').style.transform=`translateY(${(1-eBack(q))*30}px)`}
+  $('dms').style.transform=t>=55.08&&t<55.22?'scale(.85)':'none';const rq=lin(t,56.60,56.90);$('dmr').style.display=t>=56.60?'block':'none';$('dmr').style.opacity=clamp(rq*2);$('dmr').style.transform=`translateY(${(1-eBack(rq))*30}px)`}
+}
+
+// ================= FULL SCENES =================
+// F1 5.90–11.75: interested ≠ ready to pay
+const F1={p:[]};
+(function(){const S=mkScene('f1','v3bg');F1.S=S;
+ F1.h=head(S,`Интересуются ≠ ${A_('платят')}`,100);
+ const c=glassBox(S,40,210,640,560);F1.c=c;
+ const gold=[9,26,38];
+ for(let i=0;i<48;i++){const x=36+(i%8)*72,y=34+Math.floor(i/8)*84;const p=el('div','abs',c,{left:x+'px',top:y+'px',width:'60px',height:'70px'});
+  p.innerHTML=`<svg width="60" height="70" viewBox="0 0 60 70"><circle cx="30" cy="20" r="13" fill="currentColor"/><path d="M6 68 C6 46 18 38 30 38 C42 38 54 46 54 68 Z" fill="currentColor"/></svg>`;p.style.color='#2c2d33';F1.p.push({p,gold:gold.includes(i)})}
+ F1.l1=el('div','abs',S,{left:'50%',top:'800px',height:'60px',padding:'0 24px',borderRadius:'30px',background:'rgba(255,255,255,.1)',border:'1px solid rgba(255,255,255,.3)',color:'#fff',font:`800 21px/60px Mont,${EMO}`,whiteSpace:'nowrap'});F1.l1.innerHTML='👀 Интересуются люксом: <b>48</b>';
+ F1.l2=el('div','abs',S,{left:'50%',top:'878px',height:'60px',padding:'0 24px',borderRadius:'30px',background:'rgba(255,178,30,.18)',border:`1px solid ${ACC}`,color:'#fff',font:`800 21px/60px Mont,${EMO}`,whiteSpace:'nowrap'});F1.l2.innerHTML=`💳 Готовы платить: <b style="color:${ACC}">3</b>`;
+})();
+function renderF1(t){if(!vis(F1.S,t,5.90,11.75))return;
+ applyPop(F1.h,t,6.00,'',.26,.6);applyPop(F1.c,t,6.10,'',.28,.85);
+ F1.p.forEach(({p,gold},i)=>{const lit=t>=6.34+(i%8)*.05+Math.floor(i/8)*.05;const g=gold&&t>=8.32;const dim=t>=8.32&&!gold;
+  p.style.color=g?ACC:lit?(dim?'#3a3b42':'#e9eaee'):'#2c2d33';p.style.filter=g?`drop-shadow(0 0 10px ${ACC})`:'none';if(g)p.style.transform=`scale(${1+.15*eBack(lin(t,8.32,8.6))})`});
+ applyPop(F1.l1,t,7.38,'translateX(-50%)',.24,.6);applyPop(F1.l2,t,9.06,'translateX(-50%)',.24,.6);
+ if(t>=10.64){F1.h.innerHTML=`Две ${A_('разные истории')}`;applyPop(F1.h,t,10.64,'',.24,.7)}else F1.h.innerHTML=`Интересуются ≠ ${A_('платят')}`;
+}
+// F2 13.00–18.00: premium product
+const F2={};
+(function(){const S=mkScene('f2','v3bg');F2.S=S;
+ F2.h=head(S,`Продукт — ${A_('премиум')}`,100);
+ const c=glassBox(S,60,210,600,330);F2.c=c;
+ c.innerHTML=`<svg width="520" height="230" viewBox="0 0 520 230" style="position:absolute;left:40px;top:40px">
+  <defs><linearGradient id="sofa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9c2a3"/><stop offset="1" stop-color="#a88c6b"/></linearGradient></defs>
+  <ellipse cx="260" cy="214" rx="230" ry="10" fill="rgba(0,0,0,.4)"/>
+  <rect x="60" y="40" width="400" height="100" rx="30" fill="url(#sofa)"/><rect x="20" y="90" width="80" height="110" rx="30" fill="#c4a984"/><rect x="420" y="90" width="80" height="110" rx="30" fill="#c4a984"/>
+  <rect x="80" y="120" width="360" height="70" rx="18" fill="#e3cfb3"/><line x1="260" y1="124" x2="260" y2="186" stroke="#b89e7c" stroke-width="3"/>
+  <rect x="80" y="196" width="10" height="16" rx="3" fill="${ACC}"/><rect x="430" y="196" width="10" height="16" rx="3" fill="${ACC}"/></svg>
+  <div style="position:absolute;right:24px;top:20px;font:800 22px/1 Mont;color:${ACC};letter-spacing:3px">★★★★★</div>`;
+ F2.it=[['Качественные материалы',14.20],['Отличная фурнитура',15.72],['Идеальная сборка',16.90]].map(([x,at],i)=>{const r=glassBox(S,60,566+i*100,600,84);
+  r.innerHTML=`<div style="position:absolute;left:20px;top:20px;width:44px;height:44px;border-radius:50%;background:${ACC};color:#111;font:800 24px/44px Mont;text-align:center">✓</div><div style="position:absolute;left:84px;top:0;font:800 23px/84px Mont;color:#fff">${x}</div>`;return{r,at}});
+})();
+function renderF2(t){if(!vis(F2.S,t,13.00,18.00))return;
+ applyPop(F2.h,t,13.10,'',.26,.6);applyPop(F2.c,t,13.42,'',.3,.8);
+ F2.it.forEach(({r,at})=>{const q=lin(t,at,at+.36);r.style.opacity=t<at?0:clamp(q*2);r.style.transform=`translateX(${(1-eBack(q))*-400}px)`});
+ const g=eOut(lin(t,17.48,17.75));F2.c.style.boxShadow=`0 24px 60px rgba(0,0,0,.5),0 0 ${60*g}px rgba(255,178,30,${.4*g})`;
+}
+// F3 25.56–30.00: why trust you with $5 000
+const F3={};
+(function(){const S=mkScene('f3','v3bg');F3.S=S;
+ F3.h=head(S,`Почему вам<br>${A_('доверят')}?`,96);
+ F3.m=glassBox(S,60,290,600,230,{background:'rgba(28,29,34,.97)',border:`1.5px solid ${ACC}`});
+ F3.m.innerHTML=`<div style="position:absolute;left:28px;top:28px;font:700 17px/1 Mont;color:#8e8f97">Чек клиента</div>
+  <div id="f3n" style="position:absolute;left:24px;top:62px;font:600 110px/1 Osw;background:linear-gradient(180deg,#FFD36A,#FFB21E 55%,#FF8A1A);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,170,40,.45))"></div>
+  <div style="position:absolute;right:28px;top:66px;font:90px/1 ${EMO}">💳</div>`;
+ F3.tr=glassBox(S,60,546,600,300);
+ F3.tr.innerHTML=`<div style="position:absolute;left:28px;top:26px;font:800 20px/1 Mont;color:#fff">Доверие клиента</div><div id="f3p" style="position:absolute;right:28px;top:20px;font:800 30px/1 Mont;color:#fff"></div>
+  <div style="position:absolute;left:28px;top:72px;width:544px;height:26px;border-radius:13px;background:#24252b;overflow:hidden"><div id="f3b" style="height:26px;border-radius:13px;width:0"></div></div>
+  ${['📱 Фото на телефон','🌐 Сайт из 2000-х','❓ Непонятное предложение','💬 Ответ через сутки'].map((x,i)=>`<div class="f3r" style="position:absolute;left:28px;top:${120+i*42}px;font:700 17px/1 Mont,${EMO};color:#c9cad2"><span style="color:${RED};margin-right:8px">✕</span>${x}</div>`).join('')}`;
+ F3.rows=[...F3.tr.querySelectorAll('.f3r')];
+})();
+function renderF3(t){if(!vis(F3.S,t,25.56,30.00))return;
+ applyPop(F3.h,t,25.70,'',.26,.6);applyPop(F3.tr,t,26.34,'',.28,.8);
+ F3.rows.forEach((r,i)=>applyPop(r,t,26.60+i*.18,'',.2,.7));
+ const v=mix(85,18,eInOut(lin(t,26.80,28.00)));$('f3b').style.width=v+'%';$('f3b').style.background=v>50?ACC:RED;$('f3p').textContent=t>=26.6?Math.round(v)+'%':'';$('f3p').style.color=v>50?'#fff':'#ff8b8b';
+ applyPop(F3.m,t,28.26,'',.28,.8);$('f3n').textContent=t>=28.26?'$'+fmtInt(Math.round(5000*eOut(lin(t,28.30,29.20))/100)*100):'';
+}
+// F4 33.90–40.00: what's needed besides ads
+const F4={};
+(function(){const S=mkScene('f4','v3bg');F4.S=S;
+ F4.h=head(S,`Кроме рекламы ${A_('нужны')}`,100);
+ F4.it=[['📦','Сильная упаковка','бренд, визуал, сайт',34.96],['🎬','Качественный контент','съёмка, тексты, кейсы',36.14],['🎯','Понятное позиционирование','за что платят именно вам',37.34],['⚡','Обработка заявок','ответ за минуты, а не сутки',38.78]].map(([ico,tt,sub,at],i)=>{
+  const r=glassBox(S,50,214+i*170,620,150);
+  r.innerHTML=`<div style="position:absolute;left:22px;top:23px;width:104px;height:104px;border-radius:28px;background:#17181c;border:1px solid rgba(255,178,30,.4);display:flex;align-items:center;justify-content:center;font:52px/1 ${EMO}">${ico}</div>
+   <div style="position:absolute;left:150px;top:40px;font:800 25px/1 Mont;color:#fff">${tt}</div><div style="position:absolute;left:150px;top:80px;font:600 16px/1 Mont;color:#9a9ba3">${sub}</div>
+   <div class="ok" style="position:absolute;right:22px;top:49px;width:52px;height:52px;border-radius:50%;background:${ACC};color:#111;font:800 28px/52px Mont;text-align:center">✓</div>`;
+  return{r,at,ok:r.querySelector('.ok')}});
+})();
+function renderF4(t){if(!vis(F4.S,t,33.90,40.00,'slide'))return;
+ applyPop(F4.h,t,34.08,'',.26,.6);
+ F4.it.forEach(({r,at,ok},i)=>{const q=lin(t,at,at+.36);r.style.opacity=t<at?0:clamp(q*2);r.style.transform=`translateX(${(1-eBack(q))*(i%2?-420:420)}px)`;applyPop(ok,t,at+.3,'',.2,.3);
+  r.style.borderColor=t>=at+.3?'rgba(255,178,30,.5)':'rgba(255,255,255,.08)'});
+}
+// F5 42.70–47.04: ads bring, the system sells
+const F5={};
+(function(){const S=mkScene('f5','v3bg');F5.S=S;
+ F5.h=head(S,`Убедить купить —<br>${A_('задача системы')}`,90);
+ const steps=[['📣','Реклама'],['📦','Упаковка'],['🎬','Контент'],['🎯','Позиционирование'],['⚡','Обработка заявки'],['💳','Покупка']];
+ F5.st=steps.map(([ico,tt],i)=>{const y=270+i*112;const r=el('div','abs',S,{left:'170px',top:y+'px',width:'470px',height:'92px',borderRadius:'24px',boxSizing:'border-box',background:i===5?'rgba(46,204,113,.16)':'rgba(28,29,34,.96)',border:i===0?`1.5px solid ${ACC}`:i===5?'1.5px solid #2ecc71':'1px solid rgba(255,255,255,.1)',boxShadow:'0 16px 40px rgba(0,0,0,.45)'});
+  r.innerHTML=`<div style="position:absolute;left:16px;top:14px;width:64px;height:64px;border-radius:18px;background:#17181c;display:flex;align-items:center;justify-content:center;font:34px/1 ${EMO}">${ico}</div><div style="position:absolute;left:98px;top:0;font:800 23px/92px Mont;color:#fff">${tt}</div>`;return{r,y}});
+ F5.rail=el('div','abs',S,{left:'120px',top:'316px',width:'6px',height:'0',borderRadius:'3px',background:ACC,boxShadow:`0 0 14px ${ACC}`});
+ F5.dot=el('div','abs',S,{left:'104px',width:'38px',height:'38px',borderRadius:'50%',background:'#fff',boxShadow:`0 0 0 6px rgba(255,178,30,.45),0 0 26px ${ACC}`,font:`22px/38px ${EMO}`,textAlign:'center'});F5.dot.textContent='👤';
+ F5.b1=el('div','abs',S,{left:'20px',top:'292px',width:'80px',textAlign:'right',font:'800 14px/1.2 Mont',color:ACC});F5.b1.innerHTML='реклама<br>приводит';
+ F5.b2=el('div','abs',S,{left:'20px',top:'560px',width:'80px',textAlign:'right',font:'800 14px/1.2 Mont',color:'#c9cad2'});F5.b2.innerHTML='система<br>убеждает';
+})();
+function renderF5(t){if(!vis(F5.S,t,42.70,47.04))return;
+ applyPop(F5.h,t,42.80,'',.26,.6);
+ F5.st.forEach(({r},i)=>applyPop(r,t,[42.80,43.86,44.10,44.34,44.58,46.26][i],'',.24,.7));
+ applyPop(F5.b1,t,42.90,'',.2,.6);applyPop(F5.b2,t,45.08,'',.2,.6);
+ const p=eInOut(lin(t,43.86,46.26));const y0=316,y1=316+5*112;F5.rail.style.height=(p*(y1-y0))+'px';
+ F5.dot.style.display=t>=43.0?'block':'none';F5.dot.style.top=(mix(y0,y1,p)-19)+'px';
+ const g=eOut(lin(t,46.26,46.5));F5.st[5].r.style.boxShadow=`0 16px 40px rgba(0,0,0,.45),0 0 ${50*g}px rgba(46,204,113,${.5*g})`;
+}
+
+window.renderAt=function(t){pending.length=0;document.querySelectorAll('img').forEach(im=>{if(im.src)pending.push(im.decode().catch(()=>{}))});
+ renderSubs(t);renderOV(t);renderF1(t);renderF2(t);renderF3(t);renderF4(t);renderF5(t);return Promise.all(pending)};
+window.renderAt(0);
+</script></body></html>

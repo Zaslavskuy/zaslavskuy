@@ -7,7 +7,7 @@
 - `output/reels_final_EN.mp4` — английская версия (38.0 с): субтитры и вся инфографика на английском, суммы в долларах, без карточки Instagram в финале
 
 ## Ролик «Миллион за 3 месяца» (`output/reels_million_RU.mp4`, 60.9 с)
-Сцена — `scene_p8.html` (`SCENE=scene_p8.html node render_overlay.js …`, `composite.py … p8`, `LANG_CUT=p8 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`). Креативы — `assets/p4/`, фото — `assets/avatar.jpg`.
+Сцена — `scene_p8.html` (`SCENE=scene_p8.html node render_overlay.js …`, `composite.py … p8`, `LANG_CUT=p8 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`). Креативы — `assets/p4/`, фото — `assets/vadim.jpg`.
 - 0–6.4 с: в небе — счётчик до $1 000 000, «за 3 месяца»; «волшебная кнопка» → тап → ничего → знак запрета.
 - 14–23 с: «Вся связка» кольцом вокруг пустого центра; «Реклама ✕ отдельно» → в центре «ВАШ БИЗНЕС».
 - 25–42 с: 3 кейса (Италия, клининг, Дубай) с креативами и кольцом ROAS → «Своя стратегия» по странам, всего 6 673 заявки.

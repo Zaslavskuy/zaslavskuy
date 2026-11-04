@@ -28,7 +28,7 @@ html,body{margin:0;padding:0;background:#0d0e11;overflow:hidden}
  <div id="tOld" class="txt"></div><div id="tNew" class="txt"></div>
  <svg id="fx" class="abs" width="720" height="1280" style="left:0;top:0;overflow:visible"></svg>
  <div id="rk" class="abs" style="width:0;height:0"></div>
- <div id="foot"><div class="s">САЙТЫ · РЕКЛАМА · CRM</div><div class="d">trafficpro.online</div></div>
+ <div id="foot"><div class="s">САЙТЫ · РЕКЛАМА · ТЕХНОЛОГ<span style="color:#FFB21E;opacity:.85">ИИ</span></div><div class="d">trafficpro.online</div></div>
  <div id="vig"></div>
 </div>
 <script>
@@ -139,5 +139,5 @@ window.renderAt=function(t){if(!READY)return;
   const vx=-dir*(25+50*h1)*s,vy=(-12+24*h2);const x=p.x+vx*age,y=p.y+vy*age+90*age*age;const life=clamp(1-age/0.9);
   c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',(.6+1.3*h2)*life);c.setAttribute('fill-opacity',life*s*(0.4+0.6*h1));c.setAttribute('fill',h1>.6?'#ffffff':'#FFC24A')});
 };
-window.ready=Promise.all([document.fonts.load('600 100px Osw','НУЖЕН САЙТ? CRM'),document.fonts.load('800 26px Mont','trafficpro САЙТЫ')]).then(()=>document.fonts.ready).then(()=>{fit();buildFx();READY=true;window.renderAt(0)});
+window.ready=Promise.all([document.fonts.load('600 100px Osw','НУЖЕН САЙТ? CRM'),document.fonts.load('800 26px Mont','trafficpro САЙТЫ'),document.fonts.load('600 16px Mont','САЙТЫ РЕКЛАМА ТЕХНОЛОГИИ')]).then(()=>document.fonts.ready).then(()=>{fit();buildFx();READY=true;window.renderAt(0)});
 </script></body></html>

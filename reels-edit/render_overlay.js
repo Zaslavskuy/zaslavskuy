@@ -12,6 +12,7 @@ const fs = require('fs');
   const page = await browser.newPage({ viewport: { width: 720, height: 1280 }, deviceScaleFactor: 1.5 });
   await page.goto('file://' + path.resolve(__dirname, process.env.SCENE || 'scene.html') + (process.env.LANG_CUT ? '?lang=' + process.env.LANG_CUT : ''));
   await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(async () => { if (window.ready) await window.ready; });
   await page.waitForTimeout(300);
   const shoot = async (t, file) => {
     await page.evaluate(async (t) => { await window.renderAt(t); }, t);

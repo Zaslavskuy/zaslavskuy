@@ -6,6 +6,11 @@
 - `output/reels_final_UK.mp4` — украинская версия (42.4 с): стиль RU v3, украинские тексты и цифры, чипы Facebook/Instagram/Google, карточка конверсии «Відвідувачі → Клієнти», форма заявки в финале
 - `output/reels_final_EN.mp4` — английская версия (38.0 с): субтитры и вся инфографика на английском, суммы в долларах, без карточки Instagram в финале
 
+## Промо «Маятник» trafficpro.online (`output/reels_pendulum_trafficpro.mp4`, 12.1 с, 30 fps)
+Сцена — `scene_p7.html`: маятник с ракетой (разворот в 3D в крайних точках, пламя по скорости, шлейф и искры), нить работает как шторка текста.
+Тайминг маятника 1:1 с референсом (крайняя правая точка в t=0, 1.2 с на взмах), поэтому звук взят из исходного ролика без сдвига.
+Сборка: `SCENE=scene_p7.html node render_overlay.js <dir> 120 0 1459`, затем ffmpeg `tmix=frames=3:weights='1 2 1'` + выбор каждого 4-го кадра (motion blur, 30 fps) и аудио из референса.
+
 ## Ролик «Система для агентства недвижимости» (`output/reels_agency_system_RU.mp4`, 58.6 с)
 Сцена — `scene_p6.html` (`SCENE=scene_p6.html node render_overlay.js …`, `composite.py … p6`, `LANG_CUT=p6 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`). Исходник 30 fps — компоновщик приводит его к 25 fps.
 - Украинская версия: `output/reels_agency_system_UK.mp4` (59.3 с). Сцена `scene_p6_uk.html` собирается из `scene_p6.html` скриптом `python3 make_p6_uk.py`; рендер `SCENE=scene_p6_uk.html …`, `composite.py … p6uk`, `LANG_CUT=p6uk MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`.

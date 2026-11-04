@@ -1,0 +1,551 @@
+{
+ "anchors": {
+  "A": [
+   0.5,
+   0.42
+  ],
+  "C": [
+   0.5,
+   0.28
+  ],
+  "E": [
+   0.5,
+   0.45
+  ],
+  "F": [
+   0.5,
+   0.35
+  ],
+  "G": [
+   0.5,
+   0.5
+  ]
+ },
+ "cam": [
+  [
+   0.0,
+   3.56,
+   1.0,
+   1.05,
+   "A"
+  ],
+  [
+   3.56,
+   5.95,
+   1.12,
+   1.16,
+   "A"
+  ],
+  [
+   11.75,
+   13.05,
+   1.06,
+   1.09,
+   "C"
+  ],
+  [
+   18.0,
+   21.72,
+   1.0,
+   1.04,
+   "C"
+  ],
+  [
+   21.72,
+   25.6,
+   1.08,
+   1.12,
+   "C"
+  ],
+  [
+   30.0,
+   32.08,
+   1.0,
+   1.04,
+   "E"
+  ],
+  [
+   32.08,
+   33.95,
+   1.12,
+   1.15,
+   "E"
+  ],
+  [
+   40.0,
+   42.75,
+   1.06,
+   1.1,
+   "F"
+  ],
+  [
+   47.04,
+   49.4,
+   1.0,
+   1.04,
+   "G"
+  ],
+  [
+   49.4,
+   52.38,
+   1.1,
+   1.14,
+   "G"
+  ],
+  [
+   52.38,
+   54.1,
+   1.0,
+   1.03,
+   "G"
+  ],
+  [
+   54.1,
+   99.0,
+   1.08,
+   1.12,
+   "G"
+  ]
+ ],
+ "whips": [
+  11.75,
+  18.0,
+  30.0,
+  40.0,
+  47.04
+ ],
+ "cues": [
+  [
+   0.5,
+   "ui-blip/kenney-ui-rollover1.ogg",
+   -15,
+   "onset",
+   "targeting card"
+  ],
+  [
+   1.4,
+   "pop/kenney-interface-drop-001.ogg",
+   -12,
+   "onset",
+   "Rolex"
+  ],
+  [
+   1.92,
+   "pop/kenney-interface-drop-002.ogg",
+   -12,
+   "onset",
+   "yachts"
+  ],
+  [
+   2.6,
+   "pop/kenney-interface-drop-003.ogg",
+   -12,
+   "onset",
+   "Rolls-Royce"
+  ],
+  [
+   3.56,
+   "ding/kenney-interface-glass-001.ogg",
+   -13,
+   "onset",
+   "rich clients?"
+  ],
+  [
+   4.94,
+   "pop/fs-258269-mouth-pop.ogg",
+   -12,
+   "onset",
+   "eye-roll"
+  ],
+  [
+   5.48,
+   "transition/fs-702773-swipe-wav.ogg",
+   -11,
+   "peak",
+   "struck out"
+  ],
+  [
+   5.96,
+   "kit/whoosh.ogg",
+   -6,
+   "peak",
+   "card expands -> people grid"
+  ],
+  [
+   6.4,
+   "typing/fs-511418-data-reveal-sound.ogg",
+   -15,
+   "onset",
+   "people light up",
+   0.8
+  ],
+  [
+   8.32,
+   "ding/kenney-interface-confirmation-002.ogg",
+   -12,
+   "onset",
+   "only 3 pay"
+  ],
+  [
+   10.64,
+   "impact/kenney-impact-impactsoft-heavy-000.ogg",
+   -12,
+   "onset",
+   "two stories"
+  ],
+  [
+   11.77,
+   "whoosh/fs830856.ogg",
+   -6,
+   "peak",
+   "zoom-blur to face"
+  ],
+  [
+   12.62,
+   "ui-blip/kenney-ui-rollover2.ogg",
+   -15,
+   "onset",
+   "salon chip"
+  ],
+  [
+   13.06,
+   "kit/whoosh.ogg",
+   -6,
+   "peak",
+   "card expands -> product"
+  ],
+  [
+   13.42,
+   "pop/fs-447910-plop.ogg",
+   -12,
+   "onset",
+   "sofa"
+  ],
+  [
+   14.2,
+   "click/kenney-interface-select-001.ogg",
+   -11,
+   "onset",
+   "tick 1"
+  ],
+  [
+   15.72,
+   "click/kenney-interface-select-002.ogg",
+   -11,
+   "onset",
+   "tick 2"
+  ],
+  [
+   16.9,
+   "click/kenney-interface-select-003.ogg",
+   -11,
+   "onset",
+   "tick 3"
+  ],
+  [
+   17.48,
+   "ding/kenney-interface-glass-002.ogg",
+   -13,
+   "onset",
+   "premium glow"
+  ],
+  [
+   18.02,
+   "whoosh/fs810485.ogg",
+   -6,
+   "peak",
+   "zoom-blur to face"
+  ],
+  [
+   19.1,
+   "pop/kenney-interface-pluck-001.ogg",
+   -12,
+   "onset",
+   "phone photos"
+  ],
+  [
+   19.45,
+   "glitch/kenney-interface-glitch-002.ogg",
+   -15,
+   "onset",
+   "x1"
+  ],
+  [
+   20.3,
+   "pop/kenney-interface-pluck-002.ogg",
+   -12,
+   "onset",
+   "2000s site"
+  ],
+  [
+   20.65,
+   "glitch/kenney-interface-glitch-002.ogg",
+   -15,
+   "onset",
+   "x2"
+  ],
+  [
+   21.72,
+   "pop/kenney-interface-pluck-001.ogg",
+   -12,
+   "onset",
+   "unclear offer"
+  ],
+  [
+   22.07,
+   "glitch/kenney-interface-glitch-002.ogg",
+   -15,
+   "onset",
+   "x3"
+  ],
+  [
+   23.2,
+   "pop/kenney-interface-pluck-002.ogg",
+   -12,
+   "onset",
+   "reply in 24h"
+  ],
+  [
+   23.92,
+   "tick/fs528561.ogg",
+   -14,
+   "onset",
+   "clock"
+  ],
+  [
+   25.6,
+   "kit/whoosh.ogg",
+   -6,
+   "peak",
+   "card expands -> trust"
+  ],
+  [
+   26.8,
+   "riser/fs-174363-rewind.ogg",
+   -16,
+   "onset",
+   "trust drains",
+   1.2
+  ],
+  [
+   28.3,
+   "typing/fs-511418-data-reveal-sound.ogg",
+   -15,
+   "onset",
+   "$5000 counter",
+   0.9
+  ],
+  [
+   29.2,
+   "impact/fs-177242-cinematic-impact.ogg",
+   -12,
+   "onset",
+   "$5000"
+  ],
+  [
+   30.02,
+   "whoosh/fs830856.ogg",
+   -6,
+   "peak",
+   "zoom-blur to face"
+  ],
+  [
+   31.32,
+   "ding/kenney-interface-glass-001.ogg",
+   -13,
+   "onset",
+   "high ticket"
+  ],
+  [
+   33.0,
+   "pop/kenney-interface-drop-001.ogg",
+   -13,
+   "onset",
+   "not only ads"
+  ],
+  [
+   33.94,
+   "kit/whoosh.ogg",
+   -7,
+   "peak",
+   "slide-up -> needs"
+  ],
+  [
+   34.96,
+   "transition/fs-786514-swoosh-v2.ogg",
+   -12,
+   "peak",
+   "packaging"
+  ],
+  [
+   36.14,
+   "transition/fs-683096-woosh.ogg",
+   -12,
+   "peak",
+   "content"
+  ],
+  [
+   37.34,
+   "transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+   -11,
+   "peak",
+   "positioning"
+  ],
+  [
+   38.78,
+   "transition/fs-850347-swipe-various.ogg",
+   -12,
+   "peak",
+   "lead handling"
+  ],
+  [
+   40.02,
+   "whoosh/fs810485.ogg",
+   -6,
+   "peak",
+   "zoom-blur to face"
+  ],
+  [
+   40.42,
+   "pop/kenney-interface-drop-002.ogg",
+   -13,
+   "onset",
+   "ads chip"
+  ],
+  [
+   41.34,
+   "pop/kenney-interface-drop-003.ogg",
+   -13,
+   "onset",
+   "person"
+  ],
+  [
+   42.68,
+   "pop/kenney-interface-pluck-001.ogg",
+   -13,
+   "onset",
+   "offer"
+  ],
+  [
+   42.74,
+   "kit/whoosh.ogg",
+   -6,
+   "peak",
+   "card expands -> system"
+  ],
+  [
+   43.86,
+   "riser/fs-685256-riser-sound-effect-short-wav.ogg",
+   -17,
+   "onset",
+   "person travels system",
+   1.6
+  ],
+  [
+   46.26,
+   "ding/kenney-interface-confirmation-001.ogg",
+   -11,
+   "onset",
+   "purchase"
+  ],
+  [
+   47.06,
+   "whoosh/fs830856.ogg",
+   -6,
+   "peak",
+   "zoom-blur to face"
+  ],
+  [
+   49.4,
+   "click/kenney-interface-select-001.ogg",
+   -12,
+   "onset",
+   "check 1"
+  ],
+  [
+   49.74,
+   "click/kenney-interface-select-002.ogg",
+   -12,
+   "onset",
+   "check 2"
+  ],
+  [
+   50.08,
+   "click/kenney-interface-select-003.ogg",
+   -12,
+   "onset",
+   "check 3"
+  ],
+  [
+   50.42,
+   "click/kenney-interface-select-001.ogg",
+   -12,
+   "onset",
+   "check 4"
+  ],
+  [
+   51.9,
+   "click/kenney-interface-toggle-001.ogg",
+   -9,
+   "onset",
+   "budget unlocked"
+  ],
+  [
+   52.38,
+   "ui-blip/kenney-ui-rollover3.ogg",
+   -15,
+   "onset",
+   "where to start"
+  ],
+  [
+   54.12,
+   "transition/fs-850347-swipe-various.ogg",
+   -12,
+   "peak",
+   "Direct card"
+  ],
+  [
+   54.4,
+   "typing/fs-323432-typing.ogg",
+   -16,
+   "onset",
+   "typing DM",
+   0.6
+  ],
+  [
+   55.1,
+   "whoosh/fs-683101-quick-woosh.ogg",
+   -14,
+   "peak",
+   "send"
+  ],
+  [
+   55.22,
+   "ding/kenney-interface-glass-002.ogg",
+   -12,
+   "onset",
+   "sent"
+  ],
+  [
+   56.6,
+   "ding/kenney-interface-confirmation-002.ogg",
+   -12,
+   "onset",
+   "reply"
+  ]
+ ],
+ "cuts": [
+  5.9,
+  11.75,
+  13.0,
+  18.0,
+  25.56,
+  30.0,
+  33.9,
+  40.0,
+  42.7,
+  47.04
+ ],
+ "music_db": -9,
+ "sfx_db": 4
+}

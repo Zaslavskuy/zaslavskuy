@@ -1,0 +1,143 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Pendulum promo</title>
+<style>
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:200 700}
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-lat.woff2) format('woff2');font-weight:200 700}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:100 900}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-lat.woff2) format('woff2');font-weight:100 900}
+html,body{margin:0;padding:0;background:#0d0e11;overflow:hidden}
+#root{position:relative;width:720px;height:1280px;overflow:hidden;
+ background:
+  radial-gradient(60% 34% at 50% 48%,rgba(255,178,30,.10) 0%,rgba(255,178,30,.03) 55%,rgba(255,178,30,0) 100%),
+  radial-gradient(circle,#24252b 1.5px,transparent 1.9px) 0 0/30px 30px,
+  linear-gradient(180deg,#121317 0%,#0d0e11 60%,#0b0c0e 100%)}
+.abs{position:absolute}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 50% 48%,rgba(0,0,0,0) 45%,rgba(0,0,0,.6) 100%);pointer-events:none}
+.txt{position:absolute;left:0;top:0;width:720px;height:1280px}
+.blk{position:absolute;left:0;width:720px;text-align:center;font-family:Osw;font-weight:600;text-transform:uppercase;letter-spacing:1px;line-height:.98}
+.q{color:#f4f2ee;text-shadow:0 6px 30px rgba(0,0,0,.5)}
+.a span{background:linear-gradient(180deg,#FFD36A 0%,#FFB21E 48%,#FF8A1A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(255,170,40,.45))}
+#foot{position:absolute;left:0;width:720px;top:1108px;text-align:center}
+#foot .s{font:600 16px/1 Mont;letter-spacing:5px;color:#8e8f97}
+#foot .d{margin-top:14px;font:800 26px/1 Mont;letter-spacing:.5px;color:#FFB21E;text-shadow:0 0 24px rgba(255,178,30,.35)}
+</style></head>
+<body><div id="root">
+ <svg id="guide" class="abs" width="720" height="1280" style="left:0;top:0"></svg>
+ <div id="light" class="abs" style="width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(255,170,40,.22) 0%,rgba(255,150,30,.08) 35%,rgba(255,150,30,0) 70%)"></div>
+ <div id="tOld" class="txt"></div><div id="tNew" class="txt"></div>
+ <svg id="fx" class="abs" width="720" height="1280" style="left:0;top:0;overflow:visible"></svg>
+ <div id="rk" class="abs" style="width:0;height:0"></div>
+ <div id="foot"><div class="s">САЙТЫ · РЕКЛАМА · ТЕХНОЛОГ<span style="color:#FFB21E;opacity:.85">ИИ</span></div><div class="d">trafficpro.online</div></div>
+ <div id="vig"></div>
+</div>
+<script>
+// ===== timing: identical to the reference (right extreme at t=0, 1.2 s per swing, sinusoidal) =====
+const HALF=1.2, PIV={x:360,y:-300}, REST_Y=792, L=REST_Y-PIV.y;
+const TEXT_Y=648;                     // vertical centre of the text block
+const Q=[['Нужен','сайт?'],['Нужна','реклама?'],['Нужны','заявки?'],['Нужна','CRM?'],['Нужны','клиенты?']];
+const A=['Мы','поможем.'];
+const SEQ=[];Q.forEach(q=>{SEQ.push(['q',q]);SEQ.push(['a',A])});SEQ.push(['q',Q[0]]);SEQ.push(['a',A]);
+const $=id=>document.getElementById(id);
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const NS='http://www.w3.org/2000/svg';
+function sv(tag,attrs,par){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(par)par.appendChild(e);return e}
+
+// ---- text blocks, font auto-fitted so every line fits inside the swing reach ----
+let FS=112, TH0=0;
+function blockHTML([kind,lines]){return `<div class="blk ${kind}" style="font-size:${FS}px;top:${TEXT_Y-FS*0.98}px">${lines.map(l=>`<div><span>${l}</span></div>`).join('')}</div>`}
+function fit(){const m=document.createElement('div');m.className='blk q';m.style.cssText='position:absolute;visibility:hidden;width:auto;white-space:nowrap';document.body.appendChild(m);
+ const all=[...Q.flat(),...A];let w=0;for(FS=112;FS>60;FS-=2){m.style.fontSize=FS+'px';w=0;for(const s of all){m.textContent=s;w=Math.max(w,m.getBoundingClientRect().width)}if(w<=432)break}m.remove();
+ // swing angle so the string sweeps fully past the widest line at the text height
+ const reach=w/2+44, dy=TEXT_Y-PIV.y;TH0=Math.atan(reach/dy)}
+// ---- pendulum ----
+const theta=t=>TH0*Math.cos(Math.PI*t/HALF);
+const omega=t=>-TH0*Math.PI/HALF*Math.sin(Math.PI*t/HALF);
+const bob=t=>{const a=theta(t);return{x:PIV.x+L*Math.sin(a),y:PIV.y+L*Math.cos(a),a}};
+const xAt=(t,y)=>{const a=theta(t);return PIV.x+(y-PIV.y)*Math.tan(a)};
+// ---- rocket ----
+const RW=124,RH=56;
+$('rk').innerHTML=`<svg id="rsvg" width="286" height="132" viewBox="-130 -60 260 120" style="position:absolute;left:-143px;top:-66px;overflow:visible">
+ <defs>
+  <linearGradient id="body" x1="0" y1="-1" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#e6e7ec"/><stop offset="1" stop-color="#9ea2ad"/></linearGradient>
+  <linearGradient id="nose" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD36A"/><stop offset=".55" stop-color="#FFB21E"/><stop offset="1" stop-color="#e07b10"/></linearGradient>
+  <linearGradient id="fin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC24A"/><stop offset="1" stop-color="#c96a0c"/></linearGradient>
+  <radialGradient id="glass" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#5a6a8a"/><stop offset=".6" stop-color="#1b2232"/><stop offset="1" stop-color="#0c1018"/></radialGradient>
+  <linearGradient id="flOut" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#FFB21E" stop-opacity=".95"/><stop offset=".5" stop-color="#ff7a1a" stop-opacity=".6"/><stop offset="1" stop-color="#ff4d1a" stop-opacity="0"/></linearGradient>
+  <linearGradient id="flIn" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#ffffff"/><stop offset=".4" stop-color="#FFE7A0"/><stop offset="1" stop-color="#FFD36A" stop-opacity="0"/></linearGradient>
+  <filter id="fglow" x="-50%" y="-80%" width="200%" height="260%"><feGaussianBlur stdDeviation="3.5"/></filter>
+ </defs>
+ <g id="flame" transform="translate(-44 0)">
+  <path id="flo" d="M0 -13 C-30 -12 -60 -6 -90 0 C-60 6 -30 12 0 13 Z" fill="url(#flOut)" filter="url(#fglow)"/>
+  <path id="fli" d="M0 -7 C-18 -6 -34 -3 -50 0 C-34 3 -18 6 0 7 Z" fill="url(#flIn)"/>
+ </g>
+ <path d="M-30 -18 L-50 -36 L-36 -36 L-12 -18 Z" fill="url(#fin)"/>
+ <path d="M-30 18 L-50 36 L-36 36 L-12 18 Z" fill="url(#fin)"/>
+ <rect x="-48" y="-9" width="10" height="18" rx="3" fill="#3a3d46"/>
+ <path d="M-40 -20 C-10 -24 22 -24 34 -18 L34 18 C22 24 -10 24 -40 20 C-44 10 -44 -10 -40 -20 Z" fill="url(#body)"/>
+ <path d="M34 -18 C50 -14 62 -6 68 0 C62 6 50 14 34 18 Z" fill="url(#nose)"/>
+ <path d="M-40 -20 C-10 -24 22 -24 34 -18 L34 -12 C20 -17 -12 -17 -41 -13 Z" fill="#fff" opacity=".55"/>
+ <circle cx="10" cy="0" r="10.5" fill="#FFB21E"/><circle cx="10" cy="0" r="7.5" fill="url(#glass)"/><circle cx="7" cy="-3" r="2.2" fill="#fff" opacity=".7"/>
+ <path d="M-22 -20 L-22 20" stroke="#c7cad3" stroke-width="2"/>
+ <circle cx="-2" cy="-21" r="3.2" fill="#d5d8df" stroke="#9ea2ad" stroke-width="1.2"/>
+</svg>`;
+const rsvg=$('rsvg'), flo=$('flo'), fli=$('fli');
+// ---- fx layer: guide arc, string, trail, sparks ----
+const fx=$('fx'), guide=$('guide');
+let strLine, trail=[], sparks=[];
+function buildFx(){
+ const a0=-TH0*1.03,a1=TH0*1.03,R=L;const p0={x:PIV.x+R*Math.sin(a0),y:PIV.y+R*Math.cos(a0)},p1={x:PIV.x+R*Math.sin(a1),y:PIV.y+R*Math.cos(a1)};
+ sv('path',{d:`M${p0.x} ${p0.y} A${R} ${R} 0 0 0 ${p1.x} ${p1.y}`,fill:'none',stroke:'rgba(255,178,30,.16)','stroke-width':1.5,'stroke-dasharray':'2 9','stroke-linecap':'round'},guide);
+ const defs=sv('defs',{},fx);const lg=sv('linearGradient',{id:'sg',gradientUnits:'userSpaceOnUse',x1:0,y1:0,x2:0,y2:REST_Y},defs);
+ sv('stop',{offset:0,'stop-color':'#ffffff','stop-opacity':.15},lg);sv('stop',{offset:.75,'stop-color':'#ffffff','stop-opacity':.7},lg);sv('stop',{offset:1,'stop-color':'#FFD36A','stop-opacity':1},lg);
+ const bl=sv('filter',{id:'tb',x:'-50%',y:'-50%',width:'200%',height:'200%'},defs);sv('feGaussianBlur',{stdDeviation:5},bl);
+ for(let i=0;i<26;i++)trail.push(sv('line',{stroke:'#FFB21E','stroke-linecap':'round',filter:i%2?'':'url(#tb)'},fx));
+ strLine=sv('line',{stroke:'url(#sg)','stroke-width':2.2,'stroke-linecap':'round'},fx);
+ for(let i=0;i<34;i++)sparks.push(sv('circle',{r:2,fill:'#FFD36A'},fx));
+}
+const hash=n=>{const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)};
+// rocket heading: +1 = nose right. Even swings (k=0,2,..) move left.
+function heading(t){const k=Math.floor(t/HALF);return k%2===0?-1:1}
+// cumulative turn angle (deg) for rotateY: flips 180° around every extreme
+function turnDeg(t){
+ // flip i happens around t=i*HALF; first flip at t=0 runs 0..0.26, others centred slightly after the extreme
+ let n=0;for(let i=0;i<=Math.ceil(t/HALF)+1;i++){const a=i===0?0:i*HALF-0.10,b=i===0?0.26:i*HALF+0.16;n+=ease(clamp((t-a)/(b-a)))}
+ return 180*n}   // n=0 -> facing right (initial, arriving at the right extreme), each flip +180
+function tailPos(t){const b=bob(t),dir=heading(t),a=b.a;const tx=Math.cos(a),ty=-Math.sin(a);return{x:b.x-dir*tx*31,y:b.y-dir*ty*31}}
+
+let READY=false;
+window.renderAt=function(t){if(!READY)return;
+ const b=bob(t),a=b.a,spd=Math.abs(Math.sin(Math.PI*t/HALF));
+ // --- text wipe along the string line ---
+ const k=Math.max(0,Math.floor(t/HALF)),oldT=SEQ[Math.min(k,SEQ.length-1)],newT=SEQ[Math.min(k+1,SEQ.length-1)];
+ if($('tOld').dataset.k!=String(k)){$('tOld').innerHTML=blockHTML(oldT);$('tNew').innerHTML=blockHTML(newT);$('tOld').dataset.k=String(k)}
+ const xt=xAt(t,-2000),xb=xAt(t,3000),movingLeft=k%2===0;
+ const right=`polygon(${xt}px -2000px, 3000px -2000px, 3000px 3000px, ${xb}px 3000px)`,left=`polygon(-3000px -2000px, ${xt}px -2000px, ${xb}px 3000px, -3000px 3000px)`;
+ $('tNew').style.clipPath=movingLeft?right:left;$('tOld').style.clipPath=movingLeft?left:right;
+ // --- string ---
+ strLine.setAttribute('x1',PIV.x);strLine.setAttribute('y1',PIV.y);const at={x:b.x-13*Math.sin(a),y:b.y-13*Math.cos(a)};strLine.setAttribute('x2',at.x);strLine.setAttribute('y2',at.y);
+ // --- light pool following the rocket ---
+ $('light').style.left=(b.x-260)+'px';$('light').style.top=(b.y-260)+'px';$('light').style.opacity=.5*(.35+.65*spd);
+ // --- rocket: hangs perpendicular to the string, nose along motion, 3D turn at extremes ---
+ const deg=turnDeg(t);
+ $('rk').style.left=b.x+'px';$('rk').style.top=b.y+'px';
+ $('rk').style.transform=`rotate(${-a*180/Math.PI}deg)`;
+ rsvg.style.transformOrigin='143px 66px';
+ rsvg.style.transform=`perspective(520px) rotateY(${deg}deg) scale(${0.57+.025*Math.sin(deg*Math.PI/180)**2})`;
+ // flame: length follows speed, flicker
+ const fl=.12+.88*Math.pow(spd,.8),fk=1+.12*Math.sin(t*61)+.08*Math.sin(t*97);
+ flo.setAttribute('transform',`scale(${fl*fk} ${.75+.35*fl})`);fli.setAttribute('transform',`scale(${fl*(1+.1*Math.sin(t*83))} ${.8+.25*fl})`);
+ flo.style.opacity=fli.style.opacity=clamp(fl*1.4);
+ // --- motion trail (past tail positions) ---
+ const n=trail.length;for(let i=0;i<n;i++){const t0=t-i*0.014,t1=t-(i+1)*0.014;const p0=tailPos(t0),p1=tailPos(t1);const s=Math.abs(Math.sin(Math.PI*t0/HALF));
+  const f=1-i/n,e=trail[i];e.setAttribute('x1',p0.x);e.setAttribute('y1',p0.y);e.setAttribute('x2',p1.x);e.setAttribute('y2',p1.y);
+  e.setAttribute('stroke-width',(i%2?1.6:5)*f*(.3+.7*s));e.setAttribute('stroke-opacity',(i%2?.9:.45)*f*f*s*(heading(t0)===heading(t)?1:0))}
+ // --- sparks: emitted from the nozzle, drift back and fall ---
+ const dt=0.03,base=Math.floor(t/dt);
+ sparks.forEach((c,j)=>{const te=(base-j)*dt,age=t-te;const p=tailPos(te),s=Math.abs(Math.sin(Math.PI*te/HALF)),dir=heading(te),h1=hash(base-j),h2=hash(base-j+.37);
+  const vx=-dir*(25+50*h1)*s,vy=(-12+24*h2);const x=p.x+vx*age,y=p.y+vy*age+90*age*age;const life=clamp(1-age/0.9);
+  c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',(.6+1.3*h2)*life);c.setAttribute('fill-opacity',life*s*(0.4+0.6*h1));c.setAttribute('fill',h1>.6?'#ffffff':'#FFC24A')});
+};
+window.ready=Promise.all([document.fonts.load('600 100px Osw','НУЖЕН САЙТ? CRM'),document.fonts.load('800 26px Mont','trafficpro САЙТЫ'),document.fonts.load('600 16px Mont','САЙТЫ РЕКЛАМА ТЕХНОЛОГИИ')]).then(()=>document.fonts.ready).then(()=>{fit();buildFx();READY=true;window.renderAt(0)});
+</script></body></html>

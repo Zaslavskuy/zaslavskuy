@@ -622,7 +622,7 @@ if os.environ.get('LANG_CUT') in ('p8', 'p8uk'):   # "$1M in 3 months" reel
         _f = lambda t: float(np.interp(t, [a for a, b in _A], [b for a, b in _A]))
         CUES = [(round(_f(c[0]), 2),) + tuple(c[1:]) for c in CUES]
         CUTS = [6.52, 14.06, 23.36, 25.56, 28.98, 33.30, 37.36, 42.44, 49.72, 58.48]
-if os.environ.get('LANG_CUT') == 'p9':   # agency CRM reel
+if os.environ.get('LANG_CUT') in ('p9', 'p9uk'):   # agency CRM reel
     CUES = [
         (0.10, 'ui-blip/kenney-ui-rollover1.ogg', -15, 'onset', 'agency chip'),
         (2.42, 'pop/kenney-interface-drop-001.ogg', -14, 'onset', 'module: site'),
@@ -679,6 +679,17 @@ if os.environ.get('LANG_CUT') == 'p9':   # agency CRM reel
         (50.44, 'ding/kenney-interface-confirmation-001.ogg', -13, 'onset', 'request sent'),
     ]
     CUTS = [7.80, 12.10, 18.36, 23.36, 27.14, 34.88, 36.90, 41.18, 44.32, 48.80]
+    if os.environ.get('LANG_CUT') == 'p9uk':   # same cues, moved onto the Ukrainian speech timing
+        _A = [(0, 0), (2.42, 2.58), (3.36, 3.60), (4.00, 4.16), (4.64, 4.78), (5.26, 5.34), (6.84, 6.92), (7.80, 7.96), (9.66, 9.80),
+              (12.10, 12.20), (14.04, 14.22), (14.68, 14.72), (15.14, 15.24), (15.96, 16.22), (16.72, 17.06), (17.86, 17.98), (18.36, 18.48),
+              (19.22, 19.48), (19.76, 19.88), (20.46, 20.60), (22.16, 22.46), (23.36, 23.58), (24.20, 24.38), (24.60, 25.06), (26.60, 27.10),
+              (27.14, 27.38), (27.80, 28.22), (28.72, 29.16), (29.72, 30.26), (30.84, 31.28), (31.58, 31.90), (33.28, 33.60), (34.88, 35.28),
+              (35.10, 35.52), (36.90, 37.40), (37.60, 38.40), (38.40, 39.42), (38.78, 39.80), (39.50, 40.40), (40.42, 41.34), (41.18, 42.10),
+              (41.60, 42.48), (42.04, 42.90), (42.50, 43.36), (43.70, 44.60), (44.32, 45.28), (45.06, 46.12), (47.56, 48.58), (48.80, 49.84),
+              (50.28, 51.22), (54.08, 55.32)]
+        _f = lambda t: float(np.interp(t, [a for a, b in _A], [b for a, b in _A]))
+        CUES = [(round(_f(c[0]), 2),) + tuple(c[1:]) for c in CUES]
+        CUTS = [7.96, 12.20, 18.48, 23.58, 27.38, 35.28, 37.40, 42.10, 45.28, 49.84]
 sfx_bus = np.zeros((N, 2), np.float32)
 report = []
 for c in CUES:

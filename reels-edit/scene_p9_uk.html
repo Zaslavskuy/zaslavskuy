@@ -1,0 +1,429 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Agency CRM reel overlay UK</title>
+<style>
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:200 700}
+@font-face{font-family:Osw;src:url(assets/fonts/oswald-lat.woff2) format('woff2');font-weight:200 700}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-cyr.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-weight:100 900}
+@font-face{font-family:Mont;src:url(assets/fonts/mont-lat.woff2) format('woff2');font-weight:100 900}
+:root{--acc:#FFB21E;--green:#2ecc71}
+html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+#root{position:relative;width:720px;height:1280px;overflow:hidden}
+.scene{position:absolute;inset:0;overflow:hidden;display:none}
+.abs{position:absolute}
+.ov{position:absolute;left:0;top:0;width:720px;height:1280px;display:none}
+/* subtitles */
+#subs{position:absolute;inset:0;pointer-events:none}
+.card{position:absolute;left:0;width:720px;display:none;flex-direction:column;align-items:center;transform:translateY(-50%)}
+.line{display:flex;gap:.22em;justify-content:center;white-space:nowrap;position:relative}
+.w{display:inline-block;transform-origin:50% 60%}
+.ls{font:600 32px/1.1 Mont;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 3px rgba(0,0,0,.5)}
+.lb,.lr{font:600 78px/0.98 Osw;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.45),0 0 3px rgba(0,0,0,.35)}
+.lr{color:var(--acc);text-shadow:0 0 2px rgba(0,0,0,.75),0 3px 6px rgba(0,0,0,.45),0 4px 22px rgba(0,0,0,.6)}
+/* look */
+.v3bg{background:radial-gradient(140% 38% at 50% 0%,rgba(255,178,30,.13) 0%,rgba(255,178,30,.05) 55%,rgba(255,178,30,0) 100%),radial-gradient(circle,#2c2d33 1.6px,transparent 2px) 0 0/30px 30px,#0f1013}
+.glass{background:rgba(28,29,34,.94);border:1px solid rgba(255,255,255,.08);border-radius:26px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.frost{background:rgba(18,18,22,.64);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+svg .wst{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round}
+/* browser window */
+.win{position:absolute;width:560px;border-radius:16px;overflow:hidden;background:#141519;box-shadow:0 30px 70px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07);transform-origin:50% 50%}
+.win .bar{height:32px;display:flex;align-items:center;gap:7px;padding-left:14px;background:#1d1e23}
+.win .dot{width:10px;height:10px;border-radius:50%}
+.win .url{margin-left:14px;width:250px;height:18px;border-radius:9px;background:#2a2b31;position:relative}
+.win .url:before{content:'';position:absolute;left:9px;top:5px;width:7px;height:8px;border-radius:2px;background:#6b6c74}
+.win img{display:block;width:560px;height:421px;object-fit:cover}
+.tag{position:absolute;padding:0 18px;height:46px;border-radius:23px;font:700 18px/46px Mont;color:#fff;white-space:nowrap;background:rgba(20,20,24,.9);border:1px solid rgba(255,178,30,.5);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.tag b{color:var(--acc);margin-right:8px}
+.pill{position:absolute;width:300px;height:58px;border-radius:29px;font:700 18px/58px Mont;color:#fff;white-space:nowrap;padding-left:62px;box-sizing:border-box}
+.pill .ck{position:absolute;left:12px;top:11px;width:36px;height:36px;border-radius:50%;box-sizing:border-box;border:2px solid #4a4b52;color:#111;font:800 20px/32px Mont;text-align:center}
+.inp{position:absolute;height:50px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.inp span{position:absolute;left:16px;top:15px;font:600 19px/1 Mont;color:#fff;white-space:pre}
+.lbl{position:absolute;font:600 14px/1 Mont;color:#9a9ba3}
+</style></head>
+<body><div id="root"><div id="subs"></div></div>
+<script>
+// ================= helpers =================
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const lin=(t,a,b)=>clamp((t-a)/(b-a));
+const eOut=p=>1-Math.pow(1-p,3);
+const eInOut=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eBack=p=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
+const mix=(a,b,p)=>a+(b-a)*p;
+const $=id=>document.getElementById(id);
+function el(tag,cls,parent,style){const e=document.createElement(tag);if(cls)e.className=cls;if(style)Object.assign(e.style,style);if(parent)parent.appendChild(e);return e}
+function svgEl(tag,attrs,parent){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function kf(t,keys,ease=eInOut){if(t<=keys[0][0])return keys[0][1];for(let i=1;i<keys.length;i++){if(t<=keys[i][0]){const[a,va]=keys[i-1],[b,vb]=keys[i];const p=ease((t-a)/(b-a));return Array.isArray(va)?va.map((v,j)=>mix(v,vb[j],p)):mix(va,vb,p)}}return keys[keys.length-1][1]}
+function pop(t,at,dur=.16,from=.6){const p=lin(t,at,at+dur);return{o:t<at?0:clamp(p*2.2),s:from+(1-from)*eBack(p),b:(1-p)*5}}
+function applyPop(e,t,at,extra='',dur,from){const q=pop(t,at,dur,from);e.style.opacity=q.o;e.style.transform=`${extra} scale(${q.s})`;e.style.filter=q.b>.05?`blur(${q.b}px)`:'none'}
+const typed=(str,t,a,b)=>str.slice(0,Math.round(clamp((t-a)/(b-a))*str.length));
+const fmtInt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const ACC='#FFB21E';
+const UK=new URLSearchParams(location.search).get('lang')==='uk';
+const L=UK?{
+ tags:['Оренда яхт · Дубай','Клінінгова компанія','Архітектурне бюро','Агенція байєрів · Італія'],
+ toast:['Нова заявка з сайту','щойно'], pills:['Адаптив під смартфони','SEO-оптимізація','Продумана структура','Зручні форми заявок'],
+ query:'оренда яхт дубай', ours:'NACRE — оренда яхт у Дубаї', tree:['Головна','Послуги','Кейси','Відгуки','Контакти'],
+ formTitle:'Залишити заявку', name:'Ім\'я', phone:'Телефон', send:'Надіслати', sent:'✓ Заявку надіслано', person:'Олександр',
+ adsTitle:'🚀 Готовий до запуску реклами', adsWait:'Налаштування…', adsOk:'✓ Готово', camp:'Рекламна кампанія', paused:'● На паузі', active:'● Активна · Google + Instagram', leads:'Нові заявки',
+ ctaTitle:'Заявка на розробку сайту', ctaBtn:'Залишити заявку',
+}:{
+ tags:['Аренда яхт · Дубай','Клининговая компания','Архитектурное бюро','Байерское агентство · Италия'],
+ toast:['Новая заявка с сайта','только что'], pills:['Адаптив под смартфоны','SEO-оптимизация','Продуманная структура','Удобные формы заявок'],
+ query:'аренда яхт дубай', ours:'NACRE — аренда яхт в Дубае', tree:['Главная','Услуги','Кейсы','Отзывы','Контакты'],
+ formTitle:'Залишити заявку', name:'Имя', phone:'Телефон', send:'Отправить', sent:'✓ Заявку надіслано', person:'Олександр',
+ adsTitle:'🚀 Готов к запуску рекламы', adsWait:'Настройка…', adsOk:'✓ Готово', camp:'Рекламная кампания', paused:'● На паузе', active:'● Активна · Google + Instagram', leads:'Новые заявки',
+ ctaTitle:'Заявка на разработку сайта', ctaBtn:'Залишити заявку',
+};
+// UK cut: remap its timeline onto the RU animation timeline, per scene
+function remap(t,pts){if(t<=pts[0][0])return pts[0][1]+(t-pts[0][0]);for(let i=1;i<pts.length;i++){if(t<=pts[i][0]){const[a,ra]=pts[i-1],[b,rb]=pts[i];return ra+(t-a)/(b-a)*(rb-ra)}}const Z=pts[pts.length-1];return Z[1]+(t-Z[0])}
+const TM=UK?{
+ show:[[4.00,4.00],[13.64,13.42],[14.56,14.64]],
+ feat:[[17.10,17.00],[17.24,17.06],[18.02,17.90],[18.68,18.58],[19.06,18.94],[20.02,19.88],[20.64,20.54],[21.40,21.22],[21.88,21.72],[22.26,22.14],[22.84,22.74]],
+ ads:[[24.26,24.08],[25.14,24.94],[25.58,25.34],[27.34,27.12],[27.94,27.52],[28.38,28.00],[29.66,29.10],[30.60,30.00],[30.98,30.40]],
+ cta:[[33.08,32.38],[33.70,33.02],[34.20,33.56],[34.36,33.72],[38.30,37.66]],
+}:null;
+const root=$('root');
+function mkScene(id,cls){const s=el('div','scene '+(cls||''));s.id=id;root.insertBefore(s,$('subs'));return s}
+function mkOv(id){const s=el('div','ov');s.id=id;root.insertBefore(s,$('subs'));return s}
+const ICON={
+ g:`<path fill="none" stroke="${ACC}" stroke-width="12" d="M80 30 A36 36 0 1 0 86 54 L52 54"/>`,
+ ig:`<rect x="12" y="12" width="76" height="76" rx="22" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="50" cy="50" r="17" fill="none" stroke="${ACC}" stroke-width="9"/><circle cx="70" cy="30" r="5" fill="${ACC}"/>`,
+ mail:'<path fill="none" stroke="#111" stroke-width="8" stroke-linejoin="round" d="M14 26 H86 V74 H14 Z M14 26 L50 54 L86 26"/>',
+};
+const svgIcon=(name,size)=>`<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;display:block">${ICON[name]}</svg>`;
+// image swap that resolves once the new frame is decoded
+const pending=[];
+function setImg(img,src){if(img.dataset.src===src)return;img.dataset.src=src;img.src=src;pending.push(img.decode().catch(()=>{}))}
+
+// ================= P3: "ads that don't bring clients" reel =================
+const RED='#ff4d4d';
+const T=UK?{
+ warn:'⚠ Де губляться заявки',
+ prob:[['Креативи','не чіпляють увагу'],['Пропозиція','не виділяє серед конкурентів'],['Налаштування реклами','бюджет іде не тій аудиторії'],['Посадкова сторінка','люди йдуть без заявки']],
+ cab:'Рекламний кабінет · 30 днів', spent:'Витрачено', leads:'Заявки', cpl:'Ціна заявки', exp:'витрати', lds:'заявки', will:'Бажання займатися рекламою',
+ resHead:'Результати <span style="color:#FFB21E">наших клієнтів</span>',
+ niches:[['Нерухомість','Дубай'],['Оптовий продаж одягу','Італія'],['Сфера послуг',''],['Сіра ніша','']], nda:'ніша під NDA', b2c:'B2C-послуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">зв\'язка</span>', nodes:['Пропозиція','Креативи','Сайт','Instagram','Заявка'],
+ cta:'Заявка на просування', name:'Ім\'я', phone:'Телефон', btn:'Залишити заявку', sent:'✓ Заявку надіслано', person:'Олександр',
+}:{
+ warn:'⚠ Где теряются заявки',
+ prob:[['Креативы','не цепляют внимание'],['Предложение','не выделяет среди конкурентов'],['Настройки рекламы','бюджет уходит не той аудитории'],['Посадочная страница','люди уходят без заявки']],
+ cab:'Рекламный кабинет · 30 дней', spent:'Потрачено', leads:'Заявки', cpl:'Цена заявки', exp:'расходы', lds:'заявки', will:'Желание заниматься рекламой',
+ resHead:'Результаты <span style="color:#FFB21E">наших клиентов</span>',
+ niches:[['Недвижимость','Дубай'],['Оптовая продажа одежды','Италия'],['Сфера услуг',''],['Серая ниша','']], nda:'ниша под NDA', b2c:'B2C-услуги', stamp:'секретно',
+ chain:'Вся <span style="color:#FFB21E">связка</span>', nodes:['Предложение','Креативы','Сайт','Instagram','Заявка'],
+ cta:'Заявка на продвижение', name:'Имя', phone:'Телефон', btn:'Залишити заявку', sent:'✓ Заявку надіслано', person:'Олександр',
+};
+const TM3=UK?{
+ prob:[[7.30,7.30],[7.42,7.62],[8.62,8.98],[9.32,9.64],[10.58,10.88],[11.68,12.06],[13.80,14.10]],
+ budget:[[15.50,15.70],[16.48,16.56],[16.92,17.06],[18.54,18.52],[19.30,19.30],[19.52,20.20]],
+ res:[[23.10,22.20],[24.04,23.30],[25.68,25.10],[27.64,27.30],[29.32,29.00],[30.34,30.02],[30.72,30.32],[31.40,31.20]],
+ chain:[[35.40,35.00],[36.16,35.52],[36.92,36.58],[37.94,37.34],[38.62,38.04],[39.18,38.54],[40.04,39.34],[40.92,40.20],[41.40,40.60]],
+ cta:[[44.30,43.34],[44.96,44.04],[45.12,44.20],[48.60,47.68]],
+}:null;
+const IC={
+ img:`<rect x="12" y="20" width="76" height="60" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><circle cx="34" cy="40" r="7" fill="${ACC}"/><path d="M16 74 L40 52 L56 66 L68 56 L86 74" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ tag:`<path d="M14 50 L50 14 H86 V50 L50 86 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><circle cx="68" cy="32" r="7" fill="${ACC}"/>`,
+ sliders:`<path d="M14 28 H86 M14 50 H86 M14 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="66" cy="28" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="30" cy="50" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/><circle cx="74" cy="72" r="9" fill="#17181c" stroke="${ACC}" stroke-width="6"/>`,
+ page:`<rect x="30" y="12" width="56" height="72" rx="8" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M42 32 H74 M42 46 H66" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/><path d="M8 80 L28 60 M28 60 L14 60 M28 60 L28 74" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ home:`<path d="M14 48 L50 18 L86 48 M24 42 V84 H76 V42" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><rect x="42" y="58" width="16" height="26" fill="${ACC}"/>`,
+ hanger:`<path d="M50 30 Q50 18 60 20 Q68 24 60 32 L50 40 L12 70 Q8 76 16 76 H84 Q92 76 88 70 L50 40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`,
+ tools:`<path d="M30 70 L62 38 M58 22 A16 16 0 0 0 78 42 L66 38 L62 34 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><path d="M22 78 L30 70" stroke="${ACC}" stroke-width="12" stroke-linecap="round"/>`,
+ mask:`<path d="M10 36 Q50 22 90 36 Q90 66 66 70 Q56 72 50 60 Q44 72 34 70 Q10 66 10 36 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/><ellipse cx="32" cy="46" rx="8" ry="5" fill="${ACC}"/><ellipse cx="68" cy="46" rx="8" ry="5" fill="${ACC}"/>`,
+ browser:`<rect x="10" y="18" width="80" height="64" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M10 36 H90" stroke="${ACC}" stroke-width="7"/><circle cx="22" cy="27" r="3.5" fill="${ACC}"/><circle cx="33" cy="27" r="3.5" fill="${ACC}"/>`,
+ ig:ICON.ig, check:`<path d="M22 52 L42 72 L80 30" fill="none" stroke="#111" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`,
+};
+const ic=(n,s)=>`<svg viewBox="0 0 100 100" width="${s}" height="${s}" style="overflow:visible;display:block">${IC[n]}</svg>`;
+function slideScene(S,t,a){const sp=eOut(lin(t,a,a+.34));S.style.transform=sp<1?`translateY(${(1-sp)*100}%)`:'none';S.style.borderRadius=sp<1?'36px 36px 0 0':'0'}
+function expandScene(S,t,a){const p=eOut(lin(t,a,a+.34));S.style.clipPath=p<1?`inset(${(1-p)*40}% ${(1-p)*26}% ${(1-p)*40}% ${(1-p)*26}% round ${10+30*(1-p)}px)`:'none'}
+
+// ---------- extra icons ----------
+Object.assign(IC,{
+ users:`<circle cx="38" cy="34" r="13" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M14 82 A24 24 0 0 1 62 82" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="70" cy="40" r="9" fill="none" stroke="${ACC}" stroke-width="6"/><path d="M62 62 A18 18 0 0 1 88 78" fill="none" stroke="${ACC}" stroke-width="6" stroke-linecap="round"/>`,
+ user:`<circle cx="50" cy="34" r="16" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M20 86 A30 30 0 0 1 80 86" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/>`,
+ chart:`<path d="M14 84 H88" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><path d="M18 70 L40 48 L56 60 L84 24" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M68 24 H84 V40" fill="none" stroke="${ACC}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`,
+ cal:`<rect x="12" y="20" width="76" height="66" rx="12" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M12 40 H88 M32 10 V28 M68 10 V28" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/>`,
+ list:`<path d="M34 28 H86 M34 50 H86 M34 72 H86" stroke="${ACC}" stroke-width="7" stroke-linecap="round"/><circle cx="16" cy="28" r="5" fill="${ACC}"/><circle cx="16" cy="50" r="5" fill="${ACC}"/><circle cx="16" cy="72" r="5" fill="${ACC}"/>`,
+ deal:`<path d="M10 50 L30 30 L50 40 L70 30 L90 50 L62 78 Q56 84 50 78 L10 50 Z" fill="none" stroke="${ACC}" stroke-width="7" stroke-linejoin="round"/>`,
+ grid:`<rect x="12" y="12" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="56" y="12" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="12" y="56" width="32" height="32" rx="6" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="56" y="56" width="32" height="32" rx="6" fill="${ACC}"/>`,
+});
+const AVC=['#e67e22','#3498db','#9b59b6','#1abc9c','#e84393'];
+const avatar=(par,x,y,ini,i,sz=40)=>{const a=el('div','abs',par,{left:x+'px',top:y+'px',width:sz+'px',height:sz+'px',borderRadius:'50%',background:AVC[i%5],color:'#fff',font:`800 ${Math.round(sz*.42)}px/${sz}px Mont`,textAlign:'center',border:'2.5px solid #1c1d22',boxSizing:'border-box'});a.textContent=ini;return a};
+// stylised property photo
+const PH=[['#f3c98b','#c97b4a','#5a3b2e'],['#9ec9e8','#4a7fa8','#24384d'],['#e9d9c4','#b59a7a','#4a4036']];
+function photo(par,x,y,w,h,k){const p=el('div','abs',par,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderRadius:'12px',overflow:'hidden',background:`linear-gradient(180deg,${PH[k][0]},${PH[k][1]})`});
+ p.innerHTML=`<svg viewBox="0 0 100 70" preserveAspectRatio="none" width="100%" height="100%" style="position:absolute;left:0;top:0"><path d="M0 70 V40 H14 V22 H30 V34 H44 V12 H58 V30 H70 V20 H84 V38 H100 V70 Z" fill="${PH[k][2]}" opacity=".85"/>
+  <g fill="rgba(255,220,150,.75)"><rect x="17" y="27" width="3" height="3"/><rect x="23" y="27" width="3" height="3"/><rect x="47" y="17" width="3" height="3"/><rect x="52" y="22" width="3" height="3"/><rect x="47" y="27" width="3" height="3"/><rect x="73" y="25" width="3" height="3"/><rect x="78" y="31" width="3" height="3"/></g></svg>`;return p}
+function phaseVis(e,t,a,b,dist=260){const i=lin(t,a,a+.32),o=lin(t,b-.24,b);const on=t>=a&&t<b+.001;e.style.display=on?'block':'none';if(!on)return 0;
+ e.style.opacity=clamp(i*2.5)*(1-o);e.style.filter=(1-i)+o>0.02?`blur(${((1-i)+o)*6}px)`:'none';return (1-eOut(i))*dist-eInOut(o)*dist}
+
+// ---------- P9: real-estate agency CRM (TrafficPro) ----------
+const EMO="'Noto Color Emoji',sans-serif";
+Object.assign(IC,{
+ base:`<ellipse cx="50" cy="22" rx="32" ry="10" fill="none" stroke="${ACC}" stroke-width="7"/><path d="M18 22 V78 C18 84 32 90 50 90 C68 90 82 84 82 78 V22 M18 50 C18 56 32 62 50 62 C68 62 82 56 82 50" fill="none" stroke="${ACC}" stroke-width="7"/>`,
+ spark:`<path d="M50 8 L58 40 L90 50 L58 60 L50 92 L42 60 L10 50 L42 40 Z" fill="${ACC}"/>`,
+ copy:`<rect x="30" y="10" width="54" height="64" rx="10" fill="none" stroke="${ACC}" stroke-width="7"/><rect x="14" y="28" width="54" height="64" rx="10" fill="#17181c" stroke="${ACC}" stroke-width="7"/>`,
+});
+const skyGlass={background:'rgba(18,20,26,.46)',border:'1px solid rgba(255,255,255,.28)',backdropFilter:'blur(14px)',boxShadow:'0 14px 40px rgba(0,0,0,.18)'};
+const floatOut=(e,t,out,i=0)=>{e.style.opacity=Math.min(1,parseFloat(e.style.opacity)||0)*(1-out);e.style.transform+=` translateY(${Math.sin(t*1.5+i)*3-out*40}px)`};
+const stepChip=(par,txt)=>{const c=el('div','abs',par,{left:'50%',top:'96px',height:'50px',padding:'0 22px',borderRadius:'25px',background:'rgba(255,178,30,.12)',border:'1px solid rgba(255,178,30,.55)',color:ACC,font:'800 19px/50px Mont',whiteSpace:'nowrap'});c.textContent=txt;return c};
+
+// ---------- SUBTITLES (with optional strike-through) ----------
+const SUB_Y=t=>t<7.96?0.64:t<12.20?0.565:t<35.28?0.87:t<37.40?0.62:t<45.28?0.87:0.545;
+const CARDS=[
+ [0.00,1.60,[['s',[['у',0.00],['вас',0.16]]],['b',[['агенція',0.30]]],['s',[['нерухомості?',0.86]]]]],
+ [1.60,3.12,[['b',[['уявіть,',1.60]]],['s',[['що',2.30],['сайт,',2.58]]]]],
+ [3.12,4.78,[['s',[['база',3.12],["об'єктів,",3.52]]],['b',[['ріелтори,',4.16]]]]],
+ [4.78,5.84,[['b',[['покази',4.78]]],['s',[['та',5.30]]],['b',[['угоди',5.34]]]]],
+ [5.84,7.78,[['s',[['все',5.84],['працює',6.26],['в',6.80]]],['r',[['одній',6.92],['системі',7.22]]]]],
+ [7.78,8.92,[['s',[['саме',7.78],['такі',8.26]]],['b',[['рішення',8.42]]]]],
+ [8.92,10.64,[['s',[['ми',8.92],['розробляємо',9.14],['у',9.80]]],['r',[['traffic',9.90],['pro',10.16]]]]],
+ [10.64,12.22,[['s',[['і',10.64],['ось',10.98],['як',11.42],['це',11.52]]],['b',[['працює',11.68]]]]],
+ [12.22,14.22,[['s',[['кожен',12.22],['ріелтор',12.72],['має',13.10]]],['b',[['свій',13.46],['кабінет',13.70]]]]],
+ [14.22,15.64,[['s',[['додав',14.22]]],['b',[['квартиру',14.72]]],['s',[['до',15.16],['бази',15.24]]]]],
+ [15.64,17.32,[['s',[['і',15.64],['вона',16.00]]],['r',[['автоматично',16.22]]],['s',[["з'явилась",16.94]]]]],
+ [17.32,18.48,[['s',[['у',17.32],['каталозі',17.48],['на',17.90]]],['b',[['сайті',17.98]]]]],
+ [18.48,20.20,[['s',[['система',18.48],['знаходить',19.10],['можливі',19.48]]],['b',[['дублі',19.88]]]]],
+ [20.20,21.74,[['s',[['навіть',20.20],['з',20.54]]],['b',[['помилками',20.60]]],['s',[['на',21.04],['адресах',21.26]]]]],
+ [21.74,23.58,[['s',[['та',21.74],['враховує',22.00]]],['b',[['перейменування',22.46]]],['s',[['вулиць',23.10]]]]],
+ [23.58,25.06,[['s',[['а',23.58],['вбудований',23.94]]],['r',[['штучний',24.38],['інтелект',24.76]]]]],
+ [25.06,26.46,[['s',[['допомагає',25.06],['писати',25.60]]],['b',[['описи',26.04]]]]],
+ [26.46,27.38,[['s',[["об'єктів,",26.46],['що',26.92]]],['b',[['продають',27.08]]]]],
+ [27.38,29.72,[['b',[['керівник',27.38]]],['s',[['призначає',28.22],['завдання',28.70],['ріелторам',29.16]]]]],
+ [29.72,31.28,[['s',[['бачить',29.72],['заплановані',30.26]]],['b',[['покази',30.74]]]]],
+ [31.28,32.54,[['s',[['контролює',31.28]]],['b',[['переговори',31.90]]]]],
+ [32.54,34.00,[['s',[['та',32.54],['відстежує',32.68],['статус',33.24]]],['r',[['продажу',33.60]]]]],
+ [34.00,35.02,[['s',[['кожного',34.00]]],['b',[["об'єкта",34.46]]]]],
+ [35.02,37.56,[['s',[['вся',35.02],['база',35.52],['доступна',35.96],['з',36.40]]],['b',[['будь-якого',36.48]]],['s',[['пристрою',36.96]]]]],
+ [37.56,39.42,[['s',[['навіть',37.56],['на',38.12]]],['b',[['зустрічі',38.20]]],['s',[['ріелтор',38.68],['може',39.10]]]]],
+ [39.42,40.78,[['s',[['швидко',39.42]]],['b',[['підібрати',39.80]]],['s',[['та',40.26],['показати',40.40]]]]],
+ [40.78,42.10,[['s',[['покупцеві',40.78]]],['r',[['альтернативи',41.34]]]]],
+ [42.10,43.66,[['s',[['або',42.10],['додавати',42.48]]],['b',[["об'єкти",42.90]]],['s',[['з',43.24],['дому',43.36]]]]],
+ [43.66,45.10,[['s',[['у',43.66],['будь-який',43.80],['зручний',44.28]]],['b',[['час',44.60]]]]],
+ [45.10,46.72,[['s',[['і',45.10],['все',45.38],['це',45.60],['ми',45.86]]],['b',[['розробляємо',46.12]]]]],
+ [46.72,48.58,[['s',[['під',46.72],['завдання',46.82],['саме',47.24],['вашої',47.56]]],['b',[['агенції',47.98]]]]],
+ [48.58,49.84,[['b',[['бажаєте',48.58]]],['s',[['таку',49.22]]],['r',[['систему?',49.34]]]]],
+ [49.84,51.78,[['b',[['пишіть',49.84]]],['s',[['або',50.44],['залишайте',50.82],['заявку',51.22]]]]],
+ [51.78,53.32,[['s',[['обговоримо',51.78],['ваші',52.50]]],['b',[['процеси',52.72]]]]],
+ [53.32,55.40,[['s',[['та',53.20],['покажемо,',53.32],['як',53.98],['це',54.24],['може',54.40]]],['b',[['виглядати',54.68]]]]],
+];
+const cardEls=[];
+(function(){const R=$('subs');
+ for(const c of CARDS){const ce=el('div','card',R);const words=[];let strike=null;
+  for(const L of c[2]){if(typeof L!=='object')continue;const le=el('div','line l'+L[0],ce);
+   for(const [txt,at] of L[1]){const w=el('span','w',le);w.textContent=L[0]==='s'?txt.toLowerCase():txt.toUpperCase();words.push([w,at])}
+   if(c[2].includes('strike')&&L[0]==='b')strike=el('div','abs',le,{left:'-6px',right:'-6px',top:'50%',height:'7px',background:ACC,transformOrigin:'0 50%',borderRadius:'2px'})}
+  const si=c[2].indexOf('strike');cardEls.push({c,ce,words,strike,sAt:si>=0?c[2][si+1]:0})}})();
+function renderSubs(t){const y=SUB_Y(t)*1280;
+ for(const k of cardEls){const on=t>=k.c[0]&&t<k.c[1];k.ce.style.display=on?'flex':'none';if(!on)continue;k.ce.style.top=y+'px';
+  for(const [w,at] of k.words)applyPop(w,t,at,'',.15,.55);
+  if(k.strike){const p=eOut(lin(t,k.sAt,k.sAt+.2));k.strike.style.transform=`scaleX(${p})`;k.strike.style.opacity=p>0?1:0}}}
+
+// ---------- 1. HOOK in the sky (0–7.8) + brand chip (9.7–12.1) ----------
+const HK={m:[]};
+const HK_M=[['browser','Сайт',2.42],['base','База об’єктів',3.36],['users','Ріелтори',4.00],['cal','Покази',4.64],['deal','Угоди',5.26]];
+(function(){const S=mkOv('hook');HK.S=S;
+ HK.q=el('div','abs',S,Object.assign({left:'50%',top:'56px',height:'62px',padding:'0 24px 0 12px',borderRadius:'31px',display:'flex',alignItems:'center',gap:'12px',whiteSpace:'nowrap',color:'#fff',font:'800 22px/1 Mont'},skyGlass));
+ HK.q.innerHTML=`<div style="width:42px;height:42px;border-radius:50%;background:rgba(15,16,19,.55);display:flex;align-items:center;justify-content:center">${ic('home',26)}</div>Агенція нерухомості?`;
+ const pos=[[60,146],[372,146],[60,222],[372,222],[216,298]];
+ HK_M.forEach(([icn,txt],i)=>{const m=el('div','abs',S,Object.assign({left:pos[i][0]+'px',top:pos[i][1]+'px',width:'288px',height:'62px',borderRadius:'31px',display:'flex',alignItems:'center',gap:'12px',paddingLeft:'10px',boxSizing:'border-box',color:'#fff',font:'800 19px/1 Mont',whiteSpace:'nowrap'},skyGlass));
+  m.innerHTML=`<div style="width:42px;height:42px;border-radius:50%;background:rgba(15,16,19,.55);display:flex;align-items:center;justify-content:center">${ic(icn,24)}</div>${txt}`;HK.m.push({m,p:pos[i]})});
+ HK.one=el('div','abs',S,{left:'50%',top:'170px',height:'96px',padding:'0 40px',borderRadius:'48px',background:'linear-gradient(180deg,#FFD36A,#FFB21E 55%,#E8840F)',color:'#1d1200',font:'800 30px/96px Mont',whiteSpace:'nowrap',boxShadow:'0 14px 50px rgba(255,170,40,.55)'});HK.one.innerHTML='⚡ Одна система';
+ HK.brand=el('div','abs',S,Object.assign({left:'50%',top:'60px',height:'60px',padding:'0 26px',borderRadius:'30px',color:'#fff',font:'800 24px/60px Mont',whiteSpace:'nowrap'},skyGlass));
+ HK.brand.innerHTML=`<span style="color:${ACC}">Traffic PRO</span> · trafficpro.online`;
+})();
+function renderHook(t){const on=t<12.15;HK.S.style.display=on?'block':'none';if(!on)return;
+ const a=t<7.85;[HK.q,HK.one,...HK.m.map(x=>x.m)].forEach(e=>e.style.display=a?(e===HK.q||e===HK.one?'flex':'flex'):'none');
+ if(a){const out=eInOut(lin(t,7.40,7.80));
+  applyPop(HK.q,t,0.10,'translateX(-50%)',.3,.7);const qup=eInOut(lin(t,1.54,1.90));HK.q.style.transform+=` translateY(${-qup*0}px)`;floatOut(HK.q,t,out);
+  const merge=eInOut(lin(t,6.70,7.05));
+  HK.m.forEach(({m,p},i)=>{applyPop(m,t,HK_M[i][2],'',.24,.5);if(merge>0){const dx=360-(p[0]+144),dy=218-(p[1]+31);m.style.transform=`translate(${dx*merge}px,${dy*merge}px) scale(${1-.5*merge})`;m.style.opacity=Math.min(parseFloat(m.style.opacity),1-merge)}floatOut(m,t,out,i)});
+  HK.one.style.display=t>=6.84?'block':'none';applyPop(HK.one,t,6.90,'translateX(-50%)',.26,.4);floatOut(HK.one,t,out,6)}
+ HK.brand.style.display=t>=9.70&&t<12.15?'block':'none';applyPop(HK.brand,t,9.75,'translateX(-50%)',.28,.6);floatOut(HK.brand,t,eInOut(lin(t,11.80,12.12)));
+}
+
+// ---------- 2. MAIN WALKTHROUGH (12.10–34.88) ----------
+const MW={};
+(function(){const S=mkScene('mw','v3bg');MW.S=S;
+ // A: cabinet phone -> site catalog
+ const A=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});MW.A=A;MW.sA=stepChip(A,'Кабінет ріелтора → сайт');
+ const ph=el('div','abs',A,{left:'40px',top:'190px',width:'270px',height:'560px',borderRadius:'40px',border:'9px solid #2b2c31',boxSizing:'border-box',background:'#121317',overflow:'hidden',boxShadow:'0 30px 70px rgba(0,0,0,.6)'});MW.ph=ph;
+ el('div','abs',ph,{left:'50%',top:'8px',width:'80px',height:'20px',marginLeft:'-40px',borderRadius:'10px',background:'#000'});
+ avatar(ph,16,40,'А',0,40);ph.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:64px;top:44px;font:800 14px/1 Mont;color:#fff">Мій кабінет</div><div style="position:absolute;left:64px;top:62px;font:500 11px/1 Mont;color:#8e8f97">Анна · ріелтор</div>`);
+ MW.add=el('div','abs',ph,{left:'14px',top:'96px',width:'224px',height:'44px',borderRadius:'14px',background:ACC,color:'#111',font:'800 15px/44px Mont',textAlign:'center',overflow:'hidden'});MW.add.innerHTML='+ Додати квартиру<div id="mwr" style="position:absolute;left:50%;top:50%;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.7)"></div>';
+ MW.obj=el('div','abs',ph,{left:'14px',top:'156px',width:'224px',height:'230px',borderRadius:'16px',background:'#1d1e23'});photo(MW.obj,10,10,204,110,0);
+ MW.obj.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:12px;top:132px;font:800 15px/1 Mont;color:#fff">2-кімн. квартира</div><div style="position:absolute;left:12px;top:154px;font:600 12px/1 Mont;color:#9a9ba3">74 м² · 12/24 поверх</div><div style="position:absolute;left:12px;top:176px;font:800 16px/1 Mont;color:${ACC}">$118 000</div>`);
+ MW.ok=el('div','abs',ph,{left:'14px',top:'398px',width:'224px',height:'40px',borderRadius:'20px',background:'rgba(46,204,113,.18)',color:'#3ddc84',font:'800 14px/40px Mont',textAlign:'center'});MW.ok.textContent='✓ Додано до бази';
+ const st=el('div','glass abs',A,{left:'350px',top:'250px',width:'340px',height:'440px',borderRadius:'22px',overflow:'hidden'});MW.st=st;
+ st.innerHTML=`<div style="position:absolute;left:0;right:0;top:0;height:34px;background:#1d1e23"></div>${['#ff5f57','#febc2e','#28c840'].map((c,i)=>`<div style="position:absolute;left:${12+i*15}px;top:12px;width:9px;height:9px;border-radius:50%;background:${c}"></div>`).join('')}<div style="position:absolute;left:62px;top:10px;font:700 12px/14px Mont;color:#c9cad2">Сайт агенції · Каталог</div>`;
+ MW.ct=[];for(let i=0;i<4;i++){const x=14+(i%2)*160,y=48+Math.floor(i/2)*190;const tl=el('div','abs',st,{left:x+'px',top:y+'px',width:'152px',height:'178px',borderRadius:'14px',background:'#1d1e23'});photo(tl,6,6,140,92,(i+1)%3);
+  tl.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:10px;top:110px;width:${90-i*8}px;height:9px;border-radius:5px;background:#4a4b53"></div><div style="position:absolute;left:10px;top:128px;width:60px;height:7px;border-radius:4px;background:#33343b"></div>`);MW.ct.push(tl)}
+ MW.nw=el('div','abs',st,{left:'14px',top:'48px',width:'152px',height:'178px',borderRadius:'14px',background:'#26241d',border:`2px solid ${ACC}`,boxSizing:'border-box'});photo(MW.nw,4,4,140,92,0);
+ MW.nw.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:8px;top:106px;font:800 13px/1 Mont;color:#fff">2-кімн. · 74 м²</div><div style="position:absolute;left:8px;top:126px;font:800 14px/1 Mont;color:${ACC}">$118 000</div><div style="position:absolute;right:8px;top:10px;height:20px;padding:0 8px;border-radius:10px;background:${ACC};color:#111;font:800 11px/20px Mont">NEW</div>`);
+ MW.fly=el('div','abs',A,{width:'70px',height:'50px',borderRadius:'10px',overflow:'hidden',boxShadow:'0 0 30px rgba(255,178,30,.8)'});photo(MW.fly,0,0,70,50,0);
+ MW.auto=el('div','abs',A,{left:'50%',top:'790px',height:'56px',padding:'0 24px',borderRadius:'28px',background:'rgba(255,178,30,.14)',border:'1.5px solid rgba(255,178,30,.6)',color:'#fff',font:'800 19px/56px Mont',whiteSpace:'nowrap'});MW.auto.innerHTML=`<span style="color:${ACC}">⚡</span> Автоматично на сайті`;
+ // B: duplicates
+ const B=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});MW.B=B;MW.sB=stepChip(B,'Пошук дублів');
+ const dcard=(y,addr,meta,k)=>{const c=el('div','glass abs',B,{left:'40px',top:y+'px',width:'640px',height:'130px',borderRadius:'22px'});photo(c,16,16,130,98,k);
+  c.insertAdjacentHTML('beforeend',`<div class="ad" style="position:absolute;left:166px;top:30px;font:800 21px/1 Mont;color:#fff;white-space:nowrap">${addr}</div><div style="position:absolute;left:166px;top:66px;font:600 15px/1 Mont;color:#9a9ba3">${meta}</div>`);return c};
+ MW.d1=dcard(180,'вул. Дерибасівська, 12, кв. 45','2-кімн. · 74 м² · 12 поверх',0);
+ MW.d2=dcard(340,'Дерибасовська 12/45','2к · 74м² · 12 пов.',0);
+ MW.typo=el('div','abs',MW.d2,{left:'166px',top:'56px',width:'176px',height:'4px',borderRadius:'2px',background:'repeating-linear-gradient(90deg,#ff4d4d 0 6px,transparent 6px 10px)'});
+ MW.meter=el('div','glass abs',B,{left:'40px',top:'500px',width:'640px',height:'120px',borderRadius:'22px'});
+ MW.meter.innerHTML=`<div style="position:absolute;left:24px;top:22px;font:700 15px/1 Mont;color:#8e8f97">Збіг об’єктів</div><div id="dmp" style="position:absolute;right:24px;top:16px;font:800 30px/1 Mont;color:${ACC}"></div>
+  <div style="position:absolute;left:24px;top:66px;width:592px;height:20px;border-radius:10px;background:#24252b;overflow:hidden"><div id="dmb" style="height:20px;width:0;border-radius:10px;background:linear-gradient(90deg,#FFB21E,#ff7a1a)"></div></div>`;
+ MW.warn=el('div','abs',B,{left:'50%',top:'644px',height:'56px',padding:'0 24px',borderRadius:'28px',background:'rgba(255,178,30,.16)',border:'1.5px solid rgba(255,178,30,.7)',color:'#fff',font:'800 19px/56px Mont',whiteSpace:'nowrap'});MW.warn.innerHTML='⚠ Можливий дубль';
+ MW.ren=el('div','glass abs',B,{left:'40px',top:'728px',width:'640px',height:'150px',borderRadius:'22px'});
+ MW.ren.innerHTML=`<div style="position:absolute;left:24px;top:22px;font:700 15px/1 Mont;color:#8e8f97">🔁 Враховано перейменування вулиці</div>
+  <div style="position:absolute;left:24px;top:62px;font:800 19px/1 Mont;color:#9a9ba3;text-decoration:line-through;text-decoration-color:#ff4d4d">вул. Космонавтів, 10</div>
+  <div style="position:absolute;left:258px;top:58px;font:800 24px/1 Mont;color:${ACC}">→</div>
+  <div style="position:absolute;left:298px;top:62px;font:800 19px/1 Mont;color:#fff">вул. Європейська, 10</div>
+  <div style="position:absolute;left:24px;top:104px;height:30px;padding:0 12px;border-radius:15px;background:rgba(46,204,113,.16);color:#3ddc84;font:800 14px/30px Mont">✓ Той самий об’єкт</div>`;
+ // C: AI description
+ const C=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});MW.C=C;MW.sC=stepChip(C,'✨ ШІ-опис об’єкта');MW.sC.style.fontFamily=`Mont,${EMO}`;
+ const ai=el('div','glass abs',C,{left:'40px',top:'190px',width:'640px',height:'560px',borderRadius:'26px'});MW.ai=ai;
+ photo(ai,24,24,180,124,1);ai.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:224px;top:34px;font:800 21px/1 Mont;color:#fff">2-кімн. квартира · 74 м²</div><div style="position:absolute;left:224px;top:66px;font:600 15px/1.4 Mont;color:#9a9ba3">вул. Європейська, 10 · 12/24 пов.<br>вид на море · ремонт</div>`);
+ MW.gen=el('div','abs',ai,{left:'24px',top:'172px',width:'592px',height:'56px',borderRadius:'16px',background:'linear-gradient(90deg,#FFB21E,#ff8a1a)',color:'#111',font:`800 19px/56px Mont,${EMO}`,textAlign:'center',overflow:'hidden'});MW.gen.innerHTML='✨ Згенерувати опис<div id="air" style="position:absolute;left:50%;top:50%;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.7)"></div>';
+ MW.txt=el('div','abs',ai,{left:'24px',top:'248px',width:'556px',height:'252px',padding:'20px 18px',borderRadius:'18px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',font:'600 22px/1.5 Mont',color:'#e9eaee',whiteSpace:'pre-wrap'});
+ // D: manager dashboard
+ const D=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});MW.D=D;MW.sD=stepChip(D,'Панель керівника');
+ const T=el('div','glass abs',D,{left:'40px',top:'172px',width:'640px',height:'250px',borderRadius:'24px'});MW.T=T;
+ T.innerHTML=`<div style="position:absolute;left:24px;top:20px;font:800 18px/1 Mont;color:#fff">📋 Завдання</div>`;MW.tr=[];
+ [['Показ · 2-кімн., 74 м²','М',2],['Дзвінок покупцю','О',1],['Фото нового об’єкта','А',0]].forEach(([x,ini,k],i)=>{const r=el('div','abs',T,{left:'20px',top:(56+i*62)+'px',width:'600px',height:'52px',borderRadius:'14px',background:'rgba(255,255,255,.04)'});
+  r.innerHTML=`<div style="position:absolute;left:16px;top:0;font:700 16px/52px Mont;color:#e9eaee">${x}</div><div class="as" style="position:absolute;right:62px;top:0;font:700 13px/52px Mont;color:${ACC}">призначено →</div>`;const a=avatar(r,552,8,ini,k,36);MW.tr.push({r,a,as:r.querySelector('.as')})});
+ const W=el('div','glass abs',D,{left:'40px',top:'440px',width:'640px',height:'190px',borderRadius:'24px'});MW.W=W;
+ W.innerHTML=`<div style="position:absolute;left:24px;top:20px;font:800 18px/1 Mont;color:#fff">📅 Покази на тижні</div>`;MW.sh=[];
+ ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'].forEach((d,i)=>{W.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${24+i*86}px;top:56px;width:76px;text-align:center;font:700 13px/1 Mont;color:#8e8f97">${d}</div>`);
+  if([0,1,2,3,4].includes(i)){const b=el('div','abs',W,{left:(24+i*86)+'px',top:'80px',width:'76px',height:'86px',borderRadius:'12px',background:'rgba(255,178,30,.14)',border:`1.5px solid ${ACC}`,boxSizing:'border-box'});
+   b.innerHTML=`<div style="position:absolute;left:0;right:0;top:10px;text-align:center;font:800 14px/1 Mont;color:#fff">${['10:00','12:30','15:00','11:00','17:30'][i]}</div>`;avatar(b,19,36,['А','О','М','И','Д'][i],i,38);MW.sh.push(b)}});
+ const P=el('div','glass abs',D,{left:'40px',top:'648px',width:'640px',height:'230px',borderRadius:'24px'});MW.P=P;
+ P.innerHTML=`<div style="position:absolute;left:24px;top:20px;font:800 18px/1 Mont;color:#fff">🤝 Статус по об’єктах</div>`;MW.pr=[];
+ [['2-кімн., 74 м²',0],['Студія, 38 м²',1],['3-кімн., 96 м²',2]].forEach(([x,k],i)=>{const r=el('div','abs',P,{left:'20px',top:(56+i*56)+'px',width:'600px',height:'46px'});photo(r,0,3,56,40,k);
+  r.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:70px;top:0;font:700 15px/46px Mont;color:#e9eaee">${x}</div><div style="position:absolute;left:220px;top:19px;width:250px;height:8px;border-radius:4px;background:#2c2d33"><div class="pg" style="height:8px;border-radius:4px;background:${ACC};width:0"></div></div><div class="sl" style="position:absolute;right:0;top:9px;height:28px;padding:0 12px;border-radius:14px;font:800 13px/28px Mont;background:rgba(255,255,255,.08);color:#c9cad2"></div>`);
+  MW.pr.push({r,pg:r.querySelector('.pg'),sl:r.querySelector('.sl')})});
+})();
+function renderMW(t){const S=MW.S;const on=t>=12.10&&t<34.88;S.style.display=on?'block':'none';if(!on)return;expandScene(S,t,12.10);
+ // A 12.10–18.30
+ let x=phaseVis(MW.A,t,12.10,18.36);MW.A.style.transform=`translateX(${x}px)`;
+ if(t<18.4){applyPop(MW.sA,t,12.40,'translateX(-50%)',.22,.6);
+  const pq=lin(t,12.30,12.70);MW.ph.style.opacity=clamp(pq*2);MW.ph.style.transform=`translateY(${(1-eBack(pq))*120}px)`;
+  const sq=lin(t,12.80,13.20);MW.st.style.opacity=clamp(sq*2);MW.st.style.transform=`translateY(${(1-eBack(sq))*120}px)`;
+  const press=t>=14.04&&t<14.18;MW.add.style.transform=press?'scale(.95)':'none';const rp=lin(t,14.06,14.5);$('mwr').style.opacity=t>=14.06?(1-rp)*.9:0;$('mwr').style.transform=`translate(-50%,-50%) scale(${1+rp*22})`;
+  const oq=lin(t,14.68,15.0);MW.obj.style.opacity=t<14.68?0:clamp(oq*2);MW.obj.style.transform=`translateY(${(1-eBack(oq))*30}px)`;
+  applyPop(MW.ok,t,15.14,'',.22,.5);
+  const fq=eInOut(lin(t,15.96,16.70));MW.fly.style.display=t>=15.96&&t<16.72?'block':'none';const fx=mix(120,380,fq),fy=mix(380,320,fq)-Math.sin(fq*Math.PI)*120;MW.fly.style.transform=`translate(${fx}px,${fy}px) scale(${1+.3*Math.sin(fq*Math.PI)})`;
+  MW.ct.forEach((c,i)=>{const sh=eInOut(lin(t,16.40,16.72));const dx=(i%2===0?160:-160)*sh,dy=(i%2===1?190:0)*sh;c.style.transform=`translate(${i%2===0?160*sh:(-160*sh)}px,${i%2===1?190*sh:0}px)`;c.style.opacity=i===3?1-sh:1});
+  const nq=lin(t,16.72,17.0);MW.nw.style.opacity=t<16.72?0:clamp(nq*2);MW.nw.style.transform=`scale(${.7+.3*eBack(nq)})`;
+  const gl=eOut(lin(t,17.86,18.1));MW.st.style.boxShadow=`0 24px 60px rgba(0,0,0,.5),0 0 0 ${3*gl}px ${ACC},0 0 ${50*gl}px rgba(255,178,30,${.45*gl})`;
+  applyPop(MW.auto,t,15.96,'translateX(-50%)',.24,.6)}
+ // B 18.36–23.36
+ x=phaseVis(MW.B,t,18.36,23.36);MW.B.style.transform=`translateX(${x}px)`;
+ if(t>=18.36&&t<23.4){applyPop(MW.sB,t,18.50,'translateX(-50%)',.22,.6);applyPop(MW.d1,t,18.60,'',.24,.8);applyPop(MW.d2,t,18.96,'',.24,.8);
+  MW.typo.style.transform=`scaleX(${eOut(lin(t,20.46,20.80))})`;MW.typo.style.transformOrigin='0 50%';MW.typo.style.opacity=t>=20.46?1:0;
+  applyPop(MW.meter,t,19.22,'',.24,.8);const m=eOut(lin(t,19.30,20.40));$('dmb').style.width=(94*m)+'%';$('dmp').textContent=t>=19.30?Math.round(94*m)+'%':'';
+  applyPop(MW.warn,t,19.76,'translateX(-50%)',.24,.5);applyPop(MW.ren,t,22.16,'',.26,.7)}
+ // C 23.36–27.14
+ x=phaseVis(MW.C,t,23.36,27.14);MW.C.style.transform=`translateX(${x}px)`;
+ if(t>=23.36&&t<27.2){applyPop(MW.sC,t,23.50,'translateX(-50%)',.22,.6);applyPop(MW.ai,t,23.60,'',.26,.85);
+  const press=t>=24.20&&t<24.34;MW.gen.style.transform=press?'scale(.97)':'none';const rp=lin(t,24.22,24.7);$('air').style.opacity=t>=24.22?(1-rp)*.9:0;$('air').style.transform=`translate(-50%,-50%) scale(${1+rp*40})`;
+  const TXT='Світла 2-кімнатна квартира 74 м² з панорамним видом на море. Свіжий дизайнерський ремонт, простора кухня-вітальня і тихий двір. 5 хвилин пішки до парку та набережної — ідеальний варіант для життя та інвестицій.';
+  MW.txt.textContent=typed(TXT,t,24.60,26.60)+(t>=24.6&&t<26.8&&Math.floor(t*6)%2?'▍':'');MW.txt.style.borderColor=t>=24.6&&t<26.7?'rgba(255,178,30,.5)':'rgba(255,255,255,.08)'}
+ // D 27.14–34.88
+ x=phaseVis(MW.D,t,27.14,34.90);MW.D.style.transform=`translateX(${x}px)`;
+ if(t>=27.14){applyPop(MW.sD,t,27.20,'translateX(-50%)',.22,.6);applyPop(MW.T,t,27.30,'',.26,.85);
+  MW.tr.forEach(({r,a,as},i)=>{applyPop(r,t,27.40+i*.08,'',.2,.8);const at=27.80+i*.3;applyPop(a,t,at,'',.22,.3);as.style.opacity=t>=at?1:0});
+  applyPop(MW.W,t,29.26,'',.26,.85);MW.sh.forEach((b,i)=>applyPop(b,t,29.72+i*.1,'',.2,.4));
+  applyPop(MW.P,t,30.84,'',.26,.85);
+  const ST=[['Показ','Переговори','Продано ✓'],['Показ','Переговори','Завдаток'],['Показ','Показ','Переговори']];
+  MW.pr.forEach(({pg,sl},i)=>{const s=t<31.58?0:t<33.28?1:2;sl.textContent=ST[i][s];const sold=i===0&&s===2;
+   pg.style.width=(eOut(lin(t,31.0,31.5))*30+eOut(lin(t,31.58,32.1))*[30,30,0][i]+eOut(lin(t,33.28,33.8))*[40,20,30][i])+'%';pg.style.background=sold?'#2ecc71':ACC;
+   sl.style.background=sold?'rgba(46,204,113,.2)':'rgba(255,255,255,.08)';sl.style.color=sold?'#3ddc84':'#c9cad2';if(sold)sl.style.transform=`scale(${.7+.3*eBack(lin(t,33.28,33.5))})`});
+  const gl=eOut(lin(t,34.16,34.4));MW.P.style.boxShadow=`0 24px 60px rgba(0,0,0,.5),0 0 0 ${2*gl}px rgba(255,178,30,.6)`}
+}
+
+// ---------- 3. ANY DEVICE in the sky (35.0–36.9) ----------
+const DV={};
+(function(){const S=mkOv('dev');DV.S=S;
+ DV.c=el('div','abs',S,Object.assign({left:'50%',top:'64px',height:'86px',padding:'0 30px',borderRadius:'43px',display:'flex',alignItems:'center',gap:'18px',color:'#fff',font:`800 22px/1 Mont,${EMO}`,whiteSpace:'nowrap'},skyGlass));
+ DV.c.innerHTML=`<span style="font-size:34px">📱</span><span style="font-size:34px">💻</span><span style="font-size:34px">🖥</span><span>Доступ з будь-якого пристрою</span>`;
+})();
+function renderDev(t){const on=t>=34.95&&t<36.95;DV.S.style.display=on?'block':'none';if(!on)return;
+ applyPop(DV.c,t,35.10,'translateX(-50%)',.3,.6);floatOut(DV.c,t,eInOut(lin(t,36.60,36.92)));}
+
+// ---------- 4. MEETING + FROM HOME (36.90–44.32) ----------
+const MT={alt:[]};
+(function(){const S=mkScene('mt','v3bg');MT.S=S;
+ MT.night=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px',background:'radial-gradient(70% 40% at 70% 10%,rgba(120,140,255,.18),rgba(20,24,60,0) 70%),linear-gradient(180deg,#0b1024,#0a0c18)',opacity:0});
+ // A: meeting phone with alternatives
+ const A=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});MT.A=A;MT.sA=stepChip(A,'На зустрічі з покупцем');
+ const ph=el('div','abs',A,{left:'190px',top:'170px',width:'340px',height:'690px',borderRadius:'48px',border:'10px solid #2b2c31',boxSizing:'border-box',background:'#121317',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.6)'});MT.ph=ph;
+ el('div','abs',ph,{left:'50%',top:'10px',width:'90px',height:'22px',marginLeft:'-45px',borderRadius:'11px',background:'#000'});
+ ph.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:18px;top:48px;font:800 18px/1 Mont;color:#fff">Підбір об’єктів</div>`);
+ MT.f=['2-кімн.','до $120k','центр'].map((x,i)=>{const c=el('div','abs',ph,{left:(18+[0,92,200][i])+'px',top:'82px',height:'32px',padding:'0 12px',borderRadius:'16px',background:'rgba(255,178,30,.16)',border:'1px solid rgba(255,178,30,.6)',color:'#fff',font:'700 13px/32px Mont',whiteSpace:'nowrap'});c.textContent=x;return c});
+ [['2-кімн., 68 м²','$112 000',1],['2-кімн., 71 м²','$116 500',2],['2-кімн., 77 м²','$119 000',0]].forEach(([a,b,k],i)=>{const c=el('div','abs',ph,{left:'14px',top:(130+i*170)+'px',width:'292px',height:'156px',borderRadius:'18px',background:'#1d1e23',border:'1px solid rgba(255,255,255,.06)'});
+  photo(c,10,10,272,84,k);c.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:14px;top:106px;font:800 15px/1 Mont;color:#fff">${a}</div><div style="position:absolute;left:14px;top:128px;font:800 15px/1 Mont;color:${ACC}">${b}</div><div style="position:absolute;right:14px;top:112px;height:26px;padding:0 10px;border-radius:13px;background:rgba(46,204,113,.18);color:#3ddc84;font:800 12px/26px Mont">✓ підходить</div>`);MT.alt.push(c)});
+ MT.badge=el('div','abs',A,{left:'50%',top:'884px',height:'60px',padding:'0 28px',borderRadius:'30px',background:ACC,color:'#111',font:'800 21px/60px Mont',whiteSpace:'nowrap',boxShadow:'0 10px 40px rgba(255,178,30,.45)'});MT.badge.textContent='3 альтернативи за секунди';
+ // B: from home at night
+ const B=el('div','abs',S,{left:0,top:0,width:'720px',height:'1280px'});MT.B=B;MT.sB=stepChip(B,'З дому · у будь-який час');
+ MT.moon=el('div','abs',B,{left:'560px',top:'170px',font:`80px/1 ${EMO}`});MT.moon.textContent='🌙';
+ const lp=el('div','abs',B,{left:'60px',top:'300px',width:'600px',height:'380px',borderRadius:'18px',border:'10px solid #2b2c31',boxSizing:'border-box',background:'#121317',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.6),0 0 80px rgba(120,140,255,.15)'});MT.lp=lp;
+ el('div','abs',B,{left:'20px',top:'680px',width:'680px',height:'20px',borderRadius:'0 0 14px 14px',background:'#3a3b42'});
+ lp.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:22px;top:20px;font:800 18px/1 Mont;color:#fff">Новий об’єкт</div><div id="clk" style="position:absolute;right:22px;top:16px;font:800 22px/1 Mont;color:#9db0ff"></div>`);
+ MT.lf=[['Адреса','вул. Європейська, 10'],['Площа','74 м²'],['Ціна','$118 000']].map(([a,b],i)=>{const r=el('div','abs',lp,{left:'22px',top:(60+i*64)+'px',width:'536px',height:'52px',borderRadius:'12px',background:'rgba(255,255,255,.06)'});
+  r.innerHTML=`<div style="position:absolute;left:14px;top:0;font:600 14px/52px Mont;color:#8e8f97">${a}</div><div class="v" style="position:absolute;left:150px;top:0;font:800 17px/52px Mont;color:#fff;white-space:pre"></div>`;return{r,v:r.querySelector('.v'),txt:b}});
+ MT.save=el('div','abs',lp,{left:'22px',top:'262px',width:'536px',height:'52px',borderRadius:'14px',background:ACC,color:'#111',font:'800 18px/52px Mont',textAlign:'center'});MT.save.textContent='Зберегти';
+ MT.toast=el('div','glass abs',B,{left:'90px',top:'740px',width:'540px',height:'84px',borderRadius:'24px'});
+ MT.toast.innerHTML=`<div style="position:absolute;left:16px;top:16px;width:52px;height:52px;border-radius:14px;background:#2ecc71;color:#fff;font:800 28px/52px Mont;text-align:center">✓</div><div style="position:absolute;left:84px;top:20px;font:800 19px/1 Mont;color:#fff">Об’єкт додано до бази</div><div style="position:absolute;left:84px;top:48px;font:500 15px/1 Mont;color:#9a9ba3">і вже на сайті агенції</div>`;
+})();
+function renderMT(t){const S=MT.S;const on=t>=36.90&&t<44.32;S.style.display=on?'block':'none';if(!on)return;slideScene(S,t,36.90);
+ const nt=eInOut(lin(t,41.00,41.50));MT.night.style.opacity=nt;
+ let x=phaseVis(MT.A,t,36.90,41.30);MT.A.style.transform=`translateX(${x}px)`;
+ if(t<41.4){applyPop(MT.sA,t,37.46,'translateX(-50%)',.22,.6);const pq=lin(t,37.10,37.50);MT.ph.style.opacity=clamp(pq*2);
+  const flip=eInOut(lin(t,39.50,39.95));MT.ph.style.transform=`translateY(${(1-eBack(pq))*140}px) perspective(1200px) rotateY(${flip*-18}deg) scale(${1+.06*flip})`;
+  MT.f.forEach((c,i)=>applyPop(c,t,37.60+i*.12,'',.2,.5));MT.alt.forEach((c,i)=>{const at=38.78+i*.16,q=lin(t,at,at+.32);c.style.opacity=t<at?0:clamp(q*2);c.style.transform=`translateX(${(1-eBack(q))*240}px)`});
+  applyPop(MT.badge,t,40.42,'translateX(-50%)',.24,.5)}
+ x=phaseVis(MT.B,t,41.18,44.32);MT.B.style.transform=`translateX(${x}px)`;
+ if(t>=41.18){applyPop(MT.sB,t,41.30,'translateX(-50%)',.22,.6);applyPop(MT.moon,t,41.40,'',.3,.4);
+  const lq=lin(t,41.30,41.70);MT.lp.style.opacity=clamp(lq*2);MT.lp.style.transform=`translateY(${(1-eBack(lq))*100}px)`;
+  MT.lf.forEach(({v,txt},i)=>{v.textContent=typed(txt,t,41.60+i*.28,41.86+i*.28)});
+  const press=t>=42.40&&t<42.52;MT.save.style.transform=press?'scale(.97)':'none';MT.save.style.background=t>=42.5?'#22b455':ACC;MT.save.style.color=t>=42.5?'#fff':'#111';MT.save.textContent=t>=42.5?'✓ Збережено':'Зберегти';
+  const tq=lin(t,42.50,42.80);MT.toast.style.opacity=t<42.5?0:clamp(tq*2);MT.toast.style.transform=`translateY(${(1-eBack(tq))*80}px)`;
+  const mins=22*60+40+Math.floor(eInOut(lin(t,42.90,43.70))*95);$('clk').textContent=`${String(Math.floor(mins/60)%24).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`}
+}
+
+// ---------- 5. custom-built chip (44.5–47.4) + CTA (48.80–end), top ----------
+const CT={};
+(function(){const S=mkOv('cta');CT.S=S;
+ CT.chip=el('div','frost abs',S,{left:'50%',top:'64px',height:'72px',padding:'0 30px',borderRadius:'36px',color:'#fff',font:`800 22px/72px Mont,${EMO}`,whiteSpace:'nowrap'});CT.chip.innerHTML=`⚙ Під завдання <span style="color:${ACC}">вашої агенції</span>`;
+ const c=el('div','frost abs',S,{left:'60px',top:'56px',width:'600px',height:'312px',borderRadius:'30px',transformOrigin:'50% 0'});CT.c=c;
+ c.innerHTML=`<div style="position:absolute;left:30px;top:26px;font:800 26px/1 Mont;color:#fff">CRM для вашої агенції</div>
+  <div class="lbl" style="left:30px;top:74px">Ім'я</div><div class="inp" style="left:30px;top:94px;width:540px"><span id="ctn"></span></div>
+  <div class="lbl" style="left:30px;top:156px">Телефон</div><div class="inp" style="left:30px;top:176px;width:540px"><span id="ctp"></span></div>
+  <div id="ctw" style="position:absolute;left:30px;top:242px;width:200px;height:52px;border-radius:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);box-sizing:border-box;color:#fff;font:800 18px/50px Mont;text-align:center">✉ Написати</div>
+  <div id="ctb" style="position:absolute;left:244px;top:242px;width:326px;height:52px;border-radius:16px;background:${ACC};color:#111;font:800 19px/52px Mont;text-align:center;overflow:hidden"><span id="ctt">Залишити заявку</span><div id="ctr" style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.6);left:50%;top:50%"></div></div>`;
+ CT.tap=el('div','abs',S,{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.38)',border:'3px solid rgba(255,255,255,.9)',boxSizing:'border-box',boxShadow:'0 6px 20px rgba(0,0,0,.35)'});
+})();
+function renderCTA(t){const on=t>=45.0;CT.S.style.display=on?'block':'none';if(!on)return;
+ CT.chip.style.display=t<47.5?'block':'none';applyPop(CT.chip,t,45.06,'translateX(-50%)',.28,.6);CT.chip.style.opacity=Math.min(parseFloat(CT.chip.style.opacity),1-lin(t,47.15,47.45));
+ const v=t>=48.80;CT.c.style.display=v?'block':'none';CT.tap.style.display=v?'block':'none';if(!v)return;
+ const p=lin(t,48.80,49.18);CT.c.style.opacity=eOut(p);CT.c.style.transform=`translateY(${(1-eBack(p))*-70}px) scale(${.94+.06*eOut(p)})`;
+ applyPop($('ctw'),t,48.86,'',.2,.7);
+ $('ctn').textContent=typed('Олександр',t,49.20,49.46);$('ctp').textContent=typed('+380 •• ••• •• ••',t,49.46,49.70);
+ const tp=kf(t,[[49.72,[580,560]],[50.20,[467,324]],[60,[467,324]]]);const press=t>=50.26&&t<50.38;
+ CT.tap.style.opacity=t<49.72?0:lin(t,49.72,49.82)*(1-lin(t,50.8,51.05));CT.tap.style.transform=`translate(${tp[0]-28}px,${tp[1]-28}px) scale(${press?.78:1})`;
+ $('ctb').style.transform=press?'scale(.96)':'none';const rp=lin(t,50.28,50.7);$('ctr').style.opacity=t>=50.28?(1-rp)*.9:0;$('ctr').style.transform=`translate(-50%,-50%) scale(${1+rp*30})`;
+ const done=t>=50.44;$('ctt').textContent=done?'✓ Заявку надіслано':'Залишити заявку';$('ctb').style.background=done?'#22b455':ACC;$('ctb').style.color=done?'#fff':'#111';
+}
+
+function remap(t,pts){if(t<=pts[0][0])return pts[0][1]+(t-pts[0][0]);for(let i=1;i<pts.length;i++){if(t<=pts[i][0]){const[a,ra]=pts[i-1],[b,rb]=pts[i];return ra+(t-a)/(b-a)*(rb-ra)}}const Z=pts[pts.length-1];return Z[1]+(t-Z[0])}
+// UK speech time -> RU animation time, per scene
+const TMU={
+ hook:[[0,0],[2.58,2.42],[3.60,3.36],[4.16,4.00],[4.78,4.64],[5.34,5.26],[6.80,6.70],[6.92,6.84],[7.60,7.40],[7.96,7.80],[9.90,9.70],[12.00,11.80],[12.20,12.12]],
+ mw:[[12.20,12.10],[13.70,13.40],[14.22,14.04],[14.72,14.68],[15.24,15.14],[16.22,15.96],[17.06,16.72],[17.98,17.86],[18.48,18.36],[19.48,19.22],[19.88,19.76],[20.60,20.46],[22.46,22.16],[23.58,23.36],[24.38,24.20],[25.06,24.60],[27.10,26.60],[27.38,27.14],[28.22,27.80],[29.16,28.72],[29.72,29.26],[30.26,29.72],[31.28,30.84],[31.90,31.58],[33.24,32.94],[33.60,33.28],[34.64,34.16],[35.28,34.88]],
+ dev:[[35.30,34.95],[35.52,35.10],[37.00,36.60],[37.40,36.95]],
+ mt:[[37.40,36.90],[38.20,37.46],[38.40,37.60],[39.42,38.40],[39.80,38.78],[40.40,39.50],[41.34,40.42],[41.90,41.00],[42.10,41.18],[42.48,41.60],[42.90,42.04],[43.36,42.50],[43.80,42.90],[44.60,43.70],[45.28,44.32]],
+ cta:[[45.86,44.80],[46.12,45.06],[48.50,47.45],[49.84,48.80],[51.22,50.28],[55.40,54.40]],
+};
+window.renderAt=function(t){pending.length=0;renderSubs(t);renderHook(remap(t,TMU.hook));renderMW(remap(t,TMU.mw));renderDev(remap(t,TMU.dev));renderMT(remap(t,TMU.mt));renderCTA(remap(t,TMU.cta));return Promise.all(pending)};
+window.renderAt(0);
+</script></body></html>

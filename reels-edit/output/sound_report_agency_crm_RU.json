@@ -1,0 +1,388 @@
+{
+ "music_offset_s": 21.2,
+ "cut_to_beat_error_ms": {
+  "7.8": 184,
+  "12.1": 3,
+  "18.36": 100,
+  "23.36": 138,
+  "27.14": 159,
+  "34.88": 19,
+  "36.9": 27,
+  "41.18": 82,
+  "44.32": 7,
+  "48.8": 15
+ },
+ "cues": [
+  {
+   "t": 0.1,
+   "file": "ui-blip/kenney-ui-rollover1.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "agency chip"
+  },
+  {
+   "t": 2.42,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "module: site"
+  },
+  {
+   "t": 3.36,
+   "file": "pop/kenney-interface-drop-002.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "module: base"
+  },
+  {
+   "t": 4.0,
+   "file": "pop/kenney-interface-drop-003.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "module: realtors"
+  },
+  {
+   "t": 4.64,
+   "file": "pop/kenney-interface-pluck-001.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "module: showings"
+  },
+  {
+   "t": 5.26,
+   "file": "pop/kenney-interface-pluck-002.ogg",
+   "gain_db": -14,
+   "align": "onset",
+   "desc": "module: deals"
+  },
+  {
+   "t": 6.84,
+   "file": "whoosh/fs-683101-quick-woosh.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "modules merge"
+  },
+  {
+   "t": 6.9,
+   "file": "impact/kenney-impact-impactsoft-heavy-000.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "ONE SYSTEM"
+  },
+  {
+   "t": 7.82,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -16,
+   "align": "peak",
+   "desc": "cut"
+  },
+  {
+   "t": 9.75,
+   "file": "ding/kenney-interface-glass-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "Traffic PRO chip"
+  },
+  {
+   "t": 9.66,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 12.16,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "card expands -> cabinet"
+  },
+  {
+   "t": 14.06,
+   "file": "click/fs788933.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "tap add flat"
+  },
+  {
+   "t": 14.68,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "flat card"
+  },
+  {
+   "t": 15.14,
+   "file": "click/kenney-interface-select-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "added ✓"
+  },
+  {
+   "t": 16.2,
+   "file": "whoosh/fs-683101-quick-woosh.ogg",
+   "gain_db": -12,
+   "align": "peak",
+   "desc": "flies to site"
+  },
+  {
+   "t": 16.72,
+   "file": "ding/kenney-interface-glass-002.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "NEW in catalog"
+  },
+  {
+   "t": 18.4,
+   "file": "transition/fs-786514-swoosh-v2.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "duplicates"
+  },
+  {
+   "t": 19.3,
+   "file": "typing/fs-511418-data-reveal-sound.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "similarity meter"
+  },
+  {
+   "t": 19.76,
+   "file": "glitch/kenney-interface-glitch-002.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "possible duplicate"
+  },
+  {
+   "t": 20.46,
+   "file": "tick/fs528561.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "typo underline"
+  },
+  {
+   "t": 22.16,
+   "file": "pop/kenney-interface-pluck-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "street renamed"
+  },
+  {
+   "t": 23.4,
+   "file": "transition/fs-683096-woosh.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "AI description"
+  },
+  {
+   "t": 24.2,
+   "file": "riser/kenney-digital-powerup2.ogg",
+   "gain_db": -17,
+   "align": "onset",
+   "desc": "AI generate"
+  },
+  {
+   "t": 24.6,
+   "file": "typing/fs-447909-keyboard-typing.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "AI typing"
+  },
+  {
+   "t": 27.18,
+   "file": "transition/fs-850347-swipe-various.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "manager panel"
+  },
+  {
+   "t": 27.8,
+   "file": "pop/kenney-interface-pluck-002.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "assign 1"
+  },
+  {
+   "t": 28.1,
+   "file": "pop/kenney-interface-pluck-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "assign 2"
+  },
+  {
+   "t": 28.4,
+   "file": "pop/kenney-interface-pluck-002.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "assign 3"
+  },
+  {
+   "t": 29.72,
+   "file": "ui-blip/kenney-ui-rollover2.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "showings"
+  },
+  {
+   "t": 30.84,
+   "file": "pop/fs-447910-plop.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "status panel"
+  },
+  {
+   "t": 31.58,
+   "file": "ui-blip/kenney-ui-rollover3.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "negotiations"
+  },
+  {
+   "t": 33.28,
+   "file": "ding/kenney-interface-confirmation-002.ogg",
+   "gain_db": -11,
+   "align": "onset",
+   "desc": "SOLD"
+  },
+  {
+   "t": 34.9,
+   "file": "whoosh/fs830856.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 35.1,
+   "file": "ui-blip/kenney-digital-twotone1.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "any device"
+  },
+  {
+   "t": 36.94,
+   "file": "kit/whoosh.ogg",
+   "gain_db": -7,
+   "align": "peak",
+   "desc": "slide-up -> meeting"
+  },
+  {
+   "t": 38.4,
+   "file": "ui-blip/kenney-ui-rollover1.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "filters"
+  },
+  {
+   "t": 38.78,
+   "file": "pop/kenney-interface-drop-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "alt 1"
+  },
+  {
+   "t": 38.94,
+   "file": "pop/kenney-interface-drop-002.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "alt 2"
+  },
+  {
+   "t": 39.1,
+   "file": "pop/kenney-interface-drop-003.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "alt 3"
+  },
+  {
+   "t": 39.6,
+   "file": "transition/fs-702773-swipe-wav.ogg",
+   "gain_db": -13,
+   "align": "peak",
+   "desc": "phone turns to buyer"
+  },
+  {
+   "t": 40.42,
+   "file": "ding/kenney-interface-glass-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "3 alternatives"
+  },
+  {
+   "t": 41.22,
+   "file": "transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "to night / home"
+  },
+  {
+   "t": 41.6,
+   "file": "typing/fs-323432-typing.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "typing object"
+  },
+  {
+   "t": 42.42,
+   "file": "click/fs788933.ogg",
+   "gain_db": -10,
+   "align": "onset",
+   "desc": "save"
+  },
+  {
+   "t": 42.5,
+   "file": "ding/kenney-interface-confirmation-001.ogg",
+   "gain_db": -12,
+   "align": "onset",
+   "desc": "object added"
+  },
+  {
+   "t": 44.34,
+   "file": "whoosh/fs810485.ogg",
+   "gain_db": -6,
+   "align": "peak",
+   "desc": "zoom-blur to face"
+  },
+  {
+   "t": 45.06,
+   "file": "ui-blip/kenney-ui-rollover2.ogg",
+   "gain_db": -15,
+   "align": "onset",
+   "desc": "custom chip"
+  },
+  {
+   "t": 47.56,
+   "file": "whoosh/fs393811.ogg",
+   "gain_db": -17,
+   "align": "peak",
+   "desc": "punch-in"
+  },
+  {
+   "t": 48.84,
+   "file": "transition/fs-850347-swipe-various.ogg",
+   "gain_db": -11,
+   "align": "peak",
+   "desc": "request form slides in"
+  },
+  {
+   "t": 49.2,
+   "file": "typing/fs-323432-typing.ogg",
+   "gain_db": -16,
+   "align": "onset",
+   "desc": "typing"
+  },
+  {
+   "t": 50.28,
+   "file": "click/fs788933.ogg",
+   "gain_db": -8,
+   "align": "onset",
+   "desc": "tap Оставить заявку"
+  },
+  {
+   "t": 50.44,
+   "file": "ding/kenney-interface-confirmation-001.ogg",
+   "gain_db": -13,
+   "align": "onset",
+   "desc": "request sent"
+  }
+ ]
+}

@@ -1,5 +1,5 @@
 """Composite: source video -> camera moves (push-ins / punch-ins / zoom-blur whips) -> overlay frames.
-usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk|p4|p4uk|p5|p5uk|p6|p6uk|p8|p8uk]
+usage: python3 composite.py <source.mp4> <overlayDir> <out_noaudio.mp4> [en|uk|p2|p2uk|p3|p3uk|p4|p4uk|p5|p5uk|p6|p6uk|p8|p8uk|p9]
 """
 import sys, os, subprocess
 import numpy as np, cv2
@@ -161,6 +161,15 @@ if len(sys.argv) > 4 and sys.argv[4] == 'p8uk':    # "$1M in 3 months" reel, Ukr
         (49.72, 55.86, 1.00, 1.04, E), (55.86, 99.0, 1.12, 1.16, E),
     ]
     WHIPS = [23.36, 42.44]
+if len(sys.argv) > 4 and sys.argv[4] == 'p9':      # agency CRM reel
+    A, B, C, E = (0.50, 0.42), (0.50, 0.33), (0.50, 0.40), (0.49, 0.36)
+    CAM = [
+        (0.00, 7.80, 1.00, 1.05, A),
+        (7.80, 9.66, 1.00, 1.03, B), (9.66, 12.20, 1.12, 1.16, B),
+        (34.88, 36.94, 1.12, 1.16, C),
+        (44.32, 47.56, 1.00, 1.04, E), (47.56, 99.0, 1.12, 1.16, E),
+    ]
+    WHIPS = [34.88, 44.32]
 WHIP_LEN = 0.26
 
 

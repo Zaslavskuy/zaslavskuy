@@ -6,6 +6,12 @@
 - `output/reels_final_UK.mp4` — украинская версия (42.4 с): стиль RU v3, украинские тексты и цифры, чипы Facebook/Instagram/Google, карточка конверсии «Відвідувачі → Клієнти», форма заявки в финале
 - `output/reels_final_EN.mp4` — английская версия (38.0 с): субтитры и вся инфографика на английском, суммы в долларах, без карточки Instagram в финале
 
+## Ролик «CRM для агентства недвижимости» (`output/reels_agency_crm_RU.mp4`, 54.1 с)
+Сцена — `scene_p9.html` (`SCENE=scene_p9.html node render_overlay.js …`, `composite.py … p9`, `LANG_CUT=p9 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`).
+- 0–7.8 с: в небе — «Агентство недвижимости?», модули Сайт / База / Риэлторы / Показы / Сделки сливаются в «Одна система»; 9.7–12.1 с плашка Traffic PRO.
+- 12.1–34.9 с: кабинет риэлтора → автопубликация в каталог; поиск дублей (ошибки в адресе, 94%, переименование улицы); ИИ-описание объекта; панель руководителя (задачи, показы, статус продаж).
+- 35–36.9 с: «Доступ с любого устройства»; 36.9–44.3 с: подбор альтернатив на встрече, добавление объекта из дома ночью; в финале форма.
+
 ## Ролик «Миллион за 3 месяца» (`output/reels_million_RU.mp4`, 60.9 с)
 Сцена — `scene_p8.html` (`SCENE=scene_p8.html node render_overlay.js …`, `composite.py … p8`, `LANG_CUT=p8 MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`). Креативы — `assets/p4/`, фото — `assets/vadim.jpg`.
 - Украинская версия: `output/reels_million_UK.mp4` (60.6 с). Сцена `scene_p8_uk.html` собирается из `scene_p8.html` скриптом `python3 make_p8_uk.py`; рендер `SCENE=scene_p8_uk.html …`, `composite.py … p8uk`, `LANG_CUT=p8uk MUSIC_DB=-9 SFX_DB=4 python3 mix.py …`.
